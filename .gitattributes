@@ -4,3 +4,4 @@
 *.html linguist-detectable=false
 *.python linguist-detectable=true
 *.styl linguist-detectable=false
+*.less linguist-detectable=false
