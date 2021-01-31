@@ -1,0 +1,100 @@
+Checking whether the db_host record aleady exists
+Attempting to login to Garmin Connect...
+GC Login successful! Proceeding...
+Checking if the user DB already exists
+User DB Name: 6ee0be32b3442d60b07e52a516e1b800_Athlete_Data_DB
+Executing SQL to check whether the database aleady exists
+Database connection closed.
+User DB Exists: False
+Creating user database...
+Inserting DB connection info...
+Restoring DB schema...
+Inserting GC User Data into postgreSQL:
+Inserting Auto_Sych preferences into postgreSQL:
+Inserting Auto_Sych preferences into postgres/db_info table:
+Login to GC successfull
+Connecting to the PostgreSQL server to check if the data_file already exists...
+2020-10-21_5706345929.zip is downloading...
+Unzipping and removing original files...
+Filesize is: 12113
+Inserting session: 5706345929 with timestamp:2020-10-21 04:39:43
+Inserting timezone info: Australia/Melbourne and local tz timestamp:2020-10-21 15:39:43
+--- All summary data for session: 5706345929 inserted successfully. ---
+Inserting lap from session: 5706345929 with timestamp:2020-10-21 03:58:48
+Inserting lap from session: 5706345929 with timestamp:2020-10-21 04:08:29
+Inserting lap from session: 5706345929 with timestamp:2020-10-21 04:16:12
+Inserting lap from session: 5706345929 with timestamp:2020-10-21 04:24:34
+Inserting lap from session: 5706345929 with timestamp:2020-10-21 04:34:27
+Inserting lap from session: 5706345929 with timestamp:2020-10-21 04:39:43
+--- All lap data for session: 5706345929 inserted successfully. ---
+--- All record data for session: 5706345929 inserted successfully. ---
+
+Execution_time:
+3.623762369155884
+Connecting to the PostgreSQL server to insert data_file_path...
+Connecting to the PostgreSQL server to check if the data_file already exists...
+2020-09-12_5522954605.zip is downloading...
+Unzipping and removing original files...
+Filesize is: 14973
+Inserting session: 5522954605 with timestamp:2020-09-12 02:50:09
+Inserting timezone info: Australia/Melbourne and local tz timestamp:2020-09-12 12:50:09
+--- All summary data for session: 5522954605 inserted successfully. ---
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 01:59:42
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:07:53
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:16:54
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:20:47
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:21:52
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:30:54
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:39:28
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:48:01
+Inserting lap from session: 5522954605 with timestamp:2020-09-12 02:50:09
+--- All lap data for session: 5522954605 inserted successfully. ---
+--- All record data for session: 5522954605 inserted successfully. ---
+
+Execution_time:
+4.089476823806763
+Connecting to the PostgreSQL server to insert data_file_path...
+Connecting to the PostgreSQL server to check if the data_file already exists...
+2020-09-10_5513770806.zip is downloading...
+Unzipping and removing original files...
+Filesize is: 10398
+Inserting session: 5513770806 with timestamp:2020-09-10 03:43:59
+Inserting timezone info: Australia/Melbourne and local tz timestamp:2020-09-10 13:43:59
+--- All summary data for session: 5513770806 inserted successfully. ---
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 02:57:07
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:02:19
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:02:50
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:12:28
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:25:10
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:33:32
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:42:46
+Inserting lap from session: 5513770806 with timestamp:2020-09-10 03:43:59
+--- All lap data for session: 5513770806 inserted successfully. ---
+--- All record data for session: 5513770806 inserted successfully. ---
+
+Execution_time:
+2.555422067642212
+Connecting to the PostgreSQL server to insert data_file_path...
+Connecting to the PostgreSQL server to check if the data_file already exists...
+2020-09-06_5513770467.zip is downloading...
+Unzipping and removing original files...
+Filesize is: 10448
+Inserting session: 5513770467 with timestamp:2020-09-06 05:21:15
+Inserting timezone info: Australia/Melbourne and local tz timestamp:2020-09-06 15:21:15
+--- All summary data for session: 5513770467 inserted successfully. ---
+Inserting lap from session: 5513770467 with timestamp:2020-09-06 04:31:39
+Inserting lap from session: 5513770467 with timestamp:2020-09-06 04:43:03
+Inserting lap from session: 5513770467 with timestamp:2020-09-06 04:52:40
+Inserting lap from session: 5513770467 with timestamp:2020-09-06 05:01:42
+Inserting lap from session: 5513770467 with timestamp:2020-09-06 05:12:07
+Inserting lap from session: 5513770467 with timestamp:2020-09-06 05:21:15
+--- All lap data for session: 5513770467 inserted successfully. ---
+--- All record data for session: 5513770467 inserted successfully. ---
+
+Execution_time:
+2.835249900817871
+Connecting to the PostgreSQL server to insert data_file_path...
+Connecting to the PostgreSQL server to check if the data_file already exists...
+2020-09-05_5513770120.zip is downloading...
+Unzipping and removing original files...
+Filesize is: 9127

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>DB Info</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='js/tablefilter/dist/tablefilter/style/tablefilter.css') }}" rel="stylesheet">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='pulse.ico') }}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Athlete_Data_WebUI.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/tablefilter/dist/tablefilter/tablefilter.js') }}"></script>
+    </head>
+    
+    <body>
+        <div class="alert alert-info alert-dismissible" role="alert" id ="alertBrClose" hidden>               
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>  
+        </div>
+
+        <div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                <!---Categories: success (green), info (blue), warning (yellow), danger (red)-->
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible" role="alert" id ="alertUN">          
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!--DB Info section-->
+
+        <hr>
+
+        <div class="header">
+            <h5><span class="oi oi-home" style="margin-left: 15px; margin-top:15px"></span>  DB Info - DB Server, DB Name, User Credentials: </h5>
+        </div>
+            
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Upon completing the main form and submitting it 
+            for processing your postgreSQL database, db role and the required permissions will be genated. After this, and depending on your 
+            selections the web app will go ahead and download your data from the selected sources and insert them in to the database. Once the process completes you will be able to 
+            access your DB with a pgAdmin or a DB management software of your choice using the below details.</small>
+        </div>
+        
+        <div class="container" style="margin-left: 5px; margin-top:15px">
+            <div class="row justify-content-start">
+                <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
+                    <div class="col-md-12">
+                        <div class="header">
+                            <p><b>DB Server:</b> {{host_ip}}</p>
+                            <p><b>Database:</b> {{db_info}}</p>
+                            <p><b>Role:</b> {{db_username}}</p>
+                            <p><b>Password:</b> {{password_info}}</p>
+                        </div> 
+                    </div>  
+                </span>
+            </div>   
+        </div>
+
+        <hr>
+
+        <!--- DB Schema Section --->
+
+        <div class="header">
+                <h5><span class="oi oi-layers" style="margin-left: 15px; margin-top:15px"></span>  DB Schema - Tables, Fields, Datatypes: </h5>
+            </div>
+                
+            <div>
+                <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >The first step in the data download process just after you submit the form is to create the user specific PostgreSQL DB. 
+                This DB has a unique identifier (<b>{{db_info}}</b>) and it is standalone and not shared with other users. You can view this DB's Tables, Fields and coresponding datesets in the below html table. 
+                To filter the content select the table name from the dropdown box below the table headers. You can also preview the DB model in the graphical form by clicking on the below link.</small>
+            </div>
+
+            <div>
+                <a id="datamodel_preview" href="/datamodel_preview?gc=0&wel=0&mfp=0&dia=0" target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" onclick="addAtribs()">Preview Data Model...</a>
+            </div>
+            
+            <div class="container" style="margin-left: 5px; margin-top:5px">
+                <div class="row justify-content-start">
+                    <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
+                        <div class="col">
+                            <div class="header">
+                                <table class="table table-striped" id="metadataTable" style=margin-top:15px;>
+                                    <thead>
+                                        <tr>
+                                            <th>DB Table:</th>
+                                            <th>Table Field:</th>
+                                            <th>DataType:</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in metadata %} 
+                                            <tr>
+                                                <td>{{row[0]}}</td>
+                                                <td>{{row[1]}}</td>
+                                                <td>{{row[2]}}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div> 
+                        </div>  
+                    </span>
+                </div>   
+            </div>
+
+        <!--Connectiviity and Analisys Section-->
+
+        <div class="header">
+            <h5><span class="oi oi-pie-chart" style="margin-left: 15px; margin-top:15px"></span>  DB Connectivity for Data Analisys - Drivers, Clients etc.: </h5>
+        </div>
+            
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Once the DB gets created and populated with your data, 
+            you will be able to use data analisys tool of your choice to access the database/data and perform the analisys or manipulate the data. There are currently no restrictions on the connectivity methods 
+            and you should be able to use anything that PostgreSQL databases support out of the box. I have tested mine with raw SQL, <a href="https://plot.ly/dash/" class="badge badge-pill badge-secondary">Plotly/Dash</a>, <a href="https://powerbi.microsoft.com/en-us/" class="badge badge-pill badge-secondary">MS PowerBI (ODBC)</a>, MS Excel(ODBC) and <a href="https://tableau.com" class="badge badge-pill badge-secondary">Tableau (ODBC)</a>. </small>
+        </div>
+        
+        <div class="container" style="margin-left: 5px; margin-top:15px">
+            <div class="row justify-content-start">
+                <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
+                    <div class="col-md-12">
+                        <div class="header">
+                            <p><b>Method:</b> ODBC</p>
+                            <p><b>Path:</b> database={{db_info}};driver={PostgreSQL Unicode(x64)};port=5432;server={{host}})</p>
+                            <p><b>Driver:</b> <a href="https://www.postgresql.org/ftp/odbc/versions">https://www.postgresql.org/ftp/odbc/versions</a></p>
+                        </div> 
+                    </div>  
+                </span>
+            </div>
+            
+            <div class="row justify-content-start">
+                <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
+                    <div class="col-md-12">
+                        <div class="header">
+                            <p><b>Method:</b> Direct</p>
+                            <p><b>DB Server:</b> {{host_ip}}</p>
+                            <p><b>Port:</b> tcp/5432</p>
+                            <p><b>Database:</b> {{db_info}}</p>
+                            <p><b>Role:</b> {{db_username}}</p>
+                            <p><b>Password:</b> {{password_info}}</p>
+                        </div> 
+                    </div>  
+                </span>
+            </div>   
+        </div>
+
+        <hr>
+
+        <script>   
+            var filtersConfig =  { 
+                    base_path: 'tablefilter/',
+                    auto_filter: {
+                        delay: 110 //milliseconds
+                    },
+                    filters_row_index: 1,
+                    state: true,
+                    alternate_rows: true,
+                    rows_counter: true,
+                    btn_reset: false,
+                    status_bar: true,
+                    msg_filter: 'Filtering...', 
+                    col_0: "select", 
+                    col_1: "none",
+                    col_2: "none",
+                    display_all_text: "<Show all>",  
+                    sort_select: true,  
+            };
+            var tf = new TableFilter('metadataTable', filtersConfig);
+            tf.init();    
+        </script>
+
+    </body>
+</html>

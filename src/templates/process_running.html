@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>The process is already running</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}" rel="stylesheet">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='pulse.ico') }}">
+        <style type="text/css" media="screen">
+            #MsgBox {
+                background:lightyellow;
+            } 
+        </style>
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Athlete_Data_WebUI.js') }}"></script>
+        <script>
+            function getQueryVariable(variable)
+            {   
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i=0;i<vars.length;i++) {
+                        var pair = vars[i].split("=");
+                        if(pair[0] == variable){return pair[1];}
+                }
+                return(false);
+            }
+        
+            $(document).ready(function() {   
+                setInterval(function() {
+                    //var user = document.getElementById('gcUN').value;
+                    var gcUN = document.getElementById('gcUN');
+                    var user = getQueryVariable("user");
+                    gcUN.value = user;
+                    var extension = '_stdout.txt';
+                    var file = user+extension;
+                    $.ajax({url: "static/stdout/"+file, dataType: "text", success: function(result){
+                        $("#MsgBox").text(result); 
+                        //$("#MsgBox").text($("#MsgBox").text() + result);
+                                         
+                    }});
+                },200);
+            });  
+        </script>
+    </head>
+
+
+    <div class="alert alert-info alert-dismissible" role="alert" id ="alertBrClose" hidden>               
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>     
+    </div>
+    
+    <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            <!---Categories: success (green), info (blue), warning (yellow), danger (red)-->
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible" role="alert" id ="alertRestart">
+                        <!-- <a href="javascript:loadFromSessionStorage_NoDelete()" class="btn btn-xs btn-{{ category }} pull-right" >Start Over</a> -->
+                        {% if continue_btn == 'delete' %}
+                            <a href="javascript:loadFromSessionStorage()" class="btn btn-xs btn-{{ category }} pull-right" >Continue</a>            
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        {% elif continue_btn == 'no_delete' %} 
+                            <a href="javascript:loadFromSessionStorage_NoDelete()" class="btn btn-xs btn-{{ category }} pull-right" >Continue</a>              
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        {% else %}
+                            <!--<a href="javascript:loadFromSessionStorage()" class="btn btn-xs btn-{{ category }} pull-right" >Continue</a> -->            
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        {%endif%}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!--Beginning of the form  -->     
+    
+    <form method="POST"  action= "/process_running" enctype="multipart/form-data" id='process_running-form'>
+        
+        <div>
+            <input type="hidden" name="gcUN" id="gcUN">     
+        </div>
+
+        <!--Progress Msg Box section-->        
+
+        <div class="form-group" style="margin-left: 15px;margin-right: 15px; margin-top:2px;margin-bottom: 5px;">
+        
+            <label for="MsgBox"><b>Status:</b></label>
+            
+            <textarea id="MsgBox" class="form-control" rows="2" placeholder="There are no tasks currently running for this user..."></textarea> 
+            
+        </div>
+
+        <!-- Submit Form-->
+            
+        <button id="btnKillTask" type="submit" class="btn btn-primary" style="margin-left: 15px; margin-top:15px; margin-bottom:15px"><span class="oi oi-warning" aria-hidden="true" ></span> Stop the Running Task</button>
+    </form>
+
+</html>

@@ -1,0 +1,72 @@
+from db_encrypt import generate_key,pad_text,unpad_text
+import Crypto.Random
+from Crypto.Cipher import AES
+from configparser import ConfigParser
+
+#----Crypto Variables. Values must match the values in settings.ini----
+# salt size in bytes
+SALT_SIZE = 16
+# number of iterations in the key generation
+NUMBER_OF_ITERATIONS = 2000 # PG:Consider increasing number of iterations
+# the size multiple required for AES
+AES_MULTIPLE = 16
+
+
+def encrypt(plaintext, password):
+    salt = Crypto.Random.get_random_bytes(SALT_SIZE)
+    #iv = Crypto.Random.get_random_bytes(AES.block_size)12345
+    key = generate_key(password, salt, NUMBER_OF_ITERATIONS)
+    cipher = AES.new(key, AES.MODE_ECB) #PG: Consider changing to MODE_CBC
+    padded_plaintext = pad_text(plaintext, AES_MULTIPLE)
+    ciphertext = cipher.encrypt(padded_plaintext)
+    ciphertext_with_salt = salt + ciphertext
+    return ciphertext_with_salt
+
+def create_encr_ini_file(encr_pass_input,plaintext_ini,encrypted_ini):
+    #encr_pass_input = raw_input('Type in encryption password:')
+    #ini_file_path = raw_input('Type in the path to .ini file that you wish to encrypt:')
+
+    parser = ConfigParser()
+    #Read clear text ini file
+    with open(plaintext_ini, "U") as f:
+            config_txt = f.read()
+            f.close()
+    parser.read_string(unicode(config_txt))
+
+    #Encrypt and write/set sensitive items
+    postgres_password_to_encrypt = parser.get('postgresql','password')
+    encrypted_postgres_password = encrypt(postgres_password_to_encrypt,encr_pass_input).encode('base64')
+    parser.set('postgresql', 'password', encrypted_postgres_password)
+
+    app_secr_key_to_encrypt = parser.get('app','secret_key')
+    encrypted_app_secr_key = encrypt(app_secr_key_to_encrypt,encr_pass_input).encode('base64')
+    parser.set('app', 'secret_key', encrypted_app_secr_key)
+
+    app_secr_key_to_encrypt = parser.get('app','smtp_password')
+    encrypted_app_secr_key = encrypt(app_secr_key_to_encrypt,encr_pass_input).encode('base64')
+    parser.set('app', 'smtp_password', encrypted_app_secr_key)
+
+    dbx_app_key_to_encrypt = parser.get('dropbox','app_key')
+    encrypted_dbx_app_key = encrypt(dbx_app_key_to_encrypt,encr_pass_input).encode('base64')
+    parser.set('dropbox', 'app_key', encrypted_dbx_app_key)
+
+    dbx_app_secret_to_encrypt = parser.get('dropbox','app_secret')
+    encrypted_dbx_app_secret = encrypt(dbx_app_secret_to_encrypt,encr_pass_input).encode('base64')
+    parser.set('dropbox', 'app_secret', encrypted_dbx_app_secret)
+
+
+    #Write the new encrypted ini file
+    with open((encrypted_ini), "a") as configfile:
+        parser.write(configfile)
+
+
+    #with open(ini_file_path, "U") as f:
+        #txt_to_encrypt = f.read()
+        #f.close()
+    #with open(('encrypted_'+ini_file_path), "w") as f:
+        #encrypted_txt = encrypt(txt_to_encrypt,encr_pass_input).encode('base64')
+        #f.write(encrypted_txt)
+        #f.close
+
+if __name__ == "__main__":
+    create_encr_ini_file('12345','settings.ini','postgres_database.ini')

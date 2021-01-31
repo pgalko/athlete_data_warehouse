@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Athlete excersize, wellness and nutrition/blood glucose data download tool</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}" rel="stylesheet">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='pulse.ico') }}">
+        <style type="text/css" media="screen">
+            #MsgBox {
+                background:lightyellow;
+            } 
+            .calendar {
+                background: url(static/open-iconic/png/grid-four-up-3x.png) no-repeat scroll 4px 7px;
+                padding-left: 40px;  
+            }
+
+            .calendar:hover {
+                cursor: pointer 
+            }
+            .heart {
+	            font-size: 12px;
+	            color: white;
+	            animation: beat 1.5s infinite alternate;
+	            transform-origin: center;
+            }
+
+            /* Heart beat animation */
+            @keyframes beat{
+	           to { transform: scale(1.1); }
+            }
+
+        </style>
+
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Athlete_Data_WebUI.js') }}"></script>
+        <!-- Bootstrap Date-Picker Plugin -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+    </head>
+
+    <div class="alert alert-info alert-dismissible" role="alert" id ="alertBrClose" hidden>               
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button> 
+        
+    </div>
+    
+    <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            <!---Categories: success (green), info (blue), warning (yellow), danger (red)-->
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible" role="alert" id ="alertRestart">
+                        <!-- <a href="javascript:loadFromSessionStorage_NoDelete()" class="btn btn-xs btn-{{ category }} pull-right" >Start Over</a> -->
+                        {% if continue_btn == 'delete' %}
+                            <a href="javascript:loadFromSessionStorage()" class="btn btn-xs btn-{{ category }} pull-right" >Continue</a>            
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        {% elif continue_btn == 'no_delete' %} 
+                            <a href="javascript:loadFromSessionStorage_NoDelete()" class="btn btn-xs btn-{{ category }} pull-right" >Continue</a>              
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        {% else %}
+                            <!--<a href="javascript:loadFromSessionStorage()" class="btn btn-xs btn-{{ category }} pull-right" >Continue</a> -->            
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <!-- <strong>Title</strong> --> {{ message }}
+                        {%endif%}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+            
+
+    <div class="header">
+        <h2><span class="oi oi-pulse" style="margin-left: 15px; margin-top:10px"></span>  
+        Athlete excersize, wellness and nutrition/blood glucose data download tool.</h2>
+    </div>
+    
+    <div>
+        <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 1000px" >This tool will (by default) download all of your activities from Garmin Connect in a TCX and FIT formats 
+        and store them in a temporary folder. It will then parse the downloaded files and insert the data into a PostgreSQL database. If you select the "download the wellness data" option, it will also download, 
+        parse and insert to DB your daily wellness data such as Sleep, HR, Calories, Stress, Body composition etc. The copies of the downloaded text files can be uploaded to your Dropbox account for archiving if you choose this option and provide a valid credentials.
+        <p>
+        In addition if you also happen to have a MyFitnessPal or/and Diasend accounts, it can download your daily nutrition and continuous blood glucose monitoring data and insert it in to the PostgreSQL DB for further analisys.
+        </p>
+        </small>
+    </div>
+    
+    
+    <hr>
+
+<!--Beginning of the form  -->     
+    
+    <form method="POST"  action= "/" enctype="multipart/form-data" id='athlete-input-form' onsubmit="return ConfirmDelete()">
+                          
+        <!--Login Section-->
+        
+        <div class="header">
+            <h5><span class="oi oi-key" style="margin-left: 15px; margin-top:2px"></span>  Logins - What are the  login credentials for your Garmin connect, MFP and Diasend accounts (GarminConnect required, MFP and Diasend optional): </h5>
+        </div>
+
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Select the below checkboxes and enter the logon credentials for your Garmin Connect, MyFitnessPal and Diasend accounts (GarminConnect is required, MFP and Diasend optional), to access your data. Alternatively provide path to a CSV file with these credentials (username,password).</small>
+        </div>
+        
+        <div class="container" style="margin-left: 5px; margin-top:5px">
+            <div class="border" style="margin-top:5px; margin-bottom: 5px">
+                <div class="row justify-content-start"> 
+                    
+                    <!--Garmin connect login-->
+                
+                    <div class="col" style="margin-top:10px; margin-left: 10px; margin-bottom: 10px">
+                        <div class="border border-primary">
+                            <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">
+                                <div class="form-group form-check" >
+                                    <input type="checkbox" class="form-check-input" id="GCCheckbox" name="GCCheckbox" value="GCCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="GCCheckbox">Check to login to <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> and get access to your data</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="GCcredRadio" id="enterGCcredRadio" value="enterGCcredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="enterGCcredRadio">Enter the Garmin Connect credentials</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="gcUsernameInput"><b>Garmin Connect Username:</b></label>
+                                    <input type="email" class="form-control" id="gcUsernameInput" name="gcUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
+                                    <small id="GCEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gcPasswordInput"><b>Garmin Connect Password:</b></label>
+                                    <input type="password" class="form-control"  id="gcPasswordInput" name="gcPasswordInput" placeholder="Enter Password"  disabled>
+                                </div>
+                        
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="GCcredRadio" id="getGCcredfromCSV" value="getGCcredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="getGCcredfromCSV">Load the Garmin Connect credentials from CSV file</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="CSVgcCredentialsFile"><b>CSV file with Garmin Connect credentials:</b></label>
+                                    <input type="file" class="form-control-file" id="CSVgcCredentialsFile" name="CSVgcCredentialsFile" disabled>
+                                </div>
+                                
+                                <div>
+                                    <input type="hidden" name="gcUN" id="gcUN">  
+                                    <input type="hidden" name="gcPW" id="gcPW">   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                
+                        
+                <!--MyFitnessPal login-->
+                        
+                
+                    <div class="col" style="margin-left: 5px; margin-top:10px"> 
+                        <div class="border">
+                            <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">                  
+                                <div class="form-group form-check" >
+                                    <input type="checkbox" class="form-check-input" id="MFPCheckbox" name="MFPCheckbox" value="MFPCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="MFPCheckbox">Check to login to <a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-secondary">MyFitnessPal</a> and get access to your data</label>
+                                </div>
+                        
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="MFPcredRadio" id="enterMFPcredRadio" value="enterMFPcredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="enterMFPcredRadio">Enter the MyFitnessPal credentials</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="mfpUsernameInput"><b>MyFitnessPal Username:</b></label>
+                                    <input type="email" class="form-control" id="mfpUsernameInput" name="mfpUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
+                                    <small id="mfpEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="mfpPasswordInput"><b>MyFitnessPal Password:</b></label>
+                                    <input type="password" class="form-control"  id="mfpPasswordInput" name="mfpPasswordInput" placeholder="Enter Password"  disabled>
+                                </div>
+                            
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="MFPcredRadio" id="getMFPcredfromCSV" value="getMFPcredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="getMFPcredfromCSV">Load the MyFitnessPal credentials from CSV file</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="CSVmfpCredentialsFile"><b>CSV file with MFP credentials:</b></label>
+                                    <input type="file" class="form-control-file" id="CSVmfpCredentialsFile" name="CSVmfpCredentialsFile" disabled>
+                                </div>
+
+                                <div>
+                                    <input type="hidden" name="mfpUN" id="mfpUN">  
+                                    <input type="hidden" name="mfpPW" id="mfpPW">   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+
+                <!--Diasend login-->
+                        
+                
+                    <div class="col" style="margin-left: 5px; margin-top:10px; margin-right:10px"> 
+                        <div class="border">
+                            <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">                    
+                                <div class="form-group form-check" >
+                                    <input type="checkbox" class="form-check-input" id="diasendCheckbox" name="diasendCheckbox" value="diasendCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="diasendCheckbox">Check to login to <a href="https://diasend.com//en/" class="badge badge-pill badge-secondary">Diasend</a> and get access to your data</label>
+                                </div>
+                        
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="diasendCredRadio" id="enterDiasendCredRadio" value="enterDiasendCredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="enterDiasendCredRadio">Enter the Diasend credentials</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="diasendUsernameInput"><b>Diasend Username:</b></label>
+                                    <input type="email" class="form-control" id="diasendUsernameInput" name="diasendUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
+                                    <small id="diasendEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="diasendPasswordInput"><b>Diasend Password:</b></label>
+                                    <input type="password" class="form-control"  id="diasendPasswordInput" name="diasendPasswordInput" placeholder="Enter Password"  disabled>
+                                </div>
+                            
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="diasendCredRadio" id="getDiasendCredfromCSV" value="getDiasendCredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                                    <label class="form-check-label" for="getDiasendCredfromCSV">Load the Diasend CGM credentials from CSV file</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label for="CSVdiasendCredentialsFile"><b>CSV file with Diasend credentials:</b></label>
+                                    <input type="file" class="form-control-file" id="CSVdiasendCredentialsFile" name="CSVdiasendCredentialsFile" disabled>
+                                </div>
+
+                                <div>
+                                    <input type="hidden" name="diasendUN" id="diasendUN">  
+                                    <input type="hidden" name="diasendPW" id="diasendPW">   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+    
+        <!--Wellness and Nutrition Section-->
+
+        <div class="header">
+            <h5><span class="oi oi-heart" style="margin-left: 15px; margin-top:2px"></span>  Wellness and Nutrition Data - Do you also want to download your wellness and nutrition data (optional): </h5>
+        </div>
+        
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Your excersize data get downloaded and inserted to DB automaticaly upon providing a correct credentials in the "Login" section. 
+            Please select the below checkbox if you also want to include your wellness  and nutrition data. 
+            You will need to enter a start and optionaly an end date for the daterange that you want to download and insert to DB.</small>
+        </div>
+        
+        <div class="container" style="margin-left: 5px; margin-top:5px">
+            <div class="row justify-content-start">
+                <span class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px">
+                    <div class="col-md-12"> 
+                        <div class="form-group form-check" >
+                            <input type="checkbox" class="form-check-input" id="wellnessCheckbox" name="wellnessCheckbox" value="wellnessCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="wellnessCheckbox">Check to download your <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a> wellness and 
+                            <a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-secondary">MyFitnessPal</a> nutrition data</label> 
+                        </div>                                 
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="col" style="margin-left: 15px;margin-right: 15px; margin-top:2px;margin-bottom: 5px;">       
+                            <label for="startDate"><b>Start date:</b></label>
+                            <input type="text" class="form-control calendar"  id="startDate" name="startDate" aria-describedby="startDateHelp" placeholder="YYYY-MM-DD" autocomplete="off" onchange="saveValue(this)">
+                            <small id="startDateHelp" class="form-text text-muted" >*Please pick a start date .</small>
+                        </div>
+                        <div class="col" style="margin-left: 15px;margin-right: 15px; margin-top:2px;margin-bottom: 5px;">
+                            <label for="endDate"><b>End date:</b></label>
+                            <input type="text" class="form-control calendar" id="endDate" name="endDate" aria-describedby="endDateHelp" placeholder="YYYY-MM-DD" autocomplete="off" onchange="saveValue(this)">
+                            <small id="endDateHelp" class="form-text text-muted" >Please pick an end date (optional).</small>
+                        </div>
+                    </div>
+                </span>
+            </div>   
+        </div>
+        
+        <hr>
+        
+        <!--Maintenance Section-Delete Files and DB data-->
+        
+        <div class="header">
+            <h5><span class="oi oi-loop-square" style="margin-left: 15px; margin-top:2px"></span>  Housekeeping - Do you want to delete all existing files and/or DB data before proceeding with this download (optional): </h5>
+        </div>
+        
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >This option will <b>delete</b> all existing Files and/or DB data before the download, parsing and DB insert. 
+            If left unchecked only the new data/files (currently not present in the DB) will be downloaded, parsed and inserted. If you choose the last option "Delete All data and Exit without re-downloading" all of your data including any usernames and passwords stored in the DB will be deleted, and autosynch will be canceled.
+            </small>
+        </div>
+        
+        <div class="container" style="margin-left: 5px; margin-top:5px">
+            <div class="row justify-content-start">
+                <span class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px">
+                    <div class="col-md-12"> 
+                        <div class="form-group form-check" >
+                            <input type="checkbox" class="form-check-input" id="dataDeleteCheckbox" name="dataDeleteCheckbox" value="dataDeleteCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="dataDeleteCheckbox">Check if you want to delete all previously downloaded files and/or DB data before proceeding with download ! </label> 
+                        </div>
+                        <label><b>Please choose what data to delete:</b></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="deleteData" id="deleteAllData" value="deleteAllData" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="deleteAllData">Delete all data</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="deleteData" id="deleteFiles" value="deleteFiles" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="deleteFiles">Delete files only</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="deleteData" id="deleteDBdata" value="deleteDBdata" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="deleteDBdata">Delete DB data only</label>
+                        </div>
+                        <p></p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="deleteData" id="deleteAlldataExit" value="deleteAlldataExit" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="deleteAlldataExit">Delete All data and <b>Exit</b> without re-downloading</label>
+                        </div>
+                        <p></p>             
+                    </div>
+                    
+                </span>
+            </div>   
+        </div>
+        
+        <hr>
+        
+        <!--Archive to Dropbox-->
+                   
+        <div class="header">
+            <h5><span class="oi oi-box" style="margin-left: 15px; margin-top:2px"></span>  Archive - Do you want to save copies of your activity files and/or copy of the DB to your Dropbox: </h5>
+        </div>
+        
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >
+             The app will download the copies of your files and/or DB backup to your Dropbox account under/Apps/Athlete Data App folder. By choosing this option you confirm that you have an active Dropbox account.
+             This app will only have acess to its own folder "/Apps/Athlete Data App folder" in your Dropbox file structure. All other files and folders will remain unacessible to it!
+            </small>
+        </div>
+        
+        <div class="container" style="margin-left: 5px; margin-top:5px">
+            <div class="row justify-content-start">                                      
+                <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
+                    <div class="col-md-12">                             
+                        <div class="form-group form-check" >
+                            <input type="checkbox" class="form-check-input" id="archiveDataCheckbox" name="archiveDataCheckbox" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="archiveDataCheckbox">Check if you want to archive your files and/or DB backup to Dropbox</label>
+                        </div>
+                        <label><b>Please choose what data to Archive:</b></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="archiveData" id="archiveAllData" value="archiveAllData" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="archiveAllData">Archive all data</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="archiveData" id="archiveFiles" value="archiveFiles" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="archiveFiles">Archive files only</label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="archiveData" id="archiveDBdata" value="archiveDBdata" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="archiveDBdata">Archive DB data only</label>
+                        </div>
+                        <p></p>
+                    </div>
+                </span>
+            </div>
+        </div>
+        <hr>
+
+        <!--Enable/Disable Periodic Auto_Synch-->
+        
+        <div class="header">
+            <h5><span class="oi oi-clock" style="margin-left: 15px; margin-top:2px"></span>  Auto Synch - Do you want to enable automatic data synchronisation: </h5>
+        </div>
+    
+        <div>
+            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >This option is <b>enabled</b> by default upon providing valid Garmin Connect UN and PWD. Please uncheck if you do not wish to synchronise your data automaticaly. 
+               If enabled, the server encrypts and stores your Garmin Connect, MFP and Diasend passwords in the DB and use them to periodicaly check with Garmin connect and MFP whether there are any new data present. If there are, they will be downloaded and stored in the DB (This happens behind the scenes and does not require any user intervention).
+            <p>The data that will be downloaded are: Fit and XML activities, Fit and XML Welness data, Body composition, Daily summaries, Nutrition and CGM data. If you provided a permision to connect to your Dropbox, the downloaded data will be also synchronised with your dropbox.</p>
+            </small>
+        </div>
+    
+        <div class="container" style="margin-left: 5px; margin-top:5px">
+            <div class="row justify-content-start">
+                <span class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px">
+                    <div class="col-md-12"> 
+                        <div class="form-group form-check" >
+                            <input type="checkbox" class="form-check-input" id="AutoSynchCheckbox" name="AutoSynchCheckbox" value="AutoSynchCheckbox" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="AutoSynchCheckbox">Check if you want to enable Auto Synch. If <b>not checked</b> any previous Auto Synch preferences will be disabled and any existing passwords removed from the DB.</label> 
+                        </div>                               
+                    </div>
+                
+                </span>
+            </div>   
+        </div>
+
+<hr>
+        <!--Progress Msg Box section-->        
+
+        <div class="form-group" style="margin-left: 15px;margin-right: 15px; margin-top:2px;margin-bottom: 5px;">
+ 
+            <label for="MsgBox"><b>Status:</b></label>
+             
+            <textarea id="MsgBox" class="form-control" rows="2" placeholder="Once submited, you will see the progress of your task here..."></textarea> 
+             
+        </div>
+            {% if del_progress == 'Error deleting data'%} <span class="badge badge-danger"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Error deleting data</span>
+                {% elif del_progress == 'All data deleted succesfully'%} <span class="badge badge-success"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - All data deleted succesfully</span>
+                {%else%}<span class="badge badge-secondary"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Will be skipped</span>
+            {% endif %} 
+            {% if mfp_progress == 'Error downloading MFP nutrition data'%} <span class="badge badge-danger"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Error downloading data</span>
+                {% elif mfp_progress == 'MFP nutrition data downloaded successfully'%} <span class="badge badge-success"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Will be skipped</span>
+            {% endif %}
+            {% if diasend_progress == 'Error downloading Diasend GCM data'%} <span class="badge badge-danger"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Error downloading data</span>
+                {% elif diasend_progress == 'Diasend CGM data downloaded successfully'%} <span class="badge badge-success"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Will be skipped</span>
+            {% endif %}
+            {% if gc_fit_activ_progress == 'Error downloading GC FIT activities'%} <span class="badge badge-danger"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Error downloading data</span>
+                {% elif gc_fit_activ_progress == 'GC FIT activities downloaded successfully'%} <span class="badge badge-success"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Will be skipped</span>
+            {% endif %}
+            {% if gc_tcx_activ_progress == 'Error downloading GC TCX activities'%} <span class="badge badge-danger"  id="gcActvtTcx" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (TCX) - Error downloading data</span>
+                {% elif gc_tcx_activ_progress == 'GC TCX activities downloaded successfully'%} <span class="badge badge-success"  id="gcActvtTcx" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (TCX) - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="gcActvtTcx" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (TCX) - Will be skipped</span>
+            {% endif %}
+            {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
+                {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
+            {% endif %}
+            {% if gc_json_well_progress == 'Error downloading GC JSON wellness data'%} <span class="badge badge-danger"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Error downloading data</span>
+                {% elif gc_json_well_progress == 'GC JSON wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="gcWellJson"style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Will be skipped</span>
+            {% endif %}
+            {% if gc_json_dailysum_progress == 'Error downloading GC JSON daily summary'%} <span class="badge badge-danger"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Error downloading data</span>
+                {% elif gc_json_dailysum_progress == 'GC JSON daily summary data downloaded successfully'%} <span class="badge badge-success"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Will be skipped</span>
+            {% endif %}           
+        <div> 
+
+
+        <hr>
+        
+<!-- Submit Form-->
+
+        <div>
+            <a id="datamodel_preview" href="/datamodel_preview?gc=1&wel=1&mfp=1&dia=1" target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" onclick="addAtribs()">Preview Data Model based on your selections...</a>
+        </div>
+
+        <div>
+            <a id="db_info" href="/db_info?user=" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" onclick="addAtribs()">View DB info...</a>
+        </div>
+
+        <a href="mailto:pgalko@gmail.com" title="Contact Me" style="position:relative;float:right;margin-right:15px;"><span class="oi oi-envelope-closed"></span> Contact me</a>
+        
+        <button id="btnSubmit" type="submit" class="btn btn-primary" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" disabled ><span class="oi oi-data-transfer-download" aria-hidden="true" ></span> Download & Insert</button>
+    </form>
+   
+
+</html>

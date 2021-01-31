@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Datamodel preview</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}" rel="stylesheet">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='pulse.ico') }}">
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Athlete_Data_WebUI.js') }}"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            .imgbox {
+                display: grid;
+                height: 100%;
+            }
+            .center-fit {
+                max-width: 100%;
+                max-height: 100vh;
+                margin: auto;
+                padding: 5px;
+            }
+        </style>
+    </head>
+    
+    <div class="imgbox" id="datamodel_container">
+            {% if datamodel == 'gc_datamodel'%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_GC_Activity.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+                {% elif datamodel == 'gc_wel_datamodel'%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_GC_Activity_GC_Wellness.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+                {% elif datamodel == 'gc_wel_mfp_datamodel'%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_GC_Activity_GC_Wellness_MFP.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+                {% elif datamodel == 'gc_dia_datamodel'%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_GC_Activity_CGM.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+                {% elif datamodel == 'gc_wel_dia_datamodel'%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_GC_Activity_GC_Wellness_CGM.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+                {% elif datamodel == 'all_data_datamodel'%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_GC_Activity_GC_Wellness_MFP_CGM.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+            {%else%} <img src="{{ url_for('static', filename='images/Athlete_DB_Model_Visualisation_New.jpg') }}" id="datamodel_img" class="center-fit" alt="Datamodel image">
+            {% endif %}          
+    </div>
+
+    
+</html>

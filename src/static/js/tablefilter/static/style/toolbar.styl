@@ -1,0 +1,58 @@
+/**
+ * Toolbar default style
+ */
+
+@import 'config'
+@import 'mixins/empty-content'
+
+// left, middle and right divs container (toolbar)
+.inf
+    clear                       both
+    width                       auto
+    height                      $min-height
+    min-width                   400px
+    background-color            $toolbar-bg-color
+    font-size                   $toolbar-font-size
+    margin                      0
+    padding                     0
+    border-top                  1px solid $toolbar-border-color
+    border-bottom               1px solid $toolbar-border-color
+    border-left                 1px solid $toolbar-border-color
+    border-right                1px solid $toolbar-border-color
+    overflow                    hidden
+    border-top-left-radius      3px
+    border-top-right-radius     3px
+
+    // link appearence
+    a
+        color                   #333
+        text-decoration         none
+        font-weight             bold
+        box-sizing              initial
+        &:hover
+            text-decoration     underline
+
+// left div
+.ldiv
+    empty-content()
+    float                       left
+    width                       30%
+    position                    inherit
+    text-align                  left
+
+// middle div
+.mdiv
+    empty-content()
+    float                       left
+    width                       38%
+    position                    inherit
+    text-align                  center
+    padding                     0
+
+// right div
+.rdiv
+    empty-content()
+    float                       right
+    width                       30%
+    position                    inherit
+    text-align                  right

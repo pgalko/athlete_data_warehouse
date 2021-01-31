@@ -1,0 +1,6 @@
+{
+    "python.linting.pylintArgs": [
+        "--py3k"
+    ],
+    "python.pythonPath": "C:\\Users\\esc\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
+}
