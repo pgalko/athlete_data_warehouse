@@ -1,4 +1,4 @@
-# athlete_data_warehouse 1.0.0
+# athlete_data_warehouse
 
 ## What does it do ?
 This is an experimental web/db server application that allows its users to download all historical activities together with the  wellness data like weight, body composition, continuous HR, HRV, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app. In addition to this, it can automatically synchronize with the above services daily and download and save any new data. Data is downloaded in either FIT,XML or CSV files that then get parsed,cleaned,formated and inserted in to the user's PostgreSQL database for future analysis by the user. And optionally archived in the original export format to user's Dropbox. A live and fully functional service can be explored here:https://athletedata.net.
