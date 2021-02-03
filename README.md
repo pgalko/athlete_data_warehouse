@@ -5,9 +5,9 @@ This is an experimental web/db server application that allows its users to downl
 
 ## Who is it for:
 There is a few alternative usage scenarios.
-* It can be setup and used privately by individuals who want to consolidate their excersize and health records in one place for analysis, research or privacy reasons (could be setup on Windows ,Mac OS ar UNIX workstation or a local or cloud based server). *
-* It can be published from a web server (Apache/Mod-WSGI/Flask/PostgreSQL) and provided to independent users as a data collection and warehousing service (see an example here:https://athletedata.net). *
-* It can be used by researches to collect and consolidate participant's historical and current health and excersize data to present to machine learning models or direct analisys. *
+1. It can be setup and used privately by individuals who want to consolidate their excersize and health records in one place for analysis, research or privacy reasons (could be setup on Windows ,Mac OS ar UNIX workstation or a local or cloud based server). *
+2. It can be published from a web server (Apache/Mod-WSGI/Flask/PostgreSQL) and provided to independent users as a data collection and warehousing service (see an example here:https://athletedata.net). *
+3. It can be used by researches to collect and consolidate participant's historical and current health and excersize data to present to machine learning models or direct analisys. *
 
 ## What data from what sources ?
 * **Garmin Connect** - Activity/Exercise data in FIT and TCX formats.
