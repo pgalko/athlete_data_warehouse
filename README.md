@@ -66,7 +66,7 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
                Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
                
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
-           Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is                important that you remember the password as you will be asked to provide it everytime you restart the app !
+           Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is  important that you remember the password as you will be asked to provide it everytime you restart the app !
            The autosynch loop will be also started at this time and will check for new user data automaticaly at the intervals specified in settings.ini.
            
        Browse to http://127.0.0.1:5000 (if using local Flask server) and you should be able to start experimenting with different download options and settings.
