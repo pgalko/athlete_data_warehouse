@@ -57,9 +57,9 @@ def decrypt(ciphertext, password):
     plaintext = unpad_text(padded_plaintext)
     return plaintext 
 
-encrypted_pw = base64.b64encode(encrypt("Palo_Galko", "12345"))
+encrypted_pw = base64.b64encode(encrypt("Palo_Galko", "00000"))
 print(encrypted_pw)
 
-decrypted_pw = decrypt(base64.b64decode('N6O6RGsY4+c1rZz9yEgH/i/fkD3pqBiAdYujXmYSXt2hmtM6iySgRp26rHJJREIjM28M8fMmt9SDDVMw37mYBIHb/0Lyr8KGpGMC1PuwBbBReTzqRHanOehBg8M14KtR'), '12345')
+decrypted_pw = decrypt(base64.b64decode('N6O6RGsY4+c1rZz9yEgH/i/fkD3pqBiAdYujXmYSXt2hmtM6iySgRp26rHJJREIjM28M8fMmt9SDDVMw37mYBIHb/0Lyr8KGpGMC1PuwBbBReTzqRHanOehBg8M14KtR'), '00000')
 print(decrypted_pw)
 
