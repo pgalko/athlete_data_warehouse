@@ -10,15 +10,15 @@ There is a few alternative usage scenarios.
 * It can be used by researches to collect and consolidate participant's historical and current health and excersize data to present to machine learning models or direct analisys. *
 
 ## What data from what sources ?
-* Garmin Connect - Activity/Exercise data in FIT and TCX formats.
-* Garmin Connect - Wellness/Health data in FIT and XML formats.
-* MyFitnessPal - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
-* Diasend - Blood Glucose data from continuous blood glucose monitors in XLS format.
-* Glimp - Blood Glucose data collected via Glimp android app and stored in Dropbox.
-* LibreView - Blood Glucose data manually exported from LibreView website and stored in Dropbox.
-* Mind Monitor - EEG data from Muse devices collected via Mind Monitor ios/android app and stored in Dropbox.
-* Bearable - Symptoms and medication (Work in progress)
-* Meteostat - Current and historical weather observations (Work in progress)
+* **Garmin Connect** - Activity/Exercise data in FIT and TCX formats.
+* **Garmin Connect** - Wellness/Health data in FIT and XML formats.
+* **MyFitnessPal** - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
+* **Diasend** - Blood Glucose data from continuous blood glucose monitors in XLS format.
+* **Glimp** - Blood Glucose data collected via Glimp android app and stored in Dropbox.
+* **LibreView** - Blood Glucose data manually exported from LibreView website and stored in Dropbox.
+* **Mind Monitor** - EEG data from Muse devices collected via Mind Monitor ios/android app and stored in Dropbox.
+* **Bearable** - Symptoms and medication (Work in progress)
+* **Meteostat** - Current and historical weather observations (Work in progress)
 
 ## How is the user data accessed and downloaded ?
 The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionaly be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a type of web-scraper using the supplied credentials to log in to the user's account. Once logged in, it browses to download pages and iterates through available downloads. Finally it downloads the retrieved data to the server in the FIT,XML or CSV formats.
