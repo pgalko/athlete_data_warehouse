@@ -46,22 +46,31 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
 ## How to Install (Windows single user - for initial exploration)
 ```
        Install Python 3.9 (any Python 3.x version should work)
-       Install python requirements
-           pip install -r requirements.txt 
-       Install postgreSQL v13.1 (tested on 10.0 and above)
+       
+       Clone the repository
+       
+       Install Python requirements
+           cd to src directory an run "pip install -r requirements.txt"
+           
+       Install and configure PostgreSQL v13.1 (tested on 10.0 and above)
            Set path/environmet variables
                C:\Program Files\PostgreSQL\10\lib
                C:\Program Files\PostgreSQL\10\bin
-           Set max prepared transactions to non zero value 
+           Set max prepared transactions to non zero value in the "postgresql.conf"
                (postgresql.conf) -- max_prepared_transactions = 100
-       Create download folder (c:\XML_Dump)
+               
+       Create download folder (eg. C:\Data_Dump)
+       
        Configure and encrypt settings.ini
            Modify "sample_settings.ini" to reflect your environment and use scenario and rename to "settings.ini when done.
-               Detailed description can be found in a header of encrypt_ini_file.py module
+               Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
+               
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
-           You will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is important that you remember the password as you will be asked to provide it everytime you restart the app !
+           Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is                important that you remember the password as you will be asked to provide it everytime you restart the app !
            The autosynch loop will be also started at this time and will check for new user data automaticaly at the intervals specified in settings.ini.
+           
        Browse to http://127.0.0.1:5000 (if using local Flask server) and you should be able to start experimenting with different download options and settings.
+       
        Upon first submit the user data DB and user role will be created. The DB will be accessible using the usual DB management tools like pgAdmin.   
            The DB role and password for user's DB are derived from user's Garmin connect username and password.
                If Garmin connect username = johndoe@gmail.com and password = GCpass123, the DB role will be created as johndoe with password GCpass123.
