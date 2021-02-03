@@ -43,14 +43,14 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
 
 *This tool is a one man's hobby project to cater for his own needs and you are welcome to use it. I have taken every precaution known to me to secure the user data and protect his privacy... but I don't know , what I don't know... and can not guarantee that I have not missed something.*
 
-## How to Install (Windows single user - for initial exploration)
+## How to Install (Windows,private use)
 ```
        Install Python 3.9 (any Python 3.x version should work)
        
        Clone the repository
        
        Install Python requirements
-           cd to src directory an run "pip install -r requirements.txt"
+           cd to src directory and run "pip install -r requirements.txt"
            
        Install and configure PostgreSQL v13.1 (tested on 10.0 and above)
            Set path/environmet variables
@@ -66,7 +66,7 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
                Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
                
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
-           Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is  important that you remember the password as you will be asked to provide it everytime you restart the app !
+           Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is  important that you remember the password as the password is not saved and you will be asked to provide it everytime you restart the app !
            The autosynch loop will be also started at this time and will check for new user data automaticaly at the intervals specified in settings.ini.
            
        Browse to http://127.0.0.1:5000 (if using local Flask server) and you should be able to start experimenting with different download options and settings.
