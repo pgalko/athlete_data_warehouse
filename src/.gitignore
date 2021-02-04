@@ -1,3 +1,4 @@
 settings.json
 encrypted_settings.ini
 .vscode
+__pycache__
