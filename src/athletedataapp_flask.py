@@ -629,8 +629,6 @@ def create_app(encr_pass_input,debug=False):
                         ) 
 
 
-                #----------TEST SITE START (this section to be removed upon going live) ----------------
-                #Test Error Logging
                 with ErrorStdoutRedirection(gc_username):
                     print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Finished Data Download ' + error_log_entry +' -------------' ))
                 with ProgressStdoutRedirection(gc_username):
@@ -711,7 +709,7 @@ def create_app(encr_pass_input,debug=False):
             try:
                 host_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
             except:
-                text = host
+                text = request.host
                 head, sep, tail = text.partition(':')
                 host_ip = head
         else:# Remote DB host

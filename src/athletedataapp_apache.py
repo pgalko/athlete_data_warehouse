@@ -143,33 +143,7 @@ def index():
             elif gc_login_radio == 'getGCcredfromCSV':
                 gc_username = str(request.form.get('gcUN'))
                 gc_password = str(request.form.get('gcPW'))
-
-        #----------TEST SITE START (this section to be removed upon going live) ----------------
-        #Generate and send test email
-        if send_emails == 'true':
-            send_email(
-            encr_pass,
-            'The athlete data download has started',
-            'User %s POSTed the download form'% gc_username,
-            None,
-            None
-            )
-        #Test Error Logging 
-        with ErrorStdoutRedirection(gc_username):
-            print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Started Data Download -------------' ))
-        with ProgressStdoutRedirection(gc_username):
-            print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Started Data Download. App runs as user ID: '+str(os.getegid())))
-        #Test user evaluation
-        eval_user = gc_username
-        if eval_user == 'pgalko@gmail.com' or eval_user == 'idattelova@gmail.com' or eval_user == 'jay.austerberry@groset.com.au':
-            pass
-        else:
-            flash(' This site is not live and fully functional yet, and only handfull of users have access to it at this point in time. Please stand by it will be going live soon :-). In the meantime if you are interested in becoming one of the testers, please drop me an email.','warning')
-            return render_template("index.html")
-        #----------TEST SITE END (this section to be removed upon going live) ----------------
-
-
-                    
+                  
         #----Destination DB variables-----
         db_name = str(str2md5(gc_username)) + '_Athlete_Data_DB'
         
@@ -280,8 +254,6 @@ def index():
             else:
                 archive_to_dropbox = True
         
-
-
         # CLEANUP BEFORE DOWNLOAD -----------------   
                 
         #----Delete Files and DB Data variables----
@@ -660,8 +632,6 @@ def index():
                         ) 
 
 
-            #----------TEST SITE START (this section to be removed upon going live) ----------------
-            #Test Error Logging
             with ErrorStdoutRedirection(gc_username):
                 print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Finished Data Download ' + error_log_entry +' -------------' ))
             with ProgressStdoutRedirection(gc_username):
@@ -742,7 +712,7 @@ def db_info():
         try:
             host_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
         except:
-            text = host
+            text = request.host
             head, sep, tail = text.partition(':')
             host_ip = head
     else:# Remote DB host
