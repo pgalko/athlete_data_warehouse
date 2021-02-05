@@ -54,15 +54,15 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
            
        Install and configure PostgreSQL v13.1 (tested on 10.0 and above)
            Set path/environmet variables
-               C:\Program Files\PostgreSQL\10\lib
-               C:\Program Files\PostgreSQL\10\bin
+               eg.C:\Program Files\PostgreSQL\13\lib
+               eg.C:\Program Files\PostgreSQL\13\bin
            Set max prepared transactions to non zero value in the "postgresql.conf"
-               (postgresql.conf) -- max_prepared_transactions = 100
+               max_prepared_transactions = 100
                
        Create download folder (eg. C:\Data_Dump)
        
        Configure and encrypt settings.ini
-           Modify "sample_settings.ini" to reflect your environment and use scenario and rename to "settings.ini when done.
+           Modify "sample_settings.ini" to reflect your environment and use scenario and rename to "settings.ini when done. Sensitive information in the .ini file will get encrypted upon the apps first execution, and the original clear text settings.ini will be deleted.
                Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
                
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
