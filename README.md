@@ -29,7 +29,7 @@ The user data files are first downloaded and stored to the webserver's file syst
 ## What can users do with the data once downloaded to DB ?
 That is entirely up to them ;-) This service does not provide any ready made analysis tools or dashboards except of a sample Plotly Dash dashboard that can be accessed from the download page using "View Sample Data Visualization ..." link. As mentioned previously each user has his own database that is not shared with other users and has a full access to it from anywhere on the Internet by default (might vary if used privately). The database, once created and populated with data combining records from different sources would predominantly be used as a datasource for data analysis, machine learning or for data archiving purposes. The user can use free or paid versions of BI platforms like PowerBI, Tableau etc or open source packages like Plotly, Dash to analyze the data and create visualizations. The DB can also be used as a datasource for ML models or just as a data archive.
 
-**Sample Dash data visualization:**
+*Sample Dash data visualization:*
 ![](images/RunVisualization_1.PNG)
 
 ## How do users archive the downloaded data off the db/webserver ?
