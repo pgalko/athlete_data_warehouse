@@ -59,7 +59,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
     preserve_files = str(path_params.get("preserve_files"))
 
     login_url = 'https://diasend.com//'
-    export_data_url = 'https://international.diasend.com/diasend/view.php?display=dest_export'
+    export_data_url = 'https://international.diasend.com/patient/account/export-data'
     login_form_action = 'https://international.diasend.com/diasend/includes/account/login.php'
     user_output = os.path.join(output, gc_username)
     download_folder = os.path.join(user_output, 'CGM_Historical_BG')
@@ -137,7 +137,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
             raise
      
     # Set up the download form.
-    agent.select_form(nr=1)
+    agent.select_form(nr=0)
     agent['code'] = solved_captcha
     agent.set_handle_robots(False)   # no robots
     agent.set_handle_refresh(False)  # can sometimes hang without this

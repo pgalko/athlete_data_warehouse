@@ -650,33 +650,6 @@ def create_app(encr_pass_input,debug=False):
 
         else: # Request method is GET
             continue_btn = request.args.get('continue_btn')
-            visitor_ip = request.environ['REMOTE_ADDR']
-            request_environ = request.environ
-            try:
-                geolocator = Nominatim(user_agent="Athlete Data")
-                ip_geolocation = geolite2.lookup(visitor_ip)
-                geo_country = ip_geolocation.country
-                geo_location = ip_geolocation.location
-                geo_subdivision = list(ip_geolocation.subdivisions)[0]
-                exact_location = geolocator.reverse("%s,%s" % (geo_location[0],geo_location[1]))
-                if send_emails == 'true':
-                    send_email(
-                        encr_pass,
-                        'The athlete data download site has been visited',
-                        'The  IP address of the visitor is: \n%s.\nCountryCode: \n%s. \nCoordinates: \n%s. \nAddress: \n%s \nState: \n%s. \n\nSession details: \n%s.' % (visitor_ip,geo_country,geo_location,exact_location.address,geo_subdivision,request_environ),
-                        None,
-                        None
-                    )
-            except:
-                if send_emails == 'true':
-                    send_email(
-                        encr_pass,
-                        'The athlete data download site has been visited',
-                        'The  IP address of the visitor is: \n%s.\nThe Geolocation could not be determined. \n\nSession details: \n%s.' % (visitor_ip,request_environ),
-                        None,
-                        None
-                    )
-
             return render_template("index.html",continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
 
     @app.route("/datamodel_preview")
