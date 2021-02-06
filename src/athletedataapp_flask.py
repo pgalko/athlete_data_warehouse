@@ -803,6 +803,7 @@ def create_app(encr_pass_input,debug=False):
                 return redirect(url_for('index'))
             else:
                 encrypted_un = base64.urlsafe_b64encode(encrypt(post_user, encr_pass))
+                encrypted_un = encrypted_un.decode('utf-8')
                 return redirect('/dashboard_1/'+encrypted_un+'/')
         except Exception as e:
             with ErrorStdoutRedirection(post_user):
