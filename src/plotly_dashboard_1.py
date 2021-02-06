@@ -138,11 +138,13 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
     #Create pandas swim dataframe
     df0_smpl = pd.DataFrame( [[ij for ij in i] for i in rows0] )
     df0_smpl.rename(columns={0: 'Athlete', 1: 'DateTime', 2: 'DateTime_Epoch', 3: 'Sport', 4: 'Distance', 5:'Pace', 6:'Calories', 7:'Strokes_PerMin', 8:'Duration_Min'}, inplace=True)
+    df0_smpl['Pace'] = df0_smpl['Pace'].apply(pd.to_numeric)
     df0_smpl = df0_smpl.sort_values(['DateTime'], ascending=[1])
 
     #Create pandas run dataframe
     df1_smpl = pd.DataFrame( [[ij for ij in i] for i in rows1] )
     df1_smpl.rename(columns={0: 'Athlete', 1: 'DateTime', 2: 'DateTime_Epoch', 3: 'Sport', 4: 'Distance', 5:'Pace', 6:'Calories', 7:'Avrg_HR', 8:'Duration_Min'}, inplace=True)
+    df1_smpl['Pace'] = df1_smpl['Pace'].apply(pd.to_numeric)
     df1_smpl = df1_smpl.sort_values(['DateTime'], ascending=[1])
  
     #Create pandas ride dataframe
@@ -300,6 +302,7 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
                 try:
                     df0 = pd.DataFrame( [[ij for ij in i] for i in rows0] )
                     df0.rename(columns={0: 'Athlete', 1: 'DateTime', 2: 'DateTime_Epoch', 3: 'Sport', 4: 'Distance', 5:'Pace', 6:'Calories', 7:'Strokes_PerMin', 8:'Duration_Min'}, inplace=True)
+                    df0['Pace'] = df0['Pace'].apply(pd.to_numeric)
                     df0 = df0.sort_values(['DateTime'], ascending=[1])
                     swim_sample_df = False
                 except Exception as e:
@@ -312,6 +315,7 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
                 try:
                     df1 = pd.DataFrame( [[ij for ij in i] for i in rows1] )
                     df1.rename(columns={0: 'Athlete', 1: 'DateTime', 2: 'DateTime_Epoch', 3: 'Sport', 4: 'Distance', 5:'Pace', 6:'Calories', 7:'Avrg_HR', 8:'Duration_Min'}, inplace=True)
+                    df1['Pace'] = df1['Pace'].apply(pd.to_numeric)
                     df1 = df1.sort_values(['DateTime'], ascending=[1])
                     run_sample_df = False
                 except Exception as e:
