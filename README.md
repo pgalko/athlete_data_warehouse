@@ -1,12 +1,12 @@
 # athlete_data_warehouse
 
 ## What does it do ?
-This is an experimental web/db server application that allows its users to download all historical activities together with the  wellness data like weight, body composition, continuous HR, HRV, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app. In addition to this, it can automatically synchronize with the above services daily and download and save any new data. Data is downloaded in either FIT,XML or CSV files that then get parsed,cleaned,formated and inserted in to the user's PostgreSQL database for future analysis by the user. And optionally archived in the original export format to user's Dropbox. A live and fully functional service can be explored here:https://athletedata.net.
+This is an experimental web/db server application that allows its users to download all historical activities together with the  wellness data like weight, body composition, continuous HR, HRV, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app. In addition to this, it can automatically synchronize with the above services daily and download and save any new data. Data is downloaded in either FIT,XML or CSV files that then get parsed, cleaned, formated and inserted in to the user's PostgreSQL database for future analysis by the user. The downloaded files can optionally be archived in the original export format to user's Dropbox. A live and fully functional service can be explored here: https://athletedata.net.
 
 ## Who is it for:
 There is a few alternative usage scenarios.
 1. It can be setup and used privately by individuals who want to consolidate their excersize and health records in one place for analysis, research or privacy reasons (could be setup on Windows ,Mac OS ar UNIX workstation or a local or cloud based server).
-2. It can be published from a web server (Apache/Mod-WSGI/Flask/PostgreSQL) and provided to independent users as a data collection and warehousing service (see an example here:https://athletedata.net).
+2. It can be published from a web server (Apache/Mod-WSGI/Flask/PostgreSQL) and provided to independent users as a data collection and warehousing service (see an example here: https://athletedata.net).
 3. It can be used by researches to collect and consolidate participant's historical and current health and excersize data to present to machine learning models or for direct analisys or visualizations.
 
 ## What data from what sources ?
