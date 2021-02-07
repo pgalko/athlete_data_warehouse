@@ -23,8 +23,17 @@ There is a few alternative usage scenarios.
 ## How is the user data accessed and downloaded ?
 The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a type of web-scraper using the supplied credentials to log in to the user's account. Once logged in, it browses to download pages and iterates through available downloads. Finally it downloads the retrieved data to the server in the FIT,XML or CSV formats.
 
+*Select Datasouces:*
+![](images/DataSourcesGUI.PNG)
+
 ## Where and How is the user data stored ?
 The user data files are first downloaded and stored to the webserver's file system as flat files as described above. After each of the files is successfully downloaded and saved, the service parses and cleans the content which then gets formated and inserted in to the PostgreSQL database hosted either on this server or on the user's own DB server (the user will need to provide hostname/IP address, username, password). If user chooses to store his data on this DB server he will have his own database that he has got full and unrestricted access to. Once the user submits the download request providing valid credentials he will be able to retrieve the database access details via "View DB info..." link on the download page. The Datamodel diagram outlining the DB layout/data structure can be viewed here: **[Preview Datamodel...](https://www.athletedata.net/datamodel_preview?gc=0&wel=0&mfp=0&dia=0)** Upon successful DB insert the original export files are removed from the file system (optionally admins can enable preservation of the files after db insert.
+
+*Select DB Host:*
+![](images/SelectDBserverGUI.PNG)
+
+*DB Connectivity Info:*
+![](images/DBconnectivityGUI.PNG)
 
 ## What can users do with the data once downloaded to DB ?
 That is entirely up to them ;-) This service does not provide any ready made analysis tools or dashboards except of a sample Plotly Dash dashboard that can be accessed from the download page using "View Sample Data Visualization ..." link. As mentioned previously each user has his own database that is not shared with other users and has a full access to it from anywhere on the Internet by default (might vary if used privately). The database, once created and populated with data combining records from different sources would predominantly be used as a datasource for data analysis, machine learning or for data archiving purposes. The user can use free or paid versions of BI platforms like PowerBI, Tableau etc or open source packages like Plotly, Dash to analyze the data and create visualizations. The DB can also be used as a datasource for ML models or just as a data archive.
@@ -35,8 +44,14 @@ That is entirely up to them ;-) This service does not provide any ready made ana
 ## How do users archive the downloaded data off the db/webserver ?
 The service provides an option for integration with Dropbox (https://www.dropbox.com/developers/apps) alowing users to archive all downloaded FIT,XML,CSV files to their Dropbox (Google drive option might be coming in the future).In addition to archiving files, users can also archive compressed full backups of their databases that are created using pg_dump tool (This option is only available for hosted DBs). Upon choosing to archive, user will be presented with a Dropbox consent/authorization form. Once the access to user's dropbox has been granted by the user, the service will create a folder called "Athlete Data App" in the "Apps" folder within the users Dropbox root directory. This service will only have access to its own folder "/Apps/Athlete Data App" in user's Dropbox file structure. All other files and folders will remain unaccessible to it! If used privately there is an option in settings to preserve all downloaded files in a local filesystem.
 
+*Archive and Autosynch:*
+![](images/ArchiveAutosynchGUI.PNG)
+
 ## How do users revoke access and delete all downloaded data ?
 This service provides an ability for each user to revoke all access to his GarminConnect,MFP and Diasend accounts from this service and/or delete all already downloaded data. This option can be accessed from the download page by simply providing a valid GarminConnect credentials and choosing the "Delete All data and Exit without re-downloading" option from the "Housekeeping" section. Upon submitting the request, all user data including any encrypted usernames and passwords stored in the DB will be deleted, and autosynch if previously enabled will be canceled. This will not affect the data archived to users's Dropbox and if desired the user will need to delete those manually. If the user only want to use this service as a "once off" perhaps for data archiving purposes, he can download all his data with "archive all data to Dropbox" option enabled and then delete all data from the db/web-server.
+
+*Data Delete:*
+![](images/HouseKeepingGUI.PNG)
 
 ## What if the user changes his Garmin Connect,MFP or Diasend password and have autosynch enabled ?
 After changing the GarminConnect, MFP or Diasend password user will simply need to provide the new password in the login section of the app and submit the download. The stored autosynch credentials for the affected service will be updated automaticaly.
