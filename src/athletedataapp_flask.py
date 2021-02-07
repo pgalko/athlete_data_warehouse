@@ -28,8 +28,6 @@ from plotly_dashboard_1 import create_dashboard1
 import Crypto.Random
 from Crypto.Cipher import AES
 import base64
-from geoip import geolite2
-from geopy.geocoders import Nominatim
 
                                               
 #----Crypto Variables----
