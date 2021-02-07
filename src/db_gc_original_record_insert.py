@@ -44,53 +44,53 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
     for record in fitfile.get_messages('record'):
     # Go through all the data entries in this record
         for record_data in record:
-            if record_data.name is 'activity_type':
+            if record_data.name == 'activity_type':
                 activity_type = record_data.value
-            if record_data.name is 'altitude':
+            if record_data.name == 'altitude':
                 altitude = record_data.value
-            if record_data.name is 'cadence':
+            if record_data.name == 'cadence':
                 cadence = record_data.value
-            if record_data.name is 'distance':
+            if record_data.name == 'distance':
                 distance = record_data.value
-            if record_data.name is 'enhanced_altitude':
+            if record_data.name == 'enhanced_altitude':
                 enhanced_altitude = record_data.value     
-            if record_data.name is 'enhanced_speed':
+            if record_data.name == 'enhanced_speed':
                 enhanced_speed = record_data.value
-            if record_data.name is 'fractional_cadence':
+            if record_data.name == 'fractional_cadence':
                 fractional_cadence = record_data.value
-            if record_data.name is 'heart_rate':
+            if record_data.name == 'heart_rate':
                 heart_rate = record_data.value
-            if record_data.name is 'position_lat':
+            if record_data.name == 'position_lat':
                 position_lat = record_data.value
-            if record_data.name is 'position_long':
+            if record_data.name == 'position_long':
                 position_long = record_data.value
-            if record_data.name is 'speed':
+            if record_data.name == 'speed':
                 speed = record_data.value
-            if record_data.name is 'stance_time':
+            if record_data.name == 'stance_time':
                 stance_time = record_data.value
-            if record_data.name is 'stance_time_balance':
+            if record_data.name == 'stance_time_balance':
                 stance_time_balance = record_data.value
-            if record_data.name is 'step_length':
+            if record_data.name == 'step_length':
                 step_length = record_data.value
-            if record_data.name is 'timestamp':
+            if record_data.name == 'timestamp':
                 timestamp = record_data.value
-            if record_data.name is 'vertical_oscillation':
+            if record_data.name == 'vertical_oscillation':
                 vertical_oscillation = record_data.value
-            if record_data.name is 'vertical_ratio':
+            if record_data.name == 'vertical_ratio':
                 vertical_ratio = record_data.value
-            if record_data.name is 'accumulated_power':
+            if record_data.name == 'accumulated_power':
                 accumulated_power = record_data.value
-            if record_data.name is 'left_pedal_smoothness':
+            if record_data.name == 'left_pedal_smoothness':
                 left_pedal_smoothness = record_data.value
-            if record_data.name is 'left_torque_effectiveness':
+            if record_data.name == 'left_torque_effectiveness':
                 left_torque_effectiveness = record_data.value
-            if record_data.name is 'power':
+            if record_data.name == 'power':
                 power = record_data.value
-            if record_data.name is 'right_pedal_smoothness':
+            if record_data.name == 'right_pedal_smoothness':
                 right_pedal_smoothness = record_data.value
-            if record_data.name is 'right_torque_effectiveness':
+            if record_data.name == 'right_torque_effectiveness':
                 right_torque_effectiveness = record_data.value
-            if record_data.name is 'temperature':
+            if record_data.name == 'temperature':
                 temperature = record_data.value
             if record_data.name == 'Est Core Temp':
                 est_core_temp = record_data.value									   
@@ -179,31 +179,31 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
                 for record in fitfile.get_messages('length'):
 
                     for record_data in record:
-                        if record_data.name is 'avg_speed':
+                        if record_data.name == 'avg_speed':
                             avg_speed = record_data.value  
-                        if record_data.name is 'avg_swimming_cadence':
+                        if record_data.name == 'avg_swimming_cadence':
                             avg_swimming_cadence = record_data.value  
-                        if record_data.name is 'event_group':
+                        if record_data.name == 'event_group':
                             event_group = record_data.value  
-                        if record_data.name is 'event_type':
+                        if record_data.name == 'event_type':
                             event_type = record_data.value    
-                        if record_data.name is 'length_type':
+                        if record_data.name == 'length_type':
                             length_type = record_data.value    
-                        if record_data.name is 'message_index':
+                        if record_data.name == 'message_index':
                             message_index = record_data.value     
-                        if record_data.name is 'start_time':
+                        if record_data.name == 'start_time':
                             start_time = record_data.value      
-                        if record_data.name is 'swim_stroke':
+                        if record_data.name == 'swim_stroke':
                             swim_stroke = record_data.value     
-                        if record_data.name is 'timestamp':
+                        if record_data.name == 'timestamp':
                             timestamp = record_data.value      
-                        if record_data.name is 'total_calories':
+                        if record_data.name == 'total_calories':
                             total_calories = record_data.value       
-                        if record_data.name is 'total_elapsed_time':
+                        if record_data.name == 'total_elapsed_time':
                             total_elapsed_time = record_data.value      
-                        if record_data.name is 'total_strokes':
+                        if record_data.name == 'total_strokes':
                             total_strokes = record_data.value       
-                        if record_data.name is 'total_timer_time':
+                        if record_data.name == 'total_timer_time':
                             total_timer_time = record_data.value
 
                     sql_swim = """

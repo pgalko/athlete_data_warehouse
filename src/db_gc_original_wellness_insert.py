@@ -75,31 +75,31 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
     for message in fix_times(messages):
     # Go through all the data entries in this record
         for message_data in message:
-            if message_data.name is 'active_calories':
+            if message_data.name == 'active_calories':
                 active_calories = message_data.value       
-            if message_data.name is 'active_time':
+            if message_data.name == 'active_time':
                 active_time = message_data.value
-            if message_data.name is 'activity_type':
+            if message_data.name == 'activity_type':
                 activity_type = message_data.value
-            if message_data.name is 'distance':
+            if message_data.name == 'distance':
                 distance = message_data.value
-            if message_data.name is 'duration_min':
+            if message_data.name == 'duration_min':
                 duration_min = message_data.value
-            if message_data.name is 'steps':
+            if message_data.name == 'steps':
                 steps = message_data.value
-            if message_data.name is 'timestamp':
+            if message_data.name == 'timestamp':
                 timestamp = message_data.value
-            if message_data.name is 'heart_rate':
+            if message_data.name == 'heart_rate':
                 heart_rate = message_data.value
-            if message_data.name is 'timestamp_16':
+            if message_data.name == 'timestamp_16':
                 timestamp_16 = message_data.value
-            if message_data.name is 'intensity':
+            if message_data.name == 'intensity':
                 intensity = message_data.value
-            if message_data.name is 'stress_level_time':
+            if message_data.name == 'stress_level_time':
                 stress_level_time = message_data.value
-            if message_data.name is 'stress_level_value':
+            if message_data.name == 'stress_level_value':
                 stress_level_value = message_data.value
-            if message_data.name is 'current_activity_type_intensity':
+            if message_data.name == 'current_activity_type_intensity':
                 current_activity_type_intensity = message_data.value
 
         sql_act_type_summary = """
