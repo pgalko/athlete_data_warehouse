@@ -61,7 +61,7 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
 
 *This tool is a one man's hobby project to cater for his own needs and you are welcome to use it. I have taken every precaution known to me to secure the user data and protect his privacy... but I don't know , what I don't know... and can not guarantee that I have not missed something.*
 
-## How to Install (Windows,private use)
+## How to Install (Windows - self-hosted,private)
 ```
        Install Python 3.9 (any Python 3.x version should work)
        
