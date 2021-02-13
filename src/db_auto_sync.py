@@ -66,7 +66,7 @@ def get_databases_list(encr_pass):
 
     except (Exception, psycopg2.DatabaseError) as error:
         with ConsolidatedProgressStdoutRedirection():
-            print(error)
+            print('Autosynch DB Error 0: '+str(error))
 
     finally:
         if conn is not None:
@@ -74,58 +74,6 @@ def get_databases_list(encr_pass):
 
     return databases
 
-'''
-def check_auto_sync(db_list,encr_pass):
-    db_list = db_list
-    synch_req_db_list = []
-    conn = None
-
-    sql_check_auto_synch = """
-    SELECT auto_sync FROM athlete;
-    """
-    for row in db_list:
-        for db in row:
-            try:
-                # read connection parameters
-                params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
-                superuser_un = params.get("user")
-                superuser_pw = params.get("password")
-                host = params.get("host")
-                with ConsolidatedProgressStdoutRedirection():
-                    print('Checking: '+str(db))
-            
-
-                # connect to the PostgreSQL server
-                conn = psycopg2.connect(dbname=db, host=host, user=superuser_un, password=superuser_pw)
-
-                # create a cursor
-                cur = conn.cursor()
-                
-                cur.execute(sql_check_auto_synch)
-                conn.commit()
-                result = cur.fetchone()
-                if result[0] == True:  
-                    auto_sync = True
-                else:
-                    auto_sync = False
-
-                if auto_sync is True:
-                    synch_req_db_list.append(db)
-                    with ConsolidatedProgressStdoutRedirection():
-                        print('Auto Synch required for: '+str(db))
-                else:
-                    with ConsolidatedProgressStdoutRedirection():
-                        print('Auto Synch is not required for: '+str(db))
-                
-            except (Exception, psycopg2.DatabaseError) as error:
-                with ConsolidatedProgressStdoutRedirection():
-                    print(error)
-
-            finally:
-                if conn is not None:
-                    conn.close()
-    return synch_req_db_list
-'''
 def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
     conn = None
     gc_un = None
@@ -197,7 +145,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
 
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
-                    print(('Autosynch DB Error: '+str(error)))
+                    print('Autosynch DB Error 1: '+str(error))
 
             finally:
                 if dbsu_conn is not None:
@@ -239,14 +187,14 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                 if libreview_encr_export_link is not None:
                     libreview_decr_export_link = decrypt(base64.b64decode(libreview_encr_export_link), encr_pass)
                 if mm_encr_export_link is not None:
-                    mm_decr_export_link = decrypt(base64.b64decode(mm_encr_export_link), encr_pass)								  
+                    mm_decr_export_link = decrypt(base64.b64decode(mm_encr_export_link), encr_pass)
 
                 ###Execute auto synch from "main_data_autosynch.py"###
                 auto_synch(db, db_host, superuser_un, superuser_pw, gc_un, gc_decr_pw, mfp_un, mfp_decr_pw, cgm_un, cgm_decr_pw, glimp_decr_export_link, libreview_decr_export_link, mm_decr_export_link, dbx_decr_token, encr_pass)
-                
+    
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
-                    print(('Autosynch DB Error: '+str(error)))
+                    print('Autosynch DB Error 2: '+str(error))
 
             finally:
                 if conn is not None:
