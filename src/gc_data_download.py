@@ -53,10 +53,10 @@ WELLNESS = "https://connect.garmin.com/proxy/userstats-service/wellness/daily/%s
 DAILYSUMMARY = "https://connect.garmin.com/proxy/wellness-service/wellness/dailySummaryChart/%s?date=%s"
 BODY_COMPOSION = "https://connect.garmin.com/proxy/userprofile-service/userprofile/personal-information/weightWithOutbound/filterByDay?from=%s&until=%s"
 
-TCX = "https://connect.garmin.com/modern/proxy/download-service/export/tcx/activity/%s"
-GPX = "https://connect.garmin.com/modern/proxy/download-service/export/gpx/activity/%s"
-ZIP_ACT = "https://connect.garmin.com/modern/proxy/download-service/files/activity/%s"
-ZIP_WELL = "https://connect.garmin.com/modern/proxy/download-service/files/wellness/%s"
+TCX = "https://connect.garmin.com/proxy/download-service/export/tcx/activity/%s"
+GPX = "https://connect.garmin.com/proxy/download-service/export/gpx/activity/%s"
+ZIP_ACT = "https://connect.garmin.com/proxy/download-service/files/activity/%s"
+ZIP_WELL = "https://connect.garmin.com/proxy/download-service/files/wellness/%s"
 
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = str(path_params.get("pid_file_dir"))
