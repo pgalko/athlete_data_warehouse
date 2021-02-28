@@ -44,10 +44,10 @@ AES_MULTIPLE = 16
 
 BASE_URL = "https://sso.garmin.com/sso/login"
 HOSTNAME = "https://connect.garmin.com"
-GAUTH = "https://connect.garmin.com/modern/auth/hostname"
+GAUTH = "https://connect.garmin.com/auth/hostname"
 SSO = "https://sso.garmin.com/sso"
 CSS = "https://static.garmincdn.com/com.garmin.connect/ui/css/gauth-custom-v1.2-min.css"
-REDIRECT = "https://connect.garmin.com/modern/"
+REDIRECT = "https://connect.garmin.com/"
 ACTIVITIES = "https://connect.garmin.com/proxy/activitylist-service/activities/search/activities?start=%s&limit=%s"
 WELLNESS = "https://connect.garmin.com/proxy/userstats-service/wellness/daily/%s?fromDate=%s&untilDate=%s"
 DAILYSUMMARY = "https://connect.garmin.com/proxy/wellness-service/wellness/dailySummaryChart/%s?date=%s"
@@ -226,7 +226,7 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
 
                 try:
                     #Construct Sign In URL and Sign In
-                    agent.open('https://connect.garmin.com/modern/?ticket='+login_ticket)
+                    agent.open('https://connect.garmin.com/?ticket='+login_ticket)
                     return agent
                 except Exception as e:
                     with ErrorStdoutRedirection(username):
@@ -273,7 +273,7 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
 
     try:
         #Construct Sign In URL and Sign In
-        agent.open('https://connect.garmin.com/modern/?ticket='+login_ticket)
+        agent.open('https://connect.garmin.com/?ticket='+login_ticket)
         return agent
     except Exception as e:
         with ErrorStdoutRedirection(username):
