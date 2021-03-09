@@ -654,7 +654,11 @@ CREATE TABLE public.timezones
     gc_activity_id bigint,
     timestamp_local character varying,
     timestamp_gmt character varying,
-    timezone character varying
+    timezone character varying,
+    long_degr numeric,
+    lat_degr numeric,
+    alt_avrg integer,
+    end_time_gmt character varying
 );
 
 ALTER TABLE public.timezones OWNER TO postgres;
@@ -697,7 +701,7 @@ CREATE SEQUENCE public.gmt_local_time_difference_id_seq
 
 ALTER TABLE public.gmt_local_time_difference_id_seq OWNER TO postgres;
 
-ALTER SEQUENCE public.gmt_local_time_difference_id_seq OWNED BY public.timezones.id;
+ALTER SEQUENCE public.gmt_local_time_difference_id_seq OWNED BY public.gmt_local_time_difference.id;
 
 
 ---
