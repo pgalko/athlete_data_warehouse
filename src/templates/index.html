@@ -81,8 +81,8 @@
     </div>
     
     <div>
-        <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px" >This tool automates health and performance data download from Garmin Connect, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Bearable app. 
-            It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, SYMPTOMS TRACKING, BLOOD GLUCOSE, EEG/MEDITATION and other.
+        <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px" >This tool automates health and performance data download from Garmin Connect, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
+            It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
             Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
             <p>
             Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
@@ -639,7 +639,7 @@
                         <p>Did you ever want to copy and store your activities, wellness, nutrition and blood sugar data all in one place ? Then this tool might be for you.
                         </p>
                         <p><b>So, what does it do ?</b>
-                            <br>This is an experimental tool that allows you to download all historical activities and wellness data like weight, continuous HR, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data.
+                            <br>This is an experimental tool that allows you to download all historical activities and wellness data like weight, continuous HR, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data.
                             Data is downloaded in either FIT,XML or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. 
                         </p>
                         <p><b>What data from what sources ?</b>
@@ -650,6 +650,7 @@
                             <br><a href="https://www.deebee.it/?p=1411" class="badge badge-pill badge-primary">Glimp</a> - Blood Glucose data collected via Glimp android app and stored in Dropbox.
                             <br><a href="https://www.libreview.com/" class="badge badge-pill badge-primary">LibreView</a> - Blood Glucose data manualy exported from LibreView website and stored in Dropbox.
                             <br><a href="https://mind-monitor.com/" class="badge badge-pill badge-primary">Mind Monitor</a> - EEG data from Muse devices collected via Mind Monitor ios/android app and stored in Dropbox.
+                            <br><a href="https://www.meteostat.net/" class="badge badge-pill badge-primary">Meteostat</a> - Historical weather and climate data retrieved via API.
                         </p>
                         <p><b>How is my data accessed and downloaded ?</b>
                             <br>The tool's front end runs on an Apache web-server using Flask and Python in the background. The process starts with user selecting the data sources and the types of data  that he would like to download. He will then provide login credentials for the previously selected data sources. Next he chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete.
