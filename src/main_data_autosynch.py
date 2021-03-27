@@ -10,6 +10,7 @@ import mind_monitor_data_download_db_insert as mm
 import gc_data_download as gc
 import delete_data as clr
 from db_create_user_database import check_user_db_exists
+from weather import get_weather
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
 from database_ini_parser import config
 
@@ -59,6 +60,11 @@ def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_pa
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
                     print(e)
+        try:
+            get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date,encr_pass)
+        except Exception as e:
+            with ErrorStdoutRedirection(gc_username):
+                print(e)
                     
 def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,encr_pass):
     output = DOWNLOAD_DIR

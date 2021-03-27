@@ -7,6 +7,8 @@ import os
 from tzwhere import tzwhere
 import datetime
 import pytz
+from numpy import mean
+from meteostat import Stations
 
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
@@ -27,6 +29,11 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
     max_cadence_position = (None, None)
     max_power_position = (None, None)
     fitfile = FitFile(file2import)
+    enhanced_altitude = []
+
+    start_position_lat_degr = None
+    start_position_long_degr = None
+    end_time_gmt_str = None
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
@@ -41,6 +48,21 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
     tz = tzwhere.tzwhere()
 
     # Get all data messages that are of type record
+    try:
+        for record in fitfile.get_messages('record'):
+        # Go through all the data entries in this record
+            for record_data in record:
+                # Append altitude values to list
+                if record_data.name == 'enhanced_altitude':
+                    enhanced_altitude.append(record_data.value)
+        #Calculate avereage altitude for a better weather data accuracy
+        avg_altitude = int(mean(enhanced_altitude))
+        fitfile.close
+    except:
+        avg_altitude = None
+    
+    fitfile = FitFile(file2import)
+    # Get all data messages that are of type session
     for record in fitfile.get_messages('session'):
         # Go through all the data entries in this record
         for record_data in record:
@@ -177,11 +199,17 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
                 timezone = tz.tzNameAt(start_position_lat_degr,start_position_long_degr)
                 local_tz = pytz.timezone(timezone)
 
-                #Get local time from timestamp(gmt)
                 gmt_time_dt = datetime.datetime.strptime((str(timestamp)), "%Y-%m-%d %H:%M:%S")      
+                #Calculate activity_end time 
+                activity_duration_dt =  datetime.timedelta(0,int(total_elapsed_time))
+                end_time_gmt_dt = gmt_time_dt + activity_duration_dt 
+                end_time_gmt_str = datetime.datetime.strftime((end_time_gmt_dt), "%Y-%m-%d %H:%M:%S")
+                
+                #Get local time from timestamp(gmt)
                 local_dt = gmt_time_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
                 local_dt_norm = local_tz.normalize(local_dt)
-                local_time_str = datetime.datetime.strftime((local_dt_norm), "%Y-%m-%d %H:%M:%S") 
+                local_time_str = datetime.datetime.strftime((local_dt_norm), "%Y-%m-%d %H:%M:%S")
+
         except Exception as e:
             with ErrorStdoutRedirection(athlete):
                 print((str(datetime.datetime.now()) + '  ' + str(e)))
@@ -205,10 +233,10 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
             """
                 
         sql_timezone = """
-            INSERT INTO timezones(gc_activity_id,timestamp_local,timestamp_gmt,timezone)
+            INSERT INTO timezones(gc_activity_id,timestamp_local,timestamp_gmt,timezone,long_degr,lat_degr,alt_avrg,end_time_gmt)
             
             VALUES
-            (%s,%s,%s,%s)
+            (%s,%s,%s,%s,%s,%s,%s,%s)
 
             ON CONFLICT (gc_activity_id,timestamp_gmt) DO NOTHING;
             """
@@ -232,17 +260,18 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
             # close the communication with the PostgreSQL
             cur.close()
 
-            #Insert timezone and local time into timezones table
-            cur = conn.cursor()
-            # execute a statement
-            with StdoutRedirection(athlete):
-                print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
-            with ProgressStdoutRedirection(athlete):
-                print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
-            cur.execute(sql_timezone,(gc_activity_id,local_time_str,timestamp,timezone))
-            conn.commit()
-            # close the communication with the PostgreSQL
-            cur.close()       
+            if timezone is not None:
+                #Insert timezone and local time into timezones table
+                cur = conn.cursor()
+                # execute a statement
+                with StdoutRedirection(athlete):
+                    print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
+                with ProgressStdoutRedirection(athlete):
+                    print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
+                cur.execute(sql_timezone,(gc_activity_id,local_time_str,timestamp,timezone,start_position_long_degr,start_position_lat_degr,avg_altitude,end_time_gmt_str))
+                conn.commit()
+                # close the communication with the PostgreSQL
+                cur.close()       
         except Exception as e:
             with ErrorStdoutRedirection(athlete):
                 print((str(datetime.datetime.now()) + '  ' + str(e)))

@@ -25,3 +25,4 @@ psutil==5.8.0
 beautifulsoup4==4.9.3
 pycryptodome==3.9.9
 xlrd==2.0.1
+meteostat==1.1.1

@@ -17,6 +17,7 @@ from db_dropbox import check_user_token_exists
 from diasend_data_download_db_insert import diasend_data_export_insert
 from glimp_data_download_db_insert import glimp_data_insert
 from mind_monitor_data_download_db_insert import mm_data_insert
+from weather import get_weather
 from send_email import send_email
 import psutil
 import urllib.request, urllib.error, urllib.parse
@@ -585,6 +586,14 @@ def create_app(encr_pass_input,debug=False):
                             with StdoutRedirection(gc_username):
                                 print(mm_progress)
                             time.sleep(1)
+
+                    #--------------- Weather --------------
+                    #PG:Call to execute "retrieve and insert weather/meteostat data" script
+                    try:
+                        get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date,encr_pass)
+                    except Exception as e:
+                        with ErrorStdoutRedirection(gc_username):
+                            print((str(datetime.datetime.now()) + '  ' + str(e)))    
 
                     #------Archive DB to Dropbox-------
                     try:

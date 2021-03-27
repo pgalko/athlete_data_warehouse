@@ -325,7 +325,7 @@ ALTER TABLE public.garmin_connect_original_lap_id_seq OWNER TO postgres;
 ALTER SEQUENCE public.garmin_connect_original_lap_id_seq OWNED BY public.garmin_connect_original_lap.id;
 
 ---
----GARMIN CONNEOCT ORIGINAL SESSION
+---GARMIN CONNECT ORIGINAL SESSION
 ---
 CREATE TABLE public.garmin_connect_original_session (
     avg_cadence integer,
@@ -731,6 +731,42 @@ ALTER TABLE public.gc_original_wellness_sleep_tracking_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE public.gc_original_wellness_sleep_tracking_id_seq OWNED BY public.gc_original_wellness_sleep_tracking.id;
 
+---
+---WEATHER
+---
+CREATE TABLE public.weather
+(
+    id integer NOT NULL,
+    athlete_id integer,
+    timestamp_gmt character varying,
+    temperature numeric,
+    dew_point numeric,
+    relative_humidity numeric,
+    precipitation numeric,
+    snow numeric,
+    wind_direction numeric,
+    wind_speed numeric,
+    wind_gust numeric,
+    sea_air_pressure numeric,
+    total_sunshine numeric,
+    condition_code numeric
+);
+
+ALTER TABLE public.weather OWNER TO postgres;
+
+CREATE SEQUENCE public.weather_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER TABLE public.weather_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.weather_id_seq OWNED BY public.weather.id;
+
+
 --
 --AUTO INCREMENTS
 --
@@ -769,6 +805,8 @@ ALTER TABLE ONLY public.timezones ALTER COLUMN id SET DEFAULT nextval('public.ti
 ALTER TABLE ONLY public.gmt_local_time_difference ALTER COLUMN id SET DEFAULT nextval('public.gmt_local_time_difference_id_seq'::regclass);
 
 ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking ALTER COLUMN id SET DEFAULT nextval('public.gc_original_wellness_sleep_tracking_id_seq'::regclass);
+
+ALTER TABLE ONLY public.weather ALTER COLUMN id SET DEFAULT nextval('public.weather_id_seq'::regclass);
 
 --
 --PRIMARY KEYS
@@ -830,6 +868,9 @@ ALTER TABLE ONLY public.gmt_local_time_difference
 ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
     ADD CONSTRAINT gc_original_wellness_sleep_tracking_pkey PRIMARY KEY (id);
 
+ALTER TABLE ONLY public.weather
+    ADD CONSTRAINT weather_pkey PRIMARY KEY (id);
+
 
 --
 --UNIQUES
@@ -878,6 +919,9 @@ ALTER TABLE ONLY public.gmt_local_time_difference
 
 ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
     ADD CONSTRAINT unique_gc_original_wellness_sleep_timestamp_gmt UNIQUE (timestamp_gmt);
+
+ALTER TABLE ONLY public.weather
+    ADD CONSTRAINT unique_weather_athlete_id_timestamp_gmt UNIQUE (athlete_id, timestamp_gmt);
 
 
 --
@@ -969,6 +1013,9 @@ ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
 
 ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
     ADD CONSTRAINT fk_gc_original_wellness_sleep_stress_track FOREIGN KEY (stress_tracking_id) REFERENCES public.gc_original_wellness_stress_tracking (id);
+
+ALTER TABLE ONLY public.weather
+    ADD CONSTRAINT fk_weather_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete (id);
 
 
 
