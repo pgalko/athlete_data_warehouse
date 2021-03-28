@@ -61,7 +61,7 @@ def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_pa
                 with ErrorStdoutRedirection(gc_username):
                     print(e)
         try:
-            get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date,encr_pass)
+            get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
                 print(e)
