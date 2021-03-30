@@ -363,13 +363,18 @@ def index():
                 text = gc_username
                 head, sep, tail = text.partition('@')
                 display_name = head
+                #user provided end_date 
                 if request.form.get('endDate') != "": 
                     end_date = datetime.datetime.strptime((request.form.get('endDate')), "%Y-%m-%d")
-                    if end_date >= datetime.datetime.today(): #today
+                    if end_date >= datetime.datetime.today(): #user input is greater or eq today
                         end_date = datetime.datetime.today() - datetime.timedelta(days=1) #yesterday
+                        end_date_today = datetime.datetime.today()  #today
+                    else:
+                        end_date_today = end_date
+                #user did not provide end_date
                 else:
-                    end_date = datetime.datetime.today() - datetime.timedelta(days=1)#PG: end_date = yesterday
-                    end_date_today = datetime.datetime.today()  #"PG: end_date_today = today
+                    end_date = datetime.datetime.today() - datetime.timedelta(days=1)#yesterday
+                    end_date_today = datetime.datetime.today()  #today
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
                     print((str(datetime.datetime.now()) + '  ' + str(e)))
@@ -409,7 +414,7 @@ def index():
                     with StdoutRedirection(gc_username):
                         print(gc_fit_activ_progress)
                     time.sleep(1)        
-                    gc.dwnld_insert_fit_activities(gc_agent, gc_username, gc_password, mfp_username, start_date, end_date, output, db_host, db_name, superuser_un,superuser_pw,archive_to_dropbox,archive_radio,dbx_auth_token, auto_synch,encr_pass)
+                    gc.dwnld_insert_fit_activities(gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw,archive_to_dropbox,archive_radio,dbx_auth_token, auto_synch,encr_pass)
                     gc_fit_activ_progress = 'GC FIT activities downloaded successfully'
                     with StdoutRedirection(gc_username):
                         print(gc_fit_activ_progress)
@@ -535,7 +540,7 @@ def index():
                         with StdoutRedirection(gc_username):
                             print(diasend_progress)
                         time.sleep(1)
-                        diasend_data_export_insert(output,start_date,end_date,gc_username,diasend_username,diasend_password,encr_pass,save_pwd,archive_to_dropbox,archive_radio,dbx_auth_token,db_host,superuser_un,superuser_pw)
+                        diasend_data_export_insert(output,start_date,end_date_today,gc_username,diasend_username,diasend_password,encr_pass,save_pwd,archive_to_dropbox,archive_radio,dbx_auth_token,db_host,superuser_un,superuser_pw)
                         diasend_progress = 'Diasend CGM data downloaded successfully'
                         with StdoutRedirection(gc_username):
                             print(diasend_progress)
@@ -556,7 +561,7 @@ def index():
                         with StdoutRedirection(gc_username):
                             print(glimp_progress)
                         time.sleep(1)
-                        glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
+                        glimp_data_insert(output,start_date,end_date_today,gc_username,encr_pass,glimp_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
                         glimp_progress = 'Glimp CGM data downloaded successfully'
                         with StdoutRedirection(gc_username):
                             print(glimp_progress)
@@ -577,7 +582,7 @@ def index():
                         with StdoutRedirection(gc_username):
                             print(mm_progress)
                         time.sleep(1)
-                        mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
+                        mm_data_insert(output,start_date,end_date_today,gc_username,encr_pass,mm_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
                         mm_progress = 'Mind Monitor data downloaded successfully'
                         with StdoutRedirection(gc_username):
                             print(mm_progress)
@@ -593,7 +598,7 @@ def index():
                 #--------------- Weather --------------
                 #PG:Call to execute "retrieve and insert weather/meteostat data" script
                 try:
-                    get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date,encr_pass)
+                    get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
                 except Exception as e:
                     with ErrorStdoutRedirection(gc_username):
                         print((str(datetime.datetime.now()) + '  ' + str(e)))    
