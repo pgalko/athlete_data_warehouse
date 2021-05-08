@@ -1,7 +1,7 @@
 # athlete_data_warehouse
 
 ## What does it do ?
-This is an experimental tool that allows you to download all historical activities and wellness data like weight, continuous HR, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. A live and fully functional service can be explored here: https://athletedata.net.
+This is an experimental tool that allows you to download all historical activities from Garmin Connect and daily wellness data like weight, continuous HR, HRV, body temperature, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. A live and fully functional service can be explored here: https://athletedata.net.
 
 ## Who is it for:
 There is a few alternative usage scenarios.
@@ -12,6 +12,7 @@ There is a few alternative usage scenarios.
 ## What data from what sources ?
 * **Garmin Connect** - Activity/Exercise data in FIT and TCX formats.
 * **Garmin Connect** - Wellness/Health data in FIT and XML formats.
+* **OuraRing** - Sleep, HRV, Body Temperature data retrieved via API
 * **MyFitnessPal** - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
 * **Diasend** - Blood Glucose data from continuous blood glucose monitors in XLS format.
 * **Glimp** - Blood Glucose data collected via Glimp android app and stored in Dropbox.
@@ -23,7 +24,7 @@ There is a few alternative usage scenarios.
 The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a type of web-scraper using the supplied credentials to log in to the user's account. Once logged in, it browses to download pages and iterates through available downloads. Finally it downloads the retrieved data to the server in the FIT,XML or CSV formats.
 
 *Select Datasouces:*
-![](images/DataSourcesGUI.PNG)
+![](images/DataSourcesGUI_new.PNG)
 
 ## Where and How is the user data stored ?
 The user data files are first downloaded and stored to the webserver's file system as flat files as described above. After each of the files is successfully downloaded and saved, the service parses and cleans the content which then gets formated and inserted in to the PostgreSQL database hosted either on this server or on the user's own DB server (the user will need to provide hostname/IP address, username, password). If user chooses to store his data on this DB server he will have his own database that he has got full and unrestricted access to. Once the user submits the download request providing valid credentials he will be able to retrieve the database access details via "View DB info..." link on the download page. The Datamodel diagram outlining the DB layout/data structure can be viewed here: **[Preview Datamodel...](https://www.athletedata.net/datamodel_preview?gc=0&wel=0&mfp=0&dia=0)** Upon successful DB insert the original export files are removed from the file system (optionally admins can enable preservation of the files after db insert.
