@@ -9,6 +9,7 @@
 # What gets encrypted: [app]: secret_key, smtp_password
 #                      [postgresql]: password
 #                      [dropbox]: app_secret, app_key
+#                      [oura]: client_id, client_secret
 #                      [anticaptcha]: api_key
 #
 # At a very least you will need to provide [app]: secret_key,[postgresql]: password for the application to be able to function, the rest is optional.
@@ -72,6 +73,16 @@ def create_encr_ini_file(encr_pass_input,plaintext_ini,encrypted_ini):
     encrypted_dbx_app_secret = base64.b64encode(encrypt(dbx_app_secret_to_encrypt,encr_pass_input))
     encrypted_dbx_app_secret = encrypted_dbx_app_secret.decode('utf-8')
     parser.set('dropbox', 'app_secret', encrypted_dbx_app_secret)
+
+    oura_client_id_to_encrypt = parser.get('oura','oura_client_id')
+    encrypted_oura_client_id = base64.b64encode(encrypt(oura_client_id_to_encrypt,encr_pass_input))
+    encrypted_oura_client_id = encrypted_oura_client_id.decode('utf-8')
+    parser.set('oura','oura_client_id', encrypted_oura_client_id)
+
+    oura_client_secret_to_encrypt = parser.get('oura','oura_client_secret')
+    encrypted_oura_client_secret = base64.b64encode(encrypt(oura_client_secret_to_encrypt,encr_pass_input))
+    encrypted_oura_client_secret = encrypted_oura_client_secret.decode('utf-8')
+    parser.set('oura','oura_client_secret', encrypted_oura_client_secret)
 
     anticaptcha_api_key_to_encrypt = parser.get('anticaptcha','api_key')
     encrypted_anticaptcha_api_key = base64.b64encode(encrypt(anticaptcha_api_key_to_encrypt,encr_pass_input))

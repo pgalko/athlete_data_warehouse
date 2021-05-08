@@ -81,7 +81,7 @@
     </div>
     
     <div>
-        <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px" >This tool automates health and performance data download from Garmin Connect, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
+        <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px" >This tool automates health and performance data download from Garmin Connect, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
             It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
             Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
             <p>
@@ -97,7 +97,7 @@
     <form method="POST"  action= "/" enctype="multipart/form-data" id='athlete-input-form' onsubmit="return ConfirmDelete()">
         <!--Select what data to download section-->
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-cloud-download" ></span>  <b>Data Sources</b> - What data do you want to include in the download (GarminConnect activities required, GarminConnect Wellness, MFP, Diasend, Glimp, LibreView, Mind Monitor optional): </h5>
+            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-cloud-download" ></span>  <b>Data Sources</b> - What data do you want to include in the download (GarminConnect activities required, GarminConnect Wellness, Oura, MFP, Diasend, Glimp, LibreView, Mind Monitor optional): </h5>
         </div>
 
         <div>
@@ -117,13 +117,19 @@
                         <label class="form-check-label" for="GCCheckbox">Check to login to Garmin Connect and download your activity data (Required)</label>
                     </div>
                     
-                    <!--Garmin Connect Wellness checkbox-->
+                    <!--Garmin Connect Wellness and Oura checkbox-->
                     <div class="header" style="color:#0275d8">
-                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Wellness <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a> : </b>
+                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Wellness <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a>, <a href="https://www.ouraring.com/" class="badge badge-pill badge-secondary">Oura</a> : </b>
                     </div>
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                    <!--Garmin Connect Checkbox-->
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 5px;">
                         <input type="checkbox" class="form-check-input" id="wellnessCheckbox" name="wellnessCheckbox" value="wellnessCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
                         <label class="form-check-label" for="wellnessCheckbox">Check to login to Garmin Connect and download your welness data </label> 
+                    </div>
+                    <!--Oura Checkbox-->
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                        <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        <label class="form-check-label" for="ouraCheckbox">Check to connect to Oura API and download your wellness data </label> 
                     </div>
                     
                     <!--MYFitnessPal checkbox-->
@@ -580,47 +586,47 @@
             <textarea id="MsgBox" class="form-control" rows="2" placeholder="Once submited, you will see the progress of your task here..."></textarea> 
              
         </div>
-            {% if del_progress == 'Error deleting data'%} <span class="badge badge-danger"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Error deleting data</span>
-                {% elif del_progress == 'All data deleted succesfully'%} <span class="badge badge-success"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - All data deleted succesfully</span>
-                {%else%}<span class="badge badge-secondary"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Will be skipped</span>
-            {% endif %} 
-            {% if mfp_progress == 'Error downloading MFP nutrition data'%} <span class="badge badge-danger"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Error downloading data</span>
-                {% elif mfp_progress == 'MFP nutrition data downloaded successfully'%} <span class="badge badge-success"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Will be skipped</span>
-            {% endif %}
-            {% if diasend_progress == 'Error downloading Diasend GCM data'%} <span class="badge badge-danger"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Error downloading data</span>
-                {% elif diasend_progress == 'Diasend CGM data downloaded successfully'%} <span class="badge badge-success"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Will be skipped</span>
-            {% endif %}
-			{% if glimp_progress == 'Error downloading Glimp CGM data'%} <span class="badge badge-danger"  id="glimpCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Glimp/LibreView CGM Data - Error downloading data</span>
-                {% elif glimp_progress == 'Glimp CGM data downloaded successfully'%} <span class="badge badge-success"  id="glimpCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Glimp/LIbreView CGM Data - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="glimpCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Glimp/LibreView CGM Data - Will be skipped</span>
-            {% endif %}	
-            {% if mm_progress == 'Error downloading Mind Monitor data'%} <span class="badge badge-danger"  id="mmEEGbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Mind Monitor Data - Error downloading data</span>
-                {% elif mm_progress == 'Mind Monitor data downloaded successfully'%} <span class="badge badge-success"  id="mmEEGbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Mind Monitor Data - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="mmEEGbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Mind Monitor Data - Will be skipped</span>
-            {% endif %}															   
-            {% if gc_fit_activ_progress == 'Error downloading GC FIT activities'%} <span class="badge badge-danger"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Error downloading data</span>
-                {% elif gc_fit_activ_progress == 'GC FIT activities downloaded successfully'%} <span class="badge badge-success"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Will be skipped</span>
-            {% endif %}
-            <!--{% if gc_tcx_activ_progress == 'Error downloading GC TCX activities'%} <span class="badge badge-danger"  id="gcActvtTcx" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (TCX) - Error downloading data</span>
-                {% elif gc_tcx_activ_progress == 'GC TCX activities downloaded successfully'%} <span class="badge badge-success"  id="gcActvtTcx" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (TCX) - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="gcActvtTcx" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (TCX) - Will be skipped</span>
-            {% endif %} -->
-            {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
-                {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
-            {% endif %}
-            {% if gc_json_well_progress == 'Error downloading GC JSON wellness data'%} <span class="badge badge-danger"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Error downloading data</span>
-                {% elif gc_json_well_progress == 'GC JSON wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="gcWellJson"style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Will be skipped</span>
-            {% endif %}
-            {% if gc_json_dailysum_progress == 'Error downloading GC JSON daily summary'%} <span class="badge badge-danger"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Error downloading data</span>
-                {% elif gc_json_dailysum_progress == 'GC JSON daily summary data downloaded successfully'%} <span class="badge badge-success"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Will be skipped</span>
-            {% endif %}           
-        <div> 
+        {% if del_progress == 'Error deleting data'%} <span class="badge badge-danger"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Error deleting data</span>
+            {% elif del_progress == 'All data deleted succesfully'%} <span class="badge badge-success"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - All data deleted succesfully</span>
+            {%else%}<span class="badge badge-secondary"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Will be skipped</span>
+        {% endif %} 
+        {% if mfp_progress == 'Error downloading MFP nutrition data'%} <span class="badge badge-danger"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Error downloading data</span>
+            {% elif mfp_progress == 'MFP nutrition data downloaded successfully'%} <span class="badge badge-success"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="mfpNutritionBadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">MFP Nutrition Data - Will be skipped</span>
+        {% endif %}
+        {% if diasend_progress == 'Error downloading Diasend GCM data'%} <span class="badge badge-danger"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Error downloading data</span>
+            {% elif diasend_progress == 'Diasend CGM data downloaded successfully'%} <span class="badge badge-success"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="diasendCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Diasend CGM Data - Will be skipped</span>
+        {% endif %}
+        {% if glimp_progress == 'Error downloading Glimp CGM data'%} <span class="badge badge-danger"  id="glimpCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Glimp/LibreView CGM Data - Error downloading data</span>
+            {% elif glimp_progress == 'Glimp CGM data downloaded successfully'%} <span class="badge badge-success"  id="glimpCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Glimp/LIbreView CGM Data - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="glimpCGMbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Glimp/LibreView CGM Data - Will be skipped</span>
+        {% endif %}	
+        {% if mm_progress == 'Error downloading Mind Monitor data'%} <span class="badge badge-danger"  id="mmEEGbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Mind Monitor Data - Error downloading data</span>
+            {% elif mm_progress == 'Mind Monitor data downloaded successfully'%} <span class="badge badge-success"  id="mmEEGbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Mind Monitor Data - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="mmEEGbadge" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Mind Monitor Data - Will be skipped</span>
+        {% endif %}															   
+        {% if gc_fit_activ_progress == 'Error downloading GC FIT activities'%} <span class="badge badge-danger"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Error downloading data</span>
+            {% elif gc_fit_activ_progress == 'GC FIT activities downloaded successfully'%} <span class="badge badge-success"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="gcActvtFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Activity Data (FIT) - Will be skipped</span>
+        {% endif %}
+        {% if oura_well_progress == 'Error downloading Oura wellness data'%} <span class="badge badge-danger"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Error downloading data</span>
+            {% elif oura_well_progress == 'Oura wellness data downloaded successfully'%} <span class="badge badge-success"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Will be skipped</span>
+        {% endif %}
+        {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
+            {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
+        {% endif %}
+        {% if gc_json_well_progress == 'Error downloading GC JSON wellness data'%} <span class="badge badge-danger"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Error downloading data</span>
+            {% elif gc_json_well_progress == 'GC JSON wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="gcWellJson"style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Will be skipped</span>
+        {% endif %}
+        {% if gc_json_dailysum_progress == 'Error downloading GC JSON daily summary'%} <span class="badge badge-danger"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Error downloading data</span>
+            {% elif gc_json_dailysum_progress == 'GC JSON daily summary data downloaded successfully'%} <span class="badge badge-success"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Downloaded successfully</span>
+            {%else%}<span class="badge badge-secondary"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Will be skipped</span>
+        {% endif %}           
+    <div> 
 
 
         <hr>
@@ -639,12 +645,13 @@
                         <p>Did you ever want to copy and store your activities, wellness, nutrition and blood sugar data all in one place ? Then this tool might be for you.
                         </p>
                         <p><b>So, what does it do ?</b>
-                            <br>This is an experimental tool that allows you to download all historical activities and wellness data like weight, continuous HR, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data.
-                            Data is downloaded in either FIT,XML or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. 
+                            <br>This is an experimental tool that allows you to download all historical activities and wellness data like weight, continuous HR, HRV, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data.
+                            Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. 
                         </p>
                         <p><b>What data from what sources ?</b>
                             <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Activity/Excersize data in FIT and TCX formats.
                             <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Wellness/Heatlth data in FIT and XML formats.
+                            <br><a href="https://www.ouraring.com/" class="badge badge-pill badge-primary">Oura</a> - Historical Sleep, HRV data retrieved via API.
                             <br><a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-primary">MyFitnessPal</a> - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
                             <br><a href="https://diasend.com//en/" class="badge badge-pill badge-primary">Diasend</a> - Blood Glucose data from continuous blood glucose monitors in XLS format.
                             <br><a href="https://www.deebee.it/?p=1411" class="badge badge-pill badge-primary">Glimp</a> - Blood Glucose data collected via Glimp android app and stored in Dropbox.

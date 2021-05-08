@@ -57,9 +57,10 @@ def decrypt(ciphertext, password):
     plaintext = unpad_text(padded_plaintext)
     return plaintext 
 
-encrypted_pw = base64.b64encode(encrypt("Palo_Galko", "00000"))
-print(encrypted_pw)
+encrypted_string = base64.b64encode(encrypt("Palo Galko", "00000"))
+encrypted_string = encrypted_string.decode('utf-8')
+print(encrypted_string)
 
-decrypted_pw = decrypt(base64.b64decode(encrypted_pw), '00000')
-print(decrypted_pw)
+decrypted_string = decrypt(base64.b64decode(encrypted_string), '00000')
+print(decrypted_string)
 

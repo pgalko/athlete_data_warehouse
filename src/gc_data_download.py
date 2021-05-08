@@ -136,7 +136,7 @@ def check_gc_creds(username,password):
         
     return cred_valid
     
-def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,dbx_auth_token, encr_pass, save_pwd, login_retry=False):
+def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,dbx_auth_token, oura_refresh_token, encr_pass, save_pwd, login_retry=False):
     agent = me.Browser()
     cookie_jar = http.cookiejar.LWPCookieJar()
     db_name = str(str2md5(username)) + '_Athlete_Data_DB'
@@ -157,6 +157,12 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
         encrypted_dbx_auth_token = encrypted_dbx_auth_token.decode('utf-8')
     else:
         encrypted_dbx_auth_token = None
+    #Encrypt oura token
+    if oura_refresh_token is not None:
+        encrypted_oura_refresh_token = base64.b64encode(encrypt(oura_refresh_token, encr_pass))
+        encrypted_oura_refresh_token = encrypted_oura_refresh_token.decode('utf-8')
+    else:
+        encrypted_oura_refresh_token = None
 
     # First establish contact with Garmin and decipher the local host - PG:No deciphering the local host.Replaced with HOSTNAME variable.
     with StdoutRedirection(username):
@@ -248,11 +254,11 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                 
                 if db_exists == True:
                     # PG: Insert gc username and password into postgreSQL
-                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encr_pass)
+                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encrypted_oura_refresh_token,encr_pass)
                 else:
                     create_user_db(username,password,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass)
                     restore_db_schema(username,password,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encr_pass)
+                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,oura_refresh_token,encr_pass)
     except urllib.error.HTTPError as e:
         if e.code == 401:
             with ErrorStdoutRedirection(username):
@@ -551,8 +557,8 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                 download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx)
             
             #Function that combines several functions to parse the fit file and insert the data to db
-            def fit_db_insert_function(file_path_unzipped,file_path_archive,activityId,gc_username, db_host,db_name,superuser_un,superuser_pw,encr_pass):
-                gc_original_session_insert(file_path_unzipped,activityId,gc_username, db_host,db_name,superuser_un,superuser_pw,encr_pass)
+            def fit_db_insert_function(file_path_unzipped,file_path_archive,activityId, gc_username, db_host,db_name,superuser_un,superuser_pw,encr_pass):
+                gc_original_session_insert(file_path_unzipped,activityId, gc_username, db_host,db_name,superuser_un,superuser_pw,encr_pass)
                 gc_original_lap_insert(file_path_unzipped,activityId,gc_username, db_host,db_name,superuser_un,superuser_pw,encr_pass)
                 gc_original_record_insert(file_path_unzipped,activityId,gc_username, db_host,db_name,superuser_un,superuser_pw,encr_pass)
                 data_file_path_insert(file_path_unzipped,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)

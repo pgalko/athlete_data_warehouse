@@ -9,7 +9,7 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,encr_pass):
+def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass):
         gc_user = (gc_username, )
         gc_pwd = (gc_password, )
         mfp_user = (mfp_username, )
@@ -18,6 +18,7 @@ def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_na
         db_password = gc_decr_pw
         db_name = (db_name)
         auth_token_tuple = (dbx_auth_token, )
+        oura_token_tuple = (oura_refresh_token, )
         
         conn = None
 
@@ -67,6 +68,23 @@ def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_na
 
         """
 
+        sql_insert_oura_refresh_token = """
+        DO
+        $do$
+        BEGIN
+        IF
+
+        EXISTS (SELECT id FROM athlete WHERE gc_email = %s) THEN
+
+        UPDATE athlete SET oura_refresh_token = %s where gc_email= %s;
+
+        END IF;
+        
+        END
+        $do$
+
+        """
+
         try:
          
                 # connect to the PostgreSQL server
@@ -87,7 +105,13 @@ def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_na
                         print('Inserting Dropbox user authentication token into postgreSQL:')
                     cur.execute(sql_insert_dbx_auth_token,(gc_user,auth_token_tuple,gc_user))
                     conn.commit()
-                
+
+                if oura_refresh_token is not None:
+                    with ProgressStdoutRedirection(gc_username):
+                        print('Inserting Oura refresh token into postgreSQL:')
+                    cur.execute(sql_insert_oura_refresh_token,(gc_user,oura_token_tuple,gc_user))
+                    conn.commit()
+
                 # close the communication with the PostgreSQL
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:

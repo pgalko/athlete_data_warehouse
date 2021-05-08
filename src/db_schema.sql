@@ -38,7 +38,8 @@ CREATE TABLE public.athlete (
     diasend_password character varying(300),
     glimp_export_link character varying(300),
     libreview_export_link character varying(300),
-    mm_export_link character varying(300)
+    mm_export_link character varying(300),
+    oura_refresh_token character varying(300)
 );
 
 ALTER TABLE public.athlete OWNER TO postgres;

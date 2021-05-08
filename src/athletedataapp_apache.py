@@ -14,6 +14,7 @@ from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,Progres
 from db_create_user_database import check_user_db_exists,check_host_record_exists,backup_user_db,create_sample_db,check_db_server_connectivity
 from db_user_insert import gc_user_update
 from db_dropbox import check_user_token_exists
+from db_oura_auth import check_oura_token_exists
 from diasend_data_download_db_insert import diasend_data_export_insert
 from glimp_data_download_db_insert import glimp_data_insert
 from mind_monitor_data_download_db_insert import mm_data_insert
@@ -29,8 +30,8 @@ from plotly_dashboard_1 import create_dashboard1
 import Crypto.Random
 from Crypto.Cipher import AES
 import base64
-
-                                              
+from requests_oauthlib import OAuth2Session
+                                           
 #----Crypto Variables----
 # salt size in bytes
 SALT_SIZE = 16
@@ -66,6 +67,12 @@ APP_KEY = str(dbx_params.get("app_key"))
 APP_SECRET = str(dbx_params.get("app_secret"))
 REDIRECT_URI = str(dbx_params.get("redirect_uri"))
 integrated_with_dropbox = str(dbx_params.get("integrated_with_dropbox"))
+
+oura_params = config(filename="encrypted_settings.ini", section="oura",encr_pass=encr_pass)
+OURA_CLIENT_ID = str(oura_params.get("oura_client_id"))
+OURA_CLIENT_SECRET = str(oura_params.get("oura_client_secret"))
+OURA_AUTH_URL = str(oura_params.get("oura_auth_url"))
+OURA_TOKEN_URL = str(oura_params.get("oura_token_url"))
 
 anticaptcha_params = config(filename="encrypted_settings.ini", section="anticaptcha",encr_pass=encr_pass)
 anticaptcha_api_key = str(anticaptcha_params.get("api_key"))
@@ -126,6 +133,7 @@ def index():
     archive_to_dropbox = False
     archive_radio = None
     dbx_auth_token = session.get('dbx_auth_token',None)
+    oura_refresh_token = session.get('oura_refresh_token',None)
     auto_synch = False
 
     output = DOWNLOAD_DIR
@@ -252,8 +260,22 @@ def index():
                     return redirect(url_for('dropbox_auth_request'))                
             else:
                 archive_to_dropbox = True
-        
-        # CLEANUP BEFORE DOWNLOAD -----------------   
+
+        #----Check for and Retrieve Oura token----
+        if request.form.get('ouraCheckbox') is not None:
+            if oura_refresh_token is None:
+                db_exists = check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_pw,encr_pass)       
+                if db_exists == True:
+                    oura_token_exists, oura_token_from_db = check_oura_token_exists(gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                    if oura_token_exists == True: # token exists in database and it is not None
+                        oura_refresh_token = oura_token_from_db
+                        print('Refresh Token: {}'.format(oura_refresh_token))
+                    else:
+                        return redirect(url_for('oura_auth_request'))
+                else:
+                    return redirect(url_for('oura_auth_request'))
+
+        # CLEANUP BEFORE DOWNLOAD -----------------     
                 
         #----Delete Files and DB Data variables----
         try:            
@@ -387,7 +409,8 @@ def index():
             #PG:Call to execute "GC login" script
             if gc_username is not None:
                 try:        
-                    gc_agent = gc.login(gc_username, gc_password, mfp_username,db_host,superuser_un,superuser_pw,dbx_auth_token,encr_pass,save_pwd)
+                    gc_agent = gc.login(gc_username, gc_password, mfp_username,db_host,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
+                    session['oura_refresh_token'] = None
                     gc_user_update(gc_username,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch---- 
                     gc_login_progress = 'Login to GC successfull'
                     with StdoutRedirection(gc_username):
@@ -458,6 +481,11 @@ def index():
                         time.sleep(1)
                         with ErrorStdoutRedirection(gc_username):
                             print((str(datetime.datetime.now()) + '  ' + gc_fit_well_progress))
+
+                #TODO: 
+                #PG:Call to execute "Parse and insert Oura wellness data" script 
+                #TODO
+
                     #PG:Call to execute "Parse and insert JSON wellness data" script
                     try:
                         gc_json_well_progress = 'GC JSON wellness download started'
@@ -767,12 +795,48 @@ def dropbox_auth_request():
         pass
     
 @app.route("/dropbox_confirm")
-def dropbox_confirm(): 
-    token = dropbox_auth_finish(session,request)
-    session['dbx_auth_token'] = token
-    continue_btn = 'delete'
-    flash('  You have successfuly authenticated with Dropbox. Click "Continue" to proceed with download.','success')
-    return redirect(url_for('index',continue_btn = continue_btn))
+def dropbox_confirm():
+    try: 
+        token = dropbox_auth_finish(session,request)
+        session['dbx_auth_token'] = token
+        continue_btn = 'delete'
+        flash('  You have successfuly authenticated with Dropbox. Click "Continue" to proceed with download.','success')
+        return redirect(url_for('index',continue_btn = continue_btn))
+    except Exception as e:
+        session['dbx_auth_token'] = None
+        flash('  There was a problem authenticating with Dropbox.','warning')
+        return redirect(url_for('index'))
+
+
+@app.route('/oura_auth_request')
+def oura_auth_request():
+    try:
+        oura_session = OAuth2Session(OURA_CLIENT_ID)
+        authorization_url, state = oura_session.authorization_url(OURA_AUTH_URL)
+        session['oura_oauth_state'] = state
+        return redirect(authorization_url, 301)
+    except Exception as e:
+        pass
+        
+@app.route('/oura_confirm')# Must match Redirect URI specified in https://cloud.ouraring.com/oauth/applications.
+def oura_confirm():
+    oura_session = OAuth2Session(OURA_CLIENT_ID, state=session['oura_oauth_state'])
+    try:
+        response = oura_session.fetch_token(
+                            OURA_TOKEN_URL,
+                            client_secret=OURA_CLIENT_SECRET,
+                            authorization_response=request.url)
+
+        oura_refresh_token = response['refresh_token']
+    
+        session['oura_refresh_token'] = oura_refresh_token
+        continue_btn = 'delete'
+        flash('  You have successfuly authenticated with Oura. Click "Continue" to proceed with download.','success')
+        return redirect(url_for('index',continue_btn = continue_btn))
+    except Exception as e:
+        session['oura_refresh_token'] = None
+        flash('  There was a problem authenticating with Oura.','warning')
+        return redirect(url_for('index'))
 
 @app.route("/process_running", methods = ['GET','POST'])
 def process_running():

@@ -19,10 +19,10 @@ PID_FILE_DIR = str(path_params.get("pid_file_dir"))
 DOWNLOAD_DIR = str(path_params.get("download_dir"))
 
 
-def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_password, mfp_username, mfp_password, cgm_username, cgm_password, glimp_export_link, libreview_export_link, mm_export_link,display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token,auto_synch,encr_pass):
+def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_password, mfp_username, mfp_password, cgm_username, cgm_password, glimp_export_link, libreview_export_link, mm_export_link,display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token,oura_refresh_token,auto_synch,encr_pass):
     #PG:Call to execute "parse and insert GC data" script
     if gc_username is not None:                
-        gc_agent = gc.login(gc_username, gc_password, mfp_username,db_host, superuser_un, superuser_pw, dbx_auth_token, encr_pass,True)        
+        gc_agent = gc.login(gc_username, gc_password, mfp_username,db_host, superuser_un, superuser_pw, dbx_auth_token, oura_refresh_token, encr_pass,True)        
         gc.dwnld_insert_fit_activities(gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw, True, "archiveFiles", dbx_auth_token, auto_synch,encr_pass)
         gc.dwnld_insert_fit_wellness(gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output,db_host,db_name,superuser_un,superuser_pw,True, "archiveFiles", dbx_auth_token,encr_pass)
         gc.dwnld_insert_json_body_composition(gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host,db_name,superuser_un,superuser_pw, True, "archiveFiles", dbx_auth_token,encr_pass)
@@ -66,7 +66,7 @@ def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_pa
             with ErrorStdoutRedirection(gc_username):
                 print(e)
                     
-def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,encr_pass):
+def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,encr_pass):
     output = DOWNLOAD_DIR
     auto_synch = True
 
@@ -96,7 +96,7 @@ def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_pass
         #DATA DOWNLOAD ------------------------------
     
         #PG:Call to execute "parse and insert GC and MFP data" functions
-        run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_password, mfp_username, mfp_password,cgm_username,cgm_password,glimp_export_link,libreview_export_link,mm_export_link, display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token,auto_synch,encr_pass)
+        run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_password, mfp_username, mfp_password,cgm_username,cgm_password,glimp_export_link,libreview_export_link,mm_export_link, display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token, oura_refresh_token, auto_synch, encr_pass)
                     
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):

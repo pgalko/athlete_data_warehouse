@@ -117,6 +117,7 @@ function EnableDisableElmnt(radioBtn){
     var diasendCheckbox = document.getElementById('diasendCheckbox');
 
     var wellnessCheckbox = document.getElementById('wellnessCheckbox');
+    var ouraCheckbox = document.getElementById('ouraCheckbox');
     var housekeeping = document.getElementById('housekeeping');
     var AutoSynchCheckbox = document.getElementById('AutoSynchCheckbox');
 
@@ -142,6 +143,7 @@ function EnableDisableElmnt(radioBtn){
     var gcActvtFit = document.getElementById('gcActvtFit');
     //var gcActvtTcx = document.getElementById('gcActvtTcx');
     var gcWellFit = document.getElementById('gcWellFit');
+    var ouraWell = document.getElementById('ouraWell');
     var gcWellJson = document.getElementById('gcWellJson');
     var gcDailySum = document.getElementById('gcDailySum');
     var startDate = document.getElementById('startDate');
@@ -643,6 +645,28 @@ function EnableDisableElmnt(radioBtn){
             gcLoginBorder.className = "border";
         }
     }
+    //Oura checkbox checked
+    else if (radioBtn.checked == true  && radioBtn == document.getElementById('ouraCheckbox')){
+        ouraWell.className = "badge badge-primary";
+        ouraWell.textContent = "Oura Wellness Data - Will be downloaded";
+        if (document.getElementById('GCCheckbox').checked == false){
+            document.getElementById('GCCheckbox').click();
+        }
+        gcLoginBorder.className = "border border-primary"
+        startDate.setAttribute('required','');
+    }
+    //Oura checkbox unchecked
+    else if (radioBtn.checked == false  && radioBtn == document.getElementById('ouraCheckbox')){
+        ouraWell.className = "badge badge-secondary";
+        ouraWell.textContent = "Oura Wellness Data - Will be skipped";
+        startDate.removeAttribute('required');
+        if (document.getElementById('GCCheckbox').checked){
+            gcLoginBorder.className = "border border-primary";
+        }
+        else{
+            gcLoginBorder.className = "border";
+        }
+    }
     //Delete checkbox checked
     else if (radioBtn.checked == true && radioBtn == document.getElementById('dataDeleteCheckbox')){
         housekeeping.className = "badge badge-primary";
@@ -730,6 +754,7 @@ function loadSavedChecked(){
     var OutputDirCheckbox = JSON.parse(sessionStorage.getItem('OutputDirCheckbox'));
     var dataDeleteCheckbox = JSON.parse(sessionStorage.getItem('dataDeleteCheckbox'));
     var wellnessCheckbox = JSON.parse(sessionStorage.getItem('wellnessCheckbox'));
+    var ouraCheckbox = JSON.parse(sessionStorage.getItem('ouraCheckbox'));
     var archiveDataCheckbox = JSON.parse(sessionStorage.getItem('archiveDataCheckbox'));
 
     var GCcredRadio = sessionStorage.getItem('GCcredRadio');
@@ -766,6 +791,9 @@ function loadSavedChecked(){
     }
     if (wellnessCheckbox == true) {
         document.getElementById('wellnessCheckbox').click();
+    }
+    if (ouraCheckbox == true) {
+        document.getElementById('ouraCheckbox').click();
     }
     if (archiveDataCheckbox == true) {
         document.getElementById('archiveDataCheckbox').click();
@@ -1023,6 +1051,20 @@ $(document).ready(function() {
                 if (result.indexOf('Error downloading GC FIT wellness data') > -1){
                     document.getElementById('gcWellFit').textContent = "GC Wellness Data (FIT) - Error downloading data";
                     document.getElementById('gcWellFit').className = "badge badge-danger";
+                }
+                //show status Oura wellness badge
+                if (result.indexOf('Oura wellness download started') > -1){
+                    document.getElementById('ouraWell').textContent = "Oura Wellness Data - Downloading...";
+                    document.getElementById('ouraWell').className = "badge badge-info";
+                    document.getElementById('ouraWell').classList.add("heart");
+                }
+                if (result.indexOf('Oura wellness data downloaded successfully') > -1){
+                    document.getElementById('ouraWell').textContent = "Oura Wellness Data - Downloaded successfully";
+                    document.getElementById('ouraWell').className = "badge badge-success";
+                }
+                if (result.indexOf('Oura wellness wellness data') > -1){
+                    document.getElementById('ouraWell').textContent = "Oura Wellness Data - Error downloading data";
+                    document.getElementById('ouraWell').className = "badge badge-danger";
                 }
                 //show status GC JSON wellness badge
                 if (result.indexOf('GC JSON wellness download started') > -1){
