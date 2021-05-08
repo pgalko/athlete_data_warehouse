@@ -1,7 +1,7 @@
 # athlete_data_warehouse
 
 ## What does it do ?
-This is an experimental tool that allows you to download all historical activities and wellness data like weight, continuous HR, stress, sleep etc from Garmin Connect. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. A live and fully functional service can be explored here: https://athletedata.net.
+This is an experimental tool that allows you to download all historical activities from Garmin Connect and daily wellness data like weight, continuous HR, HRV, body temperature, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. A live and fully functional service can be explored here: https://athletedata.net.
 
 ## Who is it for:
 There is a few alternative usage scenarios.
@@ -12,6 +12,7 @@ There is a few alternative usage scenarios.
 ## What data from what sources ?
 * **Garmin Connect** - Activity/Exercise data in FIT and TCX formats.
 * **Garmin Connect** - Wellness/Health data in FIT and XML formats.
+* **OuraRing** - Sleep, HRV, Body Temperature data retrieved via API
 * **MyFitnessPal** - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
 * **Diasend** - Blood Glucose data from continuous blood glucose monitors in XLS format.
 * **Glimp** - Blood Glucose data collected via Glimp android app and stored in Dropbox.
