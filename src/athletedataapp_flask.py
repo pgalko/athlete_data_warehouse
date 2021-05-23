@@ -20,6 +20,7 @@ from glimp_data_download_db_insert import glimp_data_insert
 from mind_monitor_data_download_db_insert import mm_data_insert
 from weather import get_weather
 from send_email import send_email
+from oura_data_download import dwnld_insert_oura_data
 import psutil
 import urllib.request, urllib.error, urllib.parse
 from database_ini_parser import config
@@ -31,7 +32,7 @@ import Crypto.Random
 from Crypto.Cipher import AES
 import base64
 from requests_oauthlib import OAuth2Session
-                                          
+                                        
 #----Crypto Variables----
 # salt size in bytes
 SALT_SIZE = 16
@@ -69,6 +70,10 @@ def create_app(encr_pass_input,debug=False):
     OURA_CLIENT_SECRET = str(oura_params.get("oura_client_secret"))
     OURA_AUTH_URL = str(oura_params.get("oura_auth_url"))
     OURA_TOKEN_URL = str(oura_params.get("oura_token_url"))
+    if OURA_CLIENT_ID == "":
+        oura_enabled = False
+    else:
+        oura_enabled = True
 
     anticaptcha_params = config(filename="encrypted_settings.ini", section="anticaptcha",encr_pass=encr_pass)
     anticaptcha_api_key = str(anticaptcha_params.get("api_key"))
@@ -123,6 +128,7 @@ def create_app(encr_pass_input,debug=False):
         gc_fit_activ_progress = None
         gc_tcx_activ_progress = None
         gc_fit_well_progress = None
+        oura_well_progress = None
         gc_json_well_progress = None
         gc_json_dailysum_progress = None
         progress_error = False
@@ -161,7 +167,7 @@ def create_app(encr_pass_input,debug=False):
                 connection = check_db_server_connectivity(gc_username,db_host,superuser_un,superuser_pw)
                 if connection != 'SUCCESS':
                     flash('  Could cot connect to the DB Host.The host returned an error:  '+connection,'danger')
-                    return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                    return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
             else:
                 #If user does not wish to download to his db, credentials to be retrieved from .ini.
                 params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
@@ -174,13 +180,13 @@ def create_app(encr_pass_input,debug=False):
             host_record_exists = check_host_record_exists(gc_username,db_name,db_host,encr_pass)
             if host_record_exists == True:
                 flash('  You can only download to one db host. Please correct the db_hostname and try again','warning')
-                return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
             #----Check if the provided GC credentials are valid-----
             gc_cred_valid = gc.check_gc_creds(gc_username,gc_password)
             if gc_cred_valid == False:
                 flash('  The Garmin Connect login credentials are not valid. Please try again','warning')
-                return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
 
             #----- Set Auto_Synch variables--------
@@ -257,7 +263,7 @@ def create_app(encr_pass_input,debug=False):
                 else:
                     archive_to_dropbox = True
 
-             #----Check for and Retrieve Oura token----
+            #----Check for and Retrieve Oura token----
             if request.form.get('ouraCheckbox') is not None:
                 if oura_refresh_token is None:
                     db_exists = check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_pw,encr_pass)       
@@ -269,7 +275,7 @@ def create_app(encr_pass_input,debug=False):
                         else:
                             return redirect(url_for('oura_auth_request'))
                     else:
-                            return redirect(url_for('oura_auth_request'))
+                        return redirect(url_for('oura_auth_request'))
 
             # CLEANUP BEFORE DOWNLOAD -----------------   
                     
@@ -357,7 +363,7 @@ def create_app(encr_pass_input,debug=False):
                                 time.sleep(1)
                                 with ProgressStdoutRedirection(gc_username):
                                     print(del_progress)
-                                return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                                return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
                             except:
                                 del_progress = 'Error deleting data'
                                 progress_error = True
@@ -366,7 +372,7 @@ def create_app(encr_pass_input,debug=False):
                                 time.sleep(1)
                                 with ErrorStdoutRedirection(gc_username):
                                     print((str(datetime.datetime.now()) + '  ' + del_progress))
-                                return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                                return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
                         
                 if gc_username is None and gc_password is None and mfp_username is None and mfp_password is None:
@@ -398,7 +404,7 @@ def create_app(encr_pass_input,debug=False):
                         print((str(datetime.datetime.now()) + '  ' + str(e)))
                     #PG:If start date not provided render index and flash warning   
                     flash('  Please provide a valid start date and try again!','danger')
-                    return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                    return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
                 # DATA DOWNLOAD -------------------------------------- 
                                         
@@ -406,7 +412,7 @@ def create_app(encr_pass_input,debug=False):
                 if gc_username is not None:
                     try:        
                         gc_agent = gc.login(gc_username, gc_password, mfp_username,db_host,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
-                        session['oura_refresh_token'] = None                        
+                        session['oura_refresh_token'] = None
                         gc_user_update(gc_username,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch---- 
                         gc_login_progress = 'Login to GC successfull'
                         with StdoutRedirection(gc_username):
@@ -423,7 +429,7 @@ def create_app(encr_pass_input,debug=False):
                         with ErrorStdoutRedirection(gc_username):
                             print((str(datetime.datetime.now()) + '  ' + gc_login_progress))
                         flash('  There was a problem logging in to Garmin Connect. Please try again later','warning')
-                        return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                        return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
                     #----------------------------------  Activity  ---------------------------------------    
                     
@@ -477,10 +483,6 @@ def create_app(encr_pass_input,debug=False):
                             time.sleep(1)
                             with ErrorStdoutRedirection(gc_username):
                                 print((str(datetime.datetime.now()) + '  ' + gc_fit_well_progress))
-                    
-                    #TODO: 
-                    #PG:Call to execute "Parse and insert Oura wellness data" script 
-                    #TODO
 
                         #PG:Call to execute "Parse and insert JSON wellness data" script
                         try:
@@ -530,7 +532,32 @@ def create_app(encr_pass_input,debug=False):
                             time.sleep(1)
                             with ErrorStdoutRedirection(gc_username):
                                 print((str(datetime.datetime.now()) + '  ' + gc_json_dailysum_progress)) 
-                    
+                     
+                    #PG:Call to execute "Parse and insert Oura wellness data" script 
+                    if request.form.get('ouraCheckbox') is not None:
+                        try:
+                            oura_well_progress = 'Oura wellness download started'
+                            with StdoutRedirection(gc_username):
+                                print(oura_well_progress)
+                            time.sleep(1)        
+                            dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date,end_date,save_pwd,encr_pass)
+                            oura_well_progress = 'Oura wellness data downloaded successfully'
+                            with StdoutRedirection(gc_username):
+                                print(oura_well_progress)
+                            time.sleep(1)
+                            with ProgressStdoutRedirection(gc_username):
+                                print(oura_well_progress) 
+                        except Exception as e:
+                            with ErrorStdoutRedirection(gc_username):
+                                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                            oura_well_progress = 'Error downloading Oura wellness data'
+                            progress_error = True
+                            with StdoutRedirection(gc_username):
+                                print(oura_well_progress)
+                            time.sleep(1)
+                            with ErrorStdoutRedirection(gc_username):
+                                print((str(datetime.datetime.now()) + '  ' + oura_well_progress))
+
                     #----------------- Nutrition MFP ---------------------------    
                     #PG:Call to execute "parse and insert MFP data" script
                     if mfp_username is not None:   
@@ -674,9 +701,9 @@ def create_app(encr_pass_input,debug=False):
                     print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Finished Data Download ' + error_log_entry +' -------------' ))
 
                 return render_template("index.html",del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,glimp_progress = glimp_progress, mm_progress = mm_progress, gc_login_progress = gc_login_progress,
-                                    gc_fit_activ_progress = gc_fit_activ_progress,gc_tcx_activ_progress = gc_tcx_activ_progress,
-                                    gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
-                                    gc_json_dailysum_progress = gc_json_dailysum_progress, progress_error = progress_error, continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+                                    gc_fit_activ_progress = gc_fit_activ_progress,gc_tcx_activ_progress = gc_tcx_activ_progress,gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
+                                    gc_json_dailysum_progress = gc_json_dailysum_progress, oura_well_progress = oura_well_progress, progress_error = progress_error, continue_btn = continue_btn,admin_email=admin_email,
+                                    integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
@@ -689,7 +716,7 @@ def create_app(encr_pass_input,debug=False):
 
         else: # Request method is GET
             continue_btn = request.args.get('continue_btn')
-            return render_template("index.html",continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+            return render_template("index.html",continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
     @app.route("/datamodel_preview")
     def datamodel_preview():
@@ -779,7 +806,7 @@ def create_app(encr_pass_input,debug=False):
             db_username = None
             password_info = None
             flash('  The DB name, DB role and DB permissions are generated based on your Garmin Connect username. Please fill in your GC credentials and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
-            return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled)
+            return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
     @app.route("/dropbox_auth_request")
     def dropbox_auth_request():

@@ -66,7 +66,7 @@ def get_databases_list(encr_pass):
 
     except (Exception, psycopg2.DatabaseError) as error:
         with ConsolidatedProgressStdoutRedirection():
-            print('Autosynch DB Error 0: '+str(error))
+            print(error)
 
     finally:
         if conn is not None:
@@ -92,7 +92,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
     dbx_decr_token = None
 
     oura_encr_token = None
-    oura_decr_token = None    
+    oura_decr_token = None
     
     glimp_encr_export_link = None
     glimp_decr_export_link = None
@@ -147,7 +147,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
 
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
-                    print('Autosynch DB Error 1: '+str(error))
+                    print('Autosynch DB Error: '+str(error))
 
             finally:
                 if dbsu_conn is not None:

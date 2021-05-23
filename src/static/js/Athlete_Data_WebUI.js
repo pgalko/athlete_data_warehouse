@@ -1062,7 +1062,7 @@ $(document).ready(function() {
                     document.getElementById('ouraWell').textContent = "Oura Wellness Data - Downloaded successfully";
                     document.getElementById('ouraWell').className = "badge badge-success";
                 }
-                if (result.indexOf('Oura wellness wellness data') > -1){
+                if (result.indexOf('Error downloading Oura wellness data') > -1){
                     document.getElementById('ouraWell').textContent = "Oura Wellness Data - Error downloading data";
                     document.getElementById('ouraWell').className = "badge badge-danger";
                 }

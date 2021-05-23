@@ -38,10 +38,6 @@ def check_oura_token_exists(gc_username,db_host,db_name,superuser_un,superuser_p
 
     try: 
         # connect to the PostgreSQL server
-        with ProgressStdoutRedirection(gc_username):
-            print('Connecting to the PostgreSQL server to check whether the oura refresh token exist...')
-
-        # connect to the PostgreSQL server
         conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
 
         # create a cursor

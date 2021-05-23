@@ -8,6 +8,7 @@ import diasend_data_download_db_insert as cgm
 import glimp_data_download_db_insert as glimp
 import mind_monitor_data_download_db_insert as mm
 import gc_data_download as gc
+import oura_data_download as oura
 import delete_data as clr
 from db_create_user_database import check_user_db_exists
 from weather import get_weather
@@ -60,6 +61,13 @@ def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_pa
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
                     print(e)
+        if oura_refresh_token is not None:   
+            try: 
+                oura.dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date,end_date,True,encr_pass) 
+            except Exception as e:
+                with ErrorStdoutRedirection(gc_username):
+                    print(e)
+
         try:
             get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
         except Exception as e:

@@ -127,8 +127,12 @@
                         <label class="form-check-label" for="wellnessCheckbox">Check to login to Garmin Connect and download your welness data </label> 
                     </div>
                     <!--Oura Checkbox-->
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;" >
+                        {% if oura_enabled == True %}
                         <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        {% else %}
+                        <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
+                        {% endif %}
                         <label class="form-check-label" for="ouraCheckbox">Check to connect to Oura API and download your wellness data </label> 
                     </div>
                     

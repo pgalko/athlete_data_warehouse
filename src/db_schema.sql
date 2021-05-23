@@ -767,6 +767,204 @@ ALTER TABLE public.weather_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE public.weather_id_seq OWNED BY public.weather.id;
 
+--
+--OURA READINESS DAILY SUMMARY
+--
+CREATE TABLE public.oura_readiness_daily_summary( 
+  id integer NOT NULL,
+  athlete_id integer,
+  summary_date character varying,
+  period_id integer,
+  score integer,
+  score_previous_night integer,
+  score_sleep_balance integer,
+  score_previous_day integer,
+  score_activity_balance integer,
+  score_resting_hr integer,
+  score_hrv_balance integer,
+  score_recovery_index integer,
+  score_temperature integer,
+  rest_mode_state integer
+);
+  
+ALTER TABLE public.oura_readiness_daily_summary OWNER TO postgres;
+
+CREATE SEQUENCE public.oura_readiness_daily_summary_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.oura_readiness_daily_summary_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.oura_readiness_daily_summary_id_seq OWNED BY public.oura_readiness_daily_summary.id;
+
+--
+--OURA SLEEP DAILY SUMMARY
+--
+CREATE TABLE public.oura_sleep_daily_summary( 
+  id integer NOT NULL,
+  athlete_id integer,
+  summary_date character varying,
+  period_id integer,
+  is_longest integer,
+  timezone integer,
+  bedtime_start character varying,
+  bedtime_end character varying,
+  score integer,
+  score_total integer,
+  score_disturbances integer,
+  score_efficiency integer,
+  score_latency integer,
+  score_rem integer,
+  score_deep integer,
+  score_alignment integer,
+  total integer,
+  duration integer,
+  awake integer,
+  light integer,
+  rem integer,
+  deep integer,
+  onset_latency integer,
+  restless integer,
+  efficiency integer,
+  midpoint_time integer,
+  hr_lowest integer,
+  hr_average real,
+  rmssd integer,
+  breath_average real,
+  temperature_delta real,
+  bedtime_end_delta  integer, 
+  midpoint_at_delta integer,
+  bedtime_start_delta integer,
+  temperature_deviation real,
+  temperature_trend_deviation real
+); 
+
+
+ALTER TABLE public.oura_sleep_daily_summary OWNER TO postgres;
+
+CREATE SEQUENCE public.oura_sleep_daily_summary_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.oura_sleep_daily_summary_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.oura_sleep_daily_summary_id_seq OWNED BY public.oura_sleep_daily_summary.id;
+
+--
+--OURA ACTIVITY DAILY SUMMARY
+--
+CREATE TABLE public.oura_activity_daily_summary( 
+  id integer NOT NULL,
+  athlete_id integer,
+  summary_date character varying,
+  day_start character varying,
+  day_end character varying,
+  timezone integer,
+  score integer,
+  score_stay_active integer,
+  score_move_every_hour integer,
+  score_meet_daily_targets integer,
+  score_training_frequency integer,
+  score_training_volume integer,
+  score_recovery_time integer,
+  daily_movement integer,
+  non_wear integer,
+  rest integer,
+  inactive integer,
+  inactivity_alerts integer,
+  low integer,
+  medium integer,
+  high integer,
+  steps integer,
+  cal_total integer,
+  cal_active integer,
+  met_min_inactive integer,
+  met_min_low integer,
+  met_min_medium integer,
+  met_min_high integer,
+  average_met real,
+  rest_mode_state integer
+  to_target_km real, 
+  target_miles real,  
+  total integer, 
+  to_target_miles real, 
+  target_calories integer, 
+  target_km real
+);
+  
+ALTER TABLE public.oura_activity_daily_summary OWNER TO postgres;
+
+CREATE SEQUENCE public.oura_activity_daily_summary_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.oura_activity_daily_summary_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.oura_activity_daily_summary_id_seq OWNED BY public.oura_activity_daily_summary.id;
+
+--
+--OURA ACTIVITY DETAIL
+--
+CREATE TABLE public.oura_activity_detail(
+  id integer NOT NULL,
+  oura_activity_id integer,
+  timestamp_gmt character varying,
+  class_5min integer,
+  met_1min real
+);
+
+ALTER TABLE public.oura_activity_detail OWNER TO postgres;
+
+CREATE SEQUENCE public.oura_activity_detail_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.oura_activity_detail_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.oura_activity_detail_id_seq OWNED BY public.oura_activity_detail.id;
+  
+--
+--OURA SLEEP DETAIL
+--
+CREATE TABLE public.oura_sleep_detail(
+  id integer NOT NULL,
+  oura_sleep_id integer,
+  timestamp_gmt character varying,
+  hypnogram_5min integer,
+  hr_5min integer,
+  rmssd_5min integer
+);
+
+ALTER TABLE public.oura_sleep_detail OWNER TO postgres;
+
+CREATE SEQUENCE public.oura_sleep_detail_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.oura_sleep_detail_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.oura_sleep_detail_id_seq OWNED BY public.oura_sleep_detail.id;
+
 
 --
 --AUTO INCREMENTS
@@ -808,6 +1006,16 @@ ALTER TABLE ONLY public.gmt_local_time_difference ALTER COLUMN id SET DEFAULT ne
 ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking ALTER COLUMN id SET DEFAULT nextval('public.gc_original_wellness_sleep_tracking_id_seq'::regclass);
 
 ALTER TABLE ONLY public.weather ALTER COLUMN id SET DEFAULT nextval('public.weather_id_seq'::regclass);
+
+ALTER TABLE ONLY public.oura_readiness_daily_summary ALTER COLUMN id SET DEFAULT nextval('public.oura_readiness_daily_summary_id_seq'::regclass);
+
+ALTER TABLE ONLY public.oura_sleep_daily_summary ALTER COLUMN id SET DEFAULT nextval('public.oura_sleep_daily_summary_id_seq'::regclass);
+
+ALTER TABLE ONLY public.oura_activity_daily_summary ALTER COLUMN id SET DEFAULT nextval('public.oura_activity_daily_summary_id_seq'::regclass);
+
+ALTER TABLE ONLY public.oura_activity_detail ALTER COLUMN id SET DEFAULT nextval('public.oura_activity_detail_id_seq'::regclass);
+
+ALTER TABLE ONLY public.oura_sleep_detail ALTER COLUMN id SET DEFAULT nextval('public.oura_sleep_detail_id_seq'::regclass);
 
 --
 --PRIMARY KEYS
@@ -872,6 +1080,21 @@ ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
 ALTER TABLE ONLY public.weather
     ADD CONSTRAINT weather_pkey PRIMARY KEY (id);
 
+ALTER TABLE ONLY public.oura_readiness_daily_summary
+    ADD CONSTRAINT oura_readiness_daily_summary_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.oura_sleep_daily_summary
+    ADD CONSTRAINT oura_sleep_daily_summary_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.oura_activity_daily_summary
+    ADD CONSTRAINT oura_activity_daily_summary_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.oura_activity_detail
+    ADD CONSTRAINT oura_activity_detail_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.oura_sleep_detail
+    ADD CONSTRAINT oura_sleep_detail_pkey PRIMARY KEY (id);
+
 
 --
 --UNIQUES
@@ -923,6 +1146,21 @@ ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
 
 ALTER TABLE ONLY public.weather
     ADD CONSTRAINT unique_weather_athlete_id_timestamp_gmt UNIQUE (athlete_id, timestamp_gmt);
+
+ALTER TABLE ONLY public.oura_readiness_daily_summary	
+	ADD CONSTRAINT unique_oura_readiness_daily_summary UNIQUE (summary_date,period_id);
+
+ALTER TABLE ONLY public.oura_sleep_daily_summary	
+	ADD CONSTRAINT unique_oura_sleep_daily_summary UNIQUE (summary_date,period_id);
+
+ALTER TABLE ONLY public.oura_activity_daily_summary	
+	ADD CONSTRAINT unique_oura_activity_daily_summary UNIQUE (summary_date);
+
+ALTER TABLE ONLY public.oura_activity_detail	
+	ADD CONSTRAINT unique_oura_activity_detail UNIQUE (timestamp_gmt);
+
+ALTER TABLE ONLY public.oura_sleep_detail	
+	ADD CONSTRAINT unique_oura_sleep_detail UNIQUE (timestamp_gmt);
 
 
 --
@@ -1017,6 +1255,21 @@ ALTER TABLE ONLY public.gc_original_wellness_sleep_tracking
 
 ALTER TABLE ONLY public.weather
     ADD CONSTRAINT fk_weather_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete (id);
+
+ALTER TABLE ONLY public.oura_readiness_daily_summary
+    ADD CONSTRAINT fk_oura_readiness_daily_summary_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete(id);
+
+ALTER TABLE ONLY public.oura_sleep_daily_summary
+    ADD CONSTRAINT fk_oura_sleep_daily_summary_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete(id);
+
+ALTER TABLE ONLY public.oura_activity_daily_summary
+    ADD CONSTRAINT fk_oura_activity_daily_summary_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete(id);
+
+ALTER TABLE ONLY public.oura_activity_detail
+    ADD CONSTRAINT fk_oura_activity_detail_activity_summary_id FOREIGN KEY (oura_activity_id) REFERENCES public.oura_activity_daily_summary(id);
+
+ALTER TABLE ONLY public.oura_sleep_detail
+    ADD CONSTRAINT fk_oura_sleep_detail_sleep_summary_id FOREIGN KEY (oura_sleep_id) REFERENCES public.oura_sleep_daily_summary(id);
 
 
 
