@@ -12,8 +12,6 @@ from db_oura_auth import check_oura_token_exists
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
 import inspect
-import inspect
-
 
 
 #----Crypto Variables----
