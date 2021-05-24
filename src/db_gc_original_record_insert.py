@@ -3,6 +3,7 @@ import psycopg2
 from database_ini_parser import config
 from fitparse import FitFile
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
+import inspect
 from processify import processify
 import os
 import time
@@ -150,7 +151,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
                             cur.close()              
                         except Exception as e:
                             with ErrorStdoutRedirection(username):
-                                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
                     else:
                         continue
 
@@ -166,7 +167,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
             conn.tpc_commit()
         except Exception as e:
             with ErrorStdoutRedirection(username):
-                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
 
     #PG: Add Pool Swim specific data
     for record in fitfile.get_messages('sport'):  
@@ -249,7 +250,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
                         cur.close()            
                     except Exception as e:
                         with ErrorStdoutRedirection(username):
-                            print((str(datetime.datetime.now()) + '  ' + str(e)))
+                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
                     
     with StdoutRedirection(username):
         print(('--- All record data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
@@ -292,7 +293,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
             
     except Exception as e:
         with ErrorStdoutRedirection(username):
-            print((str(datetime.datetime.now()) + '  ' + str(e)))
+            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
 
     # close the communication with the PostgreSQL
     if conn is not None:

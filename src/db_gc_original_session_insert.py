@@ -2,6 +2,7 @@ import psycopg2
 from database_ini_parser import config
 from fitparse import FitFile
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
+import inspect
 from processify import processify
 import os
 from tzwhere import tzwhere
@@ -212,7 +213,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
 
         except Exception as e:
             with ErrorStdoutRedirection(athlete):
-                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
             pass
 
         sql = """
@@ -274,7 +275,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
                 cur.close()       
         except Exception as e:
             with ErrorStdoutRedirection(athlete):
-                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
                         
     # close the communication with the PostgreSQL
     if conn is not None:

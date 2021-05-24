@@ -14,6 +14,7 @@ from Crypto.Cipher import AES
 from db_user_insert import diasend_user_insert
 from processify import processify
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
+import inspect
 from archive_data_dropbox import check_if_file_exists_in_dbx, download_files_to_dbx
 from db_files import data_file_path_insert,check_data_file_exists
 
@@ -132,7 +133,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
     except AnticatpchaException as e:
         if e.error_code == 'ERROR_ZERO_BALANCE':
             with ErrorStdoutRedirection(gc_username):
-                print((str(datetime.datetime.now()) + '  ' + str(e.error_id, e.error_code, e.error_description)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e.error_id, e.error_code, e.error_description)))
         else:
             raise
      
@@ -151,7 +152,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
         fileobj.write(res_download.read())
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):
-            print((str(datetime.datetime.now()) + '  ' + str(e)))
+            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
     finally:
         fileobj.close()
     
@@ -175,7 +176,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                     dbx_file_exists = check_if_file_exists_in_dbx(filename,dbx_auth_token,download_folder_dbx)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
 
         #PG: Check whether the data from this file "file_path" have been inserted into to DB during one of the previous runs
         data_file_exists = check_data_file_exists(file_path,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
@@ -216,8 +217,8 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                 continue
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print((str(datetime.datetime.now()) +'  '+str(file_path)+': '+ str(e)))
-                print((str(datetime.datetime.now()) +'  '+str(file_path)+' could not be imported and will be deleted.'))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' +'  '+str(file_path)+': '+ str(e)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' +'  '+str(file_path)+' could not be imported and will be deleted.'))
                 os.remove(file_path)
             continue
 
@@ -251,7 +252,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                 
             except  (Exception, psycopg2.DatabaseError) as error:
                 with ErrorStdoutRedirection(gc_username):
-                    print((str(datetime.datetime.now()) + '  ' + str(error)))
+                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(error)))
         
         # PG Archive to dbx newly downloaded file
         if dbx_file_exists == False:
@@ -267,7 +268,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                 os.remove(os.path.join(download_folder,filename))
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print((str(datetime.datetime.now()) + '  ' + str(e)))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
 
         with StdoutRedirection(gc_username):
             print(('Diasend cgm records from '+str(filename)+' inserted successfully'))

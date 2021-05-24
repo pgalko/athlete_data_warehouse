@@ -7,6 +7,7 @@ from db_user_insert import mfp_user_insert
 from db_files import data_file_path_insert,check_data_file_exists
 from db_encrypt import generate_key,pad_text,unpad_text,str2md5
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
+import inspect
 from processify import processify
 import Crypto.Random
 from Crypto.Cipher import AES
@@ -61,7 +62,7 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
         client = myfitnesspal.Client(mfp_username,mfp_password)       
     except ValueError as e:
         with ErrorStdoutRedirection(gc_username):
-            print((str(datetime.datetime.now()) + '-E1- ' + str(e)))
+            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '-E1- ' + str(e)))
         with StdoutRedirection(gc_username):
             print(('Wrong MFP credentials for user {}. Skipping.'.format(mfp_username)))
         return
@@ -159,13 +160,13 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
                         
                     except  (Exception, psycopg2.DatabaseError) as error:
                         with ErrorStdoutRedirection(gc_username):
-                            print((str(datetime.datetime.now()) + '-E2-  ' + str(error)))
+                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '-E2-  ' + str(error)))
 
                     # Update the files table 
                     data_file_path_insert(data_exist_for_date,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
         except Exception as e:
              with ErrorStdoutRedirection(gc_username):
-                 print((str(datetime.datetime.now()) + '-E3-  ' + str(e)))
+                 print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '-E3-  ' + str(e)))
              continue
      
      # close the communication with the PostgreSQL

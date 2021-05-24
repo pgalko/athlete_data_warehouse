@@ -13,6 +13,7 @@ import delete_data as clr
 from db_create_user_database import check_user_db_exists
 from weather import get_weather
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
+import inspect
 from database_ini_parser import config
 
 path_params = config(filename="encrypted_settings.ini", section="path")
@@ -87,7 +88,7 @@ def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_pass
         #check whether the PID from file is still running
         if psutil.pid_exists(int(pid_from_file)):
             with ProgressStdoutRedirection(gc_username):
-                print((str(datetime.datetime.now()) + " %s already exists, the previous execution of the task is still running... AutoSynch exiting!" % pidfile))
+                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + " %s already exists, the previous execution of the task is still running... AutoSynch exiting!" % pidfile))
             return
         else:
             os.remove(pidfile)#Remove old PID file
@@ -110,13 +111,13 @@ def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_pass
         with ErrorStdoutRedirection(gc_username):
             print(e)
         with ErrorStdoutRedirection(gc_username):
-            print((str(datetime.datetime.now()) + "The Autosynch download/insert process has failed, deleting %s file. Please try to run the script again" % pidfile))
+            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + "The Autosynch download/insert process has failed, deleting %s file. Please try to run the script again" % pidfile))
         os.unlink(pidfile)
 
     finally:
         if os.path.isfile(pidfile):
             os.unlink(pidfile)
         with ProgressStdoutRedirection(gc_username):
-            print((str(datetime.datetime.now()) + '---- AutoSynch for user: '+gc_username+' completed ----'))
+            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '---- AutoSynch for user: '+gc_username+' completed ----'))
 
     
