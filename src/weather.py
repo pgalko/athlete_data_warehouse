@@ -155,7 +155,7 @@ def get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_da
             cur.close()
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):
-            print((str(datetime.now()) + '  ' + str(e)))
+            print(((str(datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
     finally:
         if conn is not None:
             conn.close
