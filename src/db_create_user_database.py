@@ -2,7 +2,7 @@
 
 import psycopg2
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
-import inspect
+import sys
 from database_ini_parser import config
 import subprocess
 import gzip
@@ -40,7 +40,7 @@ def check_db_server_connectivity(gc_username,db_host,superuser_un,superuser_pw):
         return connection
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(gc_username):
-            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' ' + str(error)))
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' ' + str(error)))
         connection = str(error)
         return connection
     finally:
@@ -83,7 +83,7 @@ def check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
          with ErrorStdoutRedirection(gc_username):
-             print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(error))) 
+             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error))) 
 
     finally:
         if conn is not None:
@@ -277,14 +277,14 @@ def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
                 os.remove(pgpassfile)
             except Exception as e:
                  with ErrorStdoutRedirection(gc_username):
-                     print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             with StdoutRedirection(gc_username):
                 print('DB backup completed. The backup file will be uploaded to Dropbox now.')
             with ProgressStdoutRedirection(gc_username):
                 print('DB backup completed. The backup file will be uploaded to Dropbox now.')
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):
-            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     
     today = datetime.datetime.today().strftime('%Y%m%d')
     download_folder_dbx = 'DB_Backup'
@@ -307,7 +307,7 @@ def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
                 print('DB Backup file uploaded to Dropbox successfuly')
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
 @processify
 def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,superuser_pw,encr_pass):

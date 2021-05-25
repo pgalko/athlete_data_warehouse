@@ -15,7 +15,7 @@ import re
 import time
 import datetime
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
-import inspect
+import sys
 from db_encrypt import generate_key,pad_text,unpad_text,str2md5
 import Crypto.Random
 from Crypto.Cipher import AES
@@ -268,7 +268,7 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
 
                 except (Exception, psycopg2.DatabaseError) as error:
                     with ErrorStdoutRedirection(decr_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + str(error)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + str(error)))
                 finally:
                     if dbsu_conn is not None:
                         dbsu_conn.close()
@@ -308,7 +308,7 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
                     swim_sample_df = False
                 except Exception as e:
                     with ErrorStdoutRedirection(decr_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + str(e)))
                     df0 = df0_smpl
                     swim_sample_df = True
 
@@ -321,7 +321,7 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
                     run_sample_df = False
                 except Exception as e:
                     with ErrorStdoutRedirection(decr_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + str(e)))
                     df1 = df1_smpl
                     run_sample_df = True
 
@@ -333,12 +333,12 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
                     ride_sample_df = False
                 except Exception as e:
                     with ErrorStdoutRedirection(decr_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + str(e)))
                     df2 = df2_smpl
                     ride_sample_df = True
             except Exception as e:
                 with ErrorStdoutRedirection(decr_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + str(e)))
                 df0 = df0_smpl
                 df1 = df1_smpl
                 df2 = df2_smpl

@@ -14,7 +14,7 @@ import zipfile
 import io
 from processify import processify
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
-import inspect
+import sys
 
 #----Crypto Variables----
 # salt size in bytes
@@ -120,7 +120,7 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
                     data_file_path_insert(os.path.join(download_folder,item),gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)           
                 except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     for filename in os.listdir(download_folder):
         if filename.endswith(".zip"):

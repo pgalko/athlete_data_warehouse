@@ -9,7 +9,7 @@ from db_gc_dailysummary_insert import gc_dailysummary_insert
 from db_gc_original_wellness_insert import gc_original_wellness_insert
 from db_gc_bodycomposition_insert import gc_bodycomposition_insert
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
-import inspect
+import sys
 from db_create_user_database import check_user_db_exists,create_user_db,restore_db_schema
 from archive_data_dropbox import check_if_file_exists_in_dbx, download_files_to_dbx
 from db_files import data_file_path_insert,check_data_file_exists
@@ -159,7 +159,7 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                         print(('User DB Exists: '+str(db_exists)))
                 except Exception as e:
                     with ErrorStdoutRedirection(username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' [db_exists_check] ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' [db_exists_check] ' + str(e)))
                 
                 if db_exists == True:
                     # PG: Insert gc username and password into postgreSQL
@@ -222,7 +222,7 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
         response = agent.get(initUrl)
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):
-            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         with StdoutRedirection(gc_username):
             print(('Error connecting to Garmin Connect for: {}.Retrying.'.format(gc_username)))
         #Retry login to GarminConnect
@@ -267,7 +267,7 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                         dbx_file_exists = check_if_file_exists_in_dbx(file_name_unzipped,dbx_auth_token,download_folder_dbx)
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
             #PG: Check whether the data from this file "file_path_unzipped" have been inserted into to DB during one of the previous runs          
             data_file_exists = check_data_file_exists(file_path_unzipped,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
@@ -288,9 +288,9 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                             datafile = agent.get(url).content
                         except urllib.error.HTTPError as e:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             try:
                                 #Pause and Retry login
                                 time.sleep(10)
@@ -299,16 +299,16 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                                 pass
                             except:
                                 with ErrorStdoutRedirection(gc_username):
-                                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
                                 with ErrorStdoutRedirection(gc_username):
-                                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                                 #Abort and continue to next file
                                 continue
                         except urllib.error.URLError as e:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             try: 
                                 #Pause and Retry login
                                 time.sleep(10)
@@ -317,9 +317,9 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                                 pass
                             except:
                                 with ErrorStdoutRedirection(gc_username):
-                                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
                                 with ErrorStdoutRedirection(gc_username):
-                                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                                 #Abort and continue to next file
                                 continue
                         f = open(file_path, "wb")
@@ -378,9 +378,9 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                     datafile = agent.get(url).content
                 except urllib.error.HTTPError as e:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     try:
                         #Pause and Retry login
                         time.sleep(10)
@@ -389,16 +389,16 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                         pass
                     except:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         #Abort and continue to next file
                         continue
                 except urllib.error.URLError as e:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     try: 
                         #Pause and Retry login
                         time.sleep(10)
@@ -407,9 +407,9 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                         pass
                     except:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Aborting...'.format(file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         #Abort and continue to next file
                         continue
                 f = open(file_path, "wb")
@@ -491,7 +491,7 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                         p.kill()
                         time.sleep(1)
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next fit file !'.format(pid_from_file, file_name)))        
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next fit file !'.format(pid_from_file, file_name)))        
                 if preserve_files == "false":
                     #Remove the csv file from download folder
                     os.remove(file_path_unzipped)
@@ -504,7 +504,7 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
                 continue
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 if preserve_files == "false":
                     #Remove the csv file from download folder
                     os.remove(file_path_unzipped)
@@ -523,7 +523,7 @@ def dwnld_insert_fit_activities(agent, gc_username, gc_password, mfp_username, s
             response = agent.get(url)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             # Retry logging in to GarminConnect
             agent = login(gc_username, gc_password, mfp_username,db_host,superuser_un,superuser_pw, None,None,None,True)
             response = agent.get(url)
@@ -561,7 +561,7 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                     dbx_file_exists = check_if_file_exists_in_dbx(file_name_unzipped,dbx_auth_token,download_folder_dbx)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         
         #PG: Check whether the data from this file "file_path_unzipped" have been inserted into to DB during one of the previous runs 
         data_file_exists = check_data_file_exists(file_path_unzipped,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
@@ -582,9 +582,9 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                         datafile = agent.get(url).content
                     except urllib.error.HTTPError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try:
                             #Pause and Retry login
                             time.sleep(10)
@@ -593,16 +593,16 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
                     except urllib.error.URLError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try: 
                             #Pause and Retry login
                             time.sleep(10)
@@ -611,9 +611,9 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
 
@@ -680,13 +680,13 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
             except urllib.error.HTTPError as e:
                 if e.code == 404:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. The error code 404: Not Found. Moving onto next file'.format(file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. The error code 404: Not Found. Moving onto next file'.format(file_name)))
                     continue
                 else:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     try:
                         #Pause and Retry login
                         time.sleep(10)
@@ -695,16 +695,16 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                         pass
                     except:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         #Abort and continue to next file
                         continue
             except urllib.error.URLError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try: 
                     #Pause and Retry login
                     time.sleep(10)
@@ -713,9 +713,9 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
 
@@ -775,11 +775,11 @@ def dwnld_insert_fit_wellness(agent, start_date, end_date, gc_username, gc_passw
                         p.kill()
                         time.sleep(1)
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next fit file !'.format(pid_from_file,file2import)))        
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next fit file !'.format(pid_from_file,file2import)))        
                 continue
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
         data_file_path_insert(file_path_unzipped,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
         if preserve_files == "false":
@@ -825,7 +825,7 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                     dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx)
         except Exception as e:
              with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         
         data_file_exists = check_data_file_exists(xml_file_path,gc_username,db_host,db_name,superuser_un,superuser_pw, encr_pass)
         if data_file_exists == True:
@@ -846,9 +846,9 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                         datafile = agent.get(url).content
                     except urllib.error.HTTPError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try:
                             #Pause and Retry login
                             time.sleep(10)
@@ -857,16 +857,16 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
                     except urllib.error.URLError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try: 
                             #Pause and Retry login
                             time.sleep(10)
@@ -875,9 +875,9 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
                     
@@ -909,7 +909,7 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                                 os.remove(xml_file_path)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         continue  
                 else:
                     download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
@@ -935,9 +935,9 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                 datafile = agent.get(url).content
             except urllib.error.HTTPError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try:
                     #Pause and Retry login
                     time.sleep(10)
@@ -946,16 +946,16 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
             except urllib.error.URLError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try: 
                     #Pause and Retry login
                     time.sleep(10)
@@ -964,9 +964,9 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
 
@@ -988,7 +988,7 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                     f.write(not_null_xml)
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
 
         # PG Archive to dbx newly downloaded file
@@ -1026,7 +1026,7 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
                     p.kill()
                     time.sleep(1)
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next file !'.format(pid_from_file,xml_file_path)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next file !'.format(pid_from_file,xml_file_path)))
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
@@ -1039,7 +1039,7 @@ def dwnld_insert_json_wellness(agent, start_date, end_date, gc_username, gc_pass
             continue
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
@@ -1088,7 +1088,7 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                     dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         data_file_exists = check_data_file_exists(xml_file_path,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
         if data_file_exists == True:
@@ -1108,9 +1108,9 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                         datafile = agent.get(url).content
                     except urllib.error.HTTPError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try:
                             #Pause and Retry login
                             time.sleep(10)
@@ -1119,16 +1119,16 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
                     except urllib.error.URLError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try: 
                             #Pause and Retry login
                             time.sleep(10)
@@ -1137,9 +1137,9 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
 
@@ -1171,7 +1171,7 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                                 os.remove(xml_file_path)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         continue   
                 else:
                     download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
@@ -1196,9 +1196,9 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                 datafile = agent.get(url).content
             except urllib.error.HTTPError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try:
                     #Pause and Retry login
                     time.sleep(10)
@@ -1207,16 +1207,16 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
             except urllib.error.URLError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try: 
                     #Pause and Retry login
                     time.sleep(10)
@@ -1225,9 +1225,9 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
 
@@ -1249,7 +1249,7 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                     f.write(not_null_xml)
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
 
         # PG Archive to dbx newly downloaded  file
@@ -1285,7 +1285,7 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
                     p.kill()
                     time.sleep(1)
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next file !'.format(pid_from_file,xml_file_path)))        
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next file !'.format(pid_from_file,xml_file_path)))        
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
@@ -1298,7 +1298,7 @@ def dwnld_insert_json_dailysummary(agent, start_date, end_date, gc_username, gc_
             continue
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
@@ -1354,7 +1354,7 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                     dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         data_file_exists = check_data_file_exists(xml_file_path,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
         if data_file_exists == True:
@@ -1376,9 +1376,9 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                         datafile = agent.get(url).content
                     except urllib.error.HTTPError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try:
                             #Pause and Retry login
                             time.sleep(10)
@@ -1387,16 +1387,16 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue
                     except urllib.error.URLError as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         try: 
                             #Pause and Retry login
                             time.sleep(10)
@@ -1405,9 +1405,9 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                             pass
                         except:
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             #Abort and continue to next file
                             continue     
                     
@@ -1439,7 +1439,7 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                                 os.remove(xml_file_path)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         continue
                 else:
                     download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
@@ -1466,9 +1466,9 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                 datafile = agent.get(url).content
             except urllib.error.HTTPError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try:
                     #Pause and Retry login
                     time.sleep(10)
@@ -1477,16 +1477,16 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
             except urllib.error.URLError as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 try: 
                     #Pause and Retry login
                     time.sleep(10)
@@ -1495,9 +1495,9 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                     pass
                 except:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #Abort and continue to next file
                     continue
             
@@ -1519,7 +1519,7 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                     f.write(not_null_xml)
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
 
         # PG Archive to dbx newly downloaded file
@@ -1556,7 +1556,7 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
                     p.kill()
                     time.sleep(1)
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next file !'.format(pid_from_file,xml_file_path)))        
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' The insert function with PID:{} has timed out parsing and inserting data from {}. Will now clean up, and move onto next file !'.format(pid_from_file,xml_file_path)))        
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
@@ -1569,7 +1569,7 @@ def dwnld_insert_json_body_composition(agent, start_date, end_date, gc_username,
             continue
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)

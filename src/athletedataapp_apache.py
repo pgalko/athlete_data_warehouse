@@ -11,7 +11,7 @@ import mfp_data_download_db_insert as mfp
 import gc_data_download as gc
 import delete_data as clr
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
-import inspect
+import sys
 from db_create_user_database import check_user_db_exists,check_host_record_exists,backup_user_db,create_sample_db,check_db_server_connectivity
 from db_user_insert import gc_user_update
 from db_dropbox import check_user_token_exists
@@ -214,7 +214,7 @@ def index():
             #check whether the PID from file is still running
             if psutil.pid_exists(int(pid_from_file)):
                 with ProgressStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + "  %s already exists, the previous execution of the task is still running... Web App exiting!" % pidfile))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + "  %s already exists, the previous execution of the task is still running... Web App exiting!" % pidfile))
                 continue_btn = 'none'
                 user=gc_username
                 flash('  The previous execution of the task for: ' +user+ ' is still running... You can check the status below.','danger')
@@ -311,7 +311,7 @@ def index():
                                 print(del_progress)
                             time.sleep(1)
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + del_progress))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                     elif clearall_radio == 'deleteFiles':
                         try:
                             del_progress = 'Delete started'
@@ -332,7 +332,7 @@ def index():
                                 print(del_progress)
                             time.sleep(1)
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + del_progress))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                     elif clearall_radio == 'deleteDBdata':
                         try:
                             del_progress = 'Delete started'
@@ -353,7 +353,7 @@ def index():
                                 print(del_progress)
                             time.sleep(1)
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + del_progress))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                     elif clearall_radio == 'deleteAlldataExit':
                         try:
                             del_progress = 'Delete started'
@@ -376,7 +376,7 @@ def index():
                                 print(del_progress)
                             time.sleep(1)
                             with ErrorStdoutRedirection(gc_username):
-                                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + del_progress))
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                             return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
                 
@@ -406,7 +406,7 @@ def index():
                     end_date_today = datetime.datetime.today()  #today
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 #PG:If start date not provided render index and flash warning   
                 flash('  Please provide a valid start date and try again!','danger')
                 return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
@@ -426,13 +426,13 @@ def index():
                         print(gc_login_progress)                                
                 except Exception as e:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     gc_login_progress = 'GC login error.Check UN and PW'
                     progress_error = True
                     with StdoutRedirection(gc_username):
                         print(gc_login_progress)
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + gc_login_progress))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_login_progress))
                     flash('  There was a problem logging in to Garmin Connect. Please try again later','warning')
                     return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
@@ -453,14 +453,14 @@ def index():
                         print(gc_fit_activ_progress) 
                 except Exception as e:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     gc_fit_activ_progress = 'Error downloading GC FIT activities'
                     progress_error = True
                     with StdoutRedirection(gc_username):
                         print(gc_fit_activ_progress)
                     time.sleep(1)
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + gc_fit_activ_progress))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_fit_activ_progress))
                     
                 #----------------------------------  Wellness  ----------------------------------------
                 
@@ -480,14 +480,14 @@ def index():
                             print(gc_fit_well_progress) 
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         gc_fit_well_progress = 'Error downloading GC FIT wellness data'
                         progress_error = True
                         with StdoutRedirection(gc_username):
                             print(gc_fit_well_progress)
                         time.sleep(1)
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + gc_fit_well_progress))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_fit_well_progress))
 
                     #PG:Call to execute "Parse and insert JSON wellness data" script
                     try:
@@ -505,14 +505,14 @@ def index():
                             print(gc_json_well_progress) 
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         gc_json_well_progress = 'Error downloading GC JSON wellness data'
                         progress_error = True
                         with StdoutRedirection(gc_username):
                             print(gc_json_well_progress)
                         time.sleep(1)
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + gc_json_well_progress))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_json_well_progress))
 
                     #PG:Call to execute "Parse and insert JSON Daily summary data" script
                     try:
@@ -529,14 +529,14 @@ def index():
                             print(gc_json_dailysum_progress) 
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         gc_json_dailysum_progress = 'Error downloading GC JSON daily summary'
                         progress_error = True
                         with StdoutRedirection(gc_username):
                             print(gc_json_dailysum_progress)
                         time.sleep(1)
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + gc_json_dailysum_progress)) 
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_json_dailysum_progress)) 
                 
                 #PG:Call to execute "Parse and insert Oura wellness data" script 
                 if request.form.get('ouraCheckbox') is not None:
@@ -554,14 +554,14 @@ def index():
                             print(oura_well_progress) 
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         oura_well_progress = 'Error downloading Oura wellness data'
                         progress_error = True
                         with StdoutRedirection(gc_username):
                             print(oura_well_progress)
                         time.sleep(1)
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + oura_well_progress))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + oura_well_progress))
 
                 #----------------- Nutrition MFP ---------------------------    
                 #PG:Call to execute "parse and insert MFP data" script
@@ -580,13 +580,13 @@ def index():
                             print(mfp_progress)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         mfp_progress = 'Error downloading MFP nutrition data'
                         with StdoutRedirection(gc_username):
                             print(mfp_progress)
                         time.sleep(1)
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + mfp_progress))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + mfp_progress))
                 
                 #-------------------- BG Diasend --------------------------            
                 #PG:Call to execute "parse and insert Diasend data" script
@@ -603,7 +603,7 @@ def index():
                         time.sleep(1)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         diasend_progress = 'Error downloading Diasend GCM data'
                         with StdoutRedirection(gc_username):
                             print(diasend_progress)
@@ -624,7 +624,7 @@ def index():
                         time.sleep(1)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         glimp_progress = 'Error downloading Glimp CGM data'
                         with StdoutRedirection(gc_username):
                             print(glimp_progress)
@@ -645,7 +645,7 @@ def index():
                         time.sleep(1)
                     except Exception as e:
                         with ErrorStdoutRedirection(gc_username):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         mm_progress = 'Error downloading Mind Monitor data'
                         with StdoutRedirection(gc_username):
                             print(mm_progress)
@@ -657,7 +657,7 @@ def index():
                     get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
                 except Exception as e:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))    
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
 
                 #------Archive DB to Dropbox-------
                 try:
@@ -666,7 +666,7 @@ def index():
                             backup_user_db(db_name,gc_username,output,dbx_auth_token,encr_pass)
                 except Exception as e:
                     with ErrorStdoutRedirection(gc_username):
-                        print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     pass
 
                                 
@@ -712,7 +712,7 @@ def index():
 
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             os.unlink(pidfile)
 
         finally:
@@ -804,7 +804,7 @@ def db_info():
             cur.close()
         except  (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(user):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(error)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         return render_template('db_info.html',db_info = db_info,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,table_list=table_list)
     else:
         db_info = None
@@ -885,7 +885,7 @@ def process_running():
                         flash('  All tasks for ' +post_user+ ' have been suspended','success')
                     except Exception as e:
                         with ErrorStdoutRedirection(post_user):
-                            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 else:
                     flash('  The task can not be suspended as it is an automated auto_sych task that runs periodicaly to keep your DB in sync. This process will stop on its own in few minutes','warning') 
         return render_template('process_running.html',post_user=post_user)
@@ -914,7 +914,7 @@ def dummy1():
             return redirect('/dashboard_1/'+encrypted_un+'/')
     except Exception as e:
         with ErrorStdoutRedirection(post_user):
-            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         flash('  There was a problem generating dashboard. Either your database does not exist in the system yet or there was a problem accessing the data','warning')
         return redirect(url_for('index'))
 

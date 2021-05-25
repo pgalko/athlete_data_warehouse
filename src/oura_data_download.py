@@ -11,7 +11,7 @@ from Crypto.Cipher import AES
 from db_oura_auth import check_oura_token_exists
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
-import inspect
+import sys
 
 
 #----Crypto Variables----
@@ -136,7 +136,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
         cur.close()
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):
-            print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
 
     #------------------- Retrieve Sleep data ---------------------------
@@ -206,7 +206,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
             cur.close()
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         #Create and populate a list of 5min intervals starting from bedtime_start
         rmssd_ints = []
@@ -237,7 +237,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
                 cur.close()
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
 
 
@@ -312,7 +312,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
         
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
   
         #Create and populate a list of 1min intervals starting from day_start
         met_ints = []
@@ -356,7 +356,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
                 cur.close()
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     
     #------------------- Retrieve Readiness data ---------------------------
@@ -394,4 +394,5 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
 
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+ 

@@ -6,7 +6,7 @@ from fitparse.profile import FIELD_TYPE_TIMESTAMP
 import datetime
 import time
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
-import inspect
+import sys
 from processify import processify
 import os
 
@@ -203,7 +203,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             conn.tpc_commit()
         except Exception as e:
             with ErrorStdoutRedirection(athlete):
-                print(((str(datetime.datetime.now()) + ' [' + inspect.currentframe().f_code.co_name) + ']' + '  ' + str(e)))      
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))      
        
     # close the communication with the PostgreSQL
     if conn is not None:

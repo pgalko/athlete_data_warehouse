@@ -2,7 +2,7 @@
 import psycopg2
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
-import inspect
+import sys
 from db_encrypt import generate_key,pad_text,unpad_text
 import Crypto.Random
 from Crypto.Cipher import AES

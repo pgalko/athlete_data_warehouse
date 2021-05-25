@@ -8,12 +8,11 @@
 from db_auto_sync import get_databases_list,retrieve_decrypt_creds
 import time
 import os
-import sys
 import multiprocessing
 import getpass
 from datetime import datetime
 from Athlete_Data_Utills import ConsolidatedProgressStdoutRedirection
-import inspect
+import sys
 from database_ini_parser import config
 
 

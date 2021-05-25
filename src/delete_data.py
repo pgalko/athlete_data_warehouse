@@ -3,7 +3,7 @@ import os, shutil
 import psycopg2
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
-import inspect
+import sys
 from processify import processify
 
 path_params = config(filename="encrypted_settings.ini", section="path")
