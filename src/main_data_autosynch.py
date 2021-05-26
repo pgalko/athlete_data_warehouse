@@ -117,6 +117,6 @@ def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_pass
         if os.path.isfile(pidfile):
             os.unlink(pidfile)
         with ProgressStdoutRedirection(gc_username):
-            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '---- AutoSynch for user: '+gc_username+' completed ----'))
+            print((str(datetime.datetime.now()) + '---- AutoSynch for user: '+gc_username+' completed ----'))
 
     
