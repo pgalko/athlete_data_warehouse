@@ -4,6 +4,7 @@ from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,Progres
 import sys
 from processify import processify
 import os
+import datetime
 
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
@@ -50,7 +51,7 @@ def data_file_path_insert(file_path,athlete,db_host,db_name,superuser_un,superus
  
     except Exception as e:
         with ErrorStdoutRedirection(athlete):
-            print(e)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     finally:
         if conn is not None:
             conn.close()
@@ -95,7 +96,7 @@ def check_data_file_exists(data_file_path,gc_username,db_host,db_name,superuser_
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ProgressStdoutRedirection(gc_username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn is not None:

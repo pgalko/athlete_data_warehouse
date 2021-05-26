@@ -68,7 +68,7 @@ def check_user_token_exists(gc_username,db_host,db_name,superuser_un,superuser_p
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(gc_username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn is not None:

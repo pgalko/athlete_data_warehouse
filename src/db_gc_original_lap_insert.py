@@ -179,7 +179,7 @@ def gc_original_lap_insert(file_path,activity_id,username, db_host,db_name,super
             cur.close()
         except Exception as e:
             with ErrorStdoutRedirection(username):
-                print(e)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
      # close the communication with the PostgreSQL
     if conn is not None:

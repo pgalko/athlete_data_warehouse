@@ -145,7 +145,7 @@ def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(gc_username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn_localhost is not None:
@@ -192,7 +192,7 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(gc_username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn is not None:
@@ -217,7 +217,7 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
         cur_localhost.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(gc_username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn_localhost is not None:
@@ -354,7 +354,7 @@ def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,super
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(gc_username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn is not None:
@@ -421,13 +421,13 @@ def create_sample_db(encr_pass):
                 cur.close()
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
-                    print(error)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         else:
             cur.close()
             conn.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ConsolidatedProgressStdoutRedirection():
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn is not None:

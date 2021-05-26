@@ -32,7 +32,7 @@ if not os.path.isfile(encrypted_ini_file):
             print('Deleting plaintext .ini file...')
             os.unlink(plaintext_ini_file)
         except Exception as e:
-            print(e)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             sys.exit()
 else:
     print('Found encrypted .ini file. Proceeding....')

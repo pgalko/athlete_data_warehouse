@@ -98,7 +98,7 @@ def dropbox_auth_finish(session,request):
         access_token = auth_result.access_token
     except Exception as e:
         with ConsolidatedProgressStdoutRedirection():
-            print(e)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     return access_token
 
@@ -819,7 +819,7 @@ def dropbox_auth_request():
         authorize_url = get_dropbox_auth_flow(session).start()
         return redirect(authorize_url, 301)
     except Exception as e:
-        print(e)
+        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         pass
     
 @app.route("/dropbox_confirm")

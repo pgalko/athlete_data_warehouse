@@ -117,7 +117,7 @@ def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_na
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(gc_username):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -177,7 +177,7 @@ def mfp_user_insert(mfp_username,mfp_password,gc_username,db_host,db_name,superu
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(gc_username):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -237,7 +237,7 @@ def diasend_user_insert(diasend_username,diasend_password,gc_username,db_host,db
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
                 with ErrorStdoutRedirection(gc_username):
-                    print(error)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -289,7 +289,7 @@ def glimp_user_insert(glimp_export_link,gc_username,db_host,db_name,superuser_un
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
                 with ErrorStdoutRedirection(gc_username):
-                    print(error)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -342,7 +342,7 @@ def libreview_user_insert(libreview_export_link,gc_username,db_host,db_name,supe
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
                 with ErrorStdoutRedirection(gc_username):
-                    print(error)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -395,7 +395,7 @@ def mm_user_insert(mm_export_link,gc_username,db_host,db_name,superuser_un,super
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
                 with ErrorStdoutRedirection(gc_username):
-                    print(error)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -452,7 +452,7 @@ def gc_user_update(gc_username,db_host,db_name,superuser_un,superuser_pw,encrypt
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(gc_username):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn is not None:
@@ -477,7 +477,7 @@ def gc_user_update(gc_username,db_host,db_name,superuser_un,superuser_pw,encrypt
                 cur_localhost.close()
         except (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(gc_username):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
         finally:
                 if conn_localhost is not None:

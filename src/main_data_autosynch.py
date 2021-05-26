@@ -36,43 +36,43 @@ def run_dwnld_functions(start_date, end_date, end_date_today, gc_username, gc_pa
                 mfp.dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_date,encr_pass,True,True,db_host,superuser_un,superuser_pw)
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(e)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         if cgm_username is not None:   
             try:
                 cgm.diasend_data_export_insert(output,start_date,end_date_today,gc_username,cgm_username,cgm_password,encr_pass,True,True,"archiveFiles",dbx_auth_token,db_host,superuser_un,superuser_pw)
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(e)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         if glimp_export_link is not None:   
             try:
                 glimp.glimp_data_insert(output,start_date,end_date_today,gc_username,encr_pass,glimp_export_link,True,db_host,db_name,superuser_un,superuser_pw) 
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(e)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         if libreview_export_link is not None:   
             try:
                 glimp.glimp_data_insert(output,start_date,end_date_today,gc_username,encr_pass,libreview_export_link,True,db_host,db_name,superuser_un,superuser_pw) 
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(e)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         if mm_export_link is not None:   
             try: 
                 mm.mm_data_insert(output,start_date,end_date_today,gc_username,encr_pass,mm_export_link,True,db_host,db_name,superuser_un,superuser_pw) 
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(e)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         if oura_refresh_token is not None:   
             try: 
                 oura.dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date,end_date,True,encr_pass) 
             except Exception as e:
                 with ErrorStdoutRedirection(gc_username):
-                    print(e)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         try:
             get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(gc_username):
-                print(e)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     
 def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,encr_pass):
     output = DOWNLOAD_DIR
@@ -108,7 +108,7 @@ def auto_synch(db_name, db_host, superuser_un, superuser_pw, gc_username,gc_pass
                     
     except Exception as e:
         with ErrorStdoutRedirection(gc_username):
-            print(e)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         with ErrorStdoutRedirection(gc_username):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + "The Autosynch download/insert process has failed, deleting %s file. Please try to run the script again" % pidfile))
         os.unlink(pidfile)

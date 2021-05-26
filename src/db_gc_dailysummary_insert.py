@@ -168,12 +168,12 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
             except  (Exception, psycopg2.DatabaseError) as error:
                 conn.tpc_rollback()
                 with ErrorStdoutRedirection(athlete):
-                    print(error)
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
             else:
                 conn.tpc_commit()
         except (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(athlete):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         finally:
                 if conn is not None:
                     conn.close()

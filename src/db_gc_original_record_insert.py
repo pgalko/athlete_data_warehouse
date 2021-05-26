@@ -122,7 +122,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
             cur.close()       
         except  (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(username):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     # Get all data messages that are of type hrv
     for record in fitfile.get_messages('hrv'):
@@ -161,7 +161,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
     except  (Exception, psycopg2.DatabaseError) as error:
         conn.tpc_rollback()
         with ErrorStdoutRedirection(username):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     else:
         try:
             conn.tpc_commit()

@@ -10,6 +10,7 @@ from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,Progres
 import sys
 from processify import processify
 import os
+import datetime
 
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
@@ -179,13 +180,13 @@ def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,s
             conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
         except Exception as e:
             with ProgressStdoutRedirection(athlete):
-                print(e) 
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e))) 
         # create a cursor
         try:
             cur = conn.cursor()
         except Exception as e:
             with ErrorStdoutRedirection(athlete):
-                print(e) 
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e))) 
 
         # execute a statement
         with StdoutRedirection(athlete):
@@ -206,7 +207,7 @@ def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,s
                 print('The record for this activity already exists in the database.Skipping...')
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(athlete):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     
     finally:
         if conn is not None:

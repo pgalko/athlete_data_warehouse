@@ -189,7 +189,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
                     
         except  (Exception, psycopg2.DatabaseError) as error:
             with ErrorStdoutRedirection(athlete):
-                print(error)
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     #two-phase insert commit or rollback
     try:
@@ -197,7 +197,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
     except  (Exception, psycopg2.DatabaseError) as error:
         conn.tpc_rollback()
         with ErrorStdoutRedirection(athlete):
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     else:
         try:
             conn.tpc_commit()

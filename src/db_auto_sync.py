@@ -67,7 +67,7 @@ def get_databases_list(encr_pass):
 
     except (Exception, psycopg2.DatabaseError) as error:
         with ConsolidatedProgressStdoutRedirection():
-            print(error)
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
         if conn is not None:
