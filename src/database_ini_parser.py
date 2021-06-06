@@ -55,6 +55,12 @@ def config(filename, section, encr_pass=None):
                         db[param[0]] = str(decrypted_param)
                     except:
                         db[param[0]] = ""
+                elif param[0] == 'ro_password':
+                    try:
+                        decrypted_param = decrypt(base64.b64decode(param[1]), encr_pass)
+                        db[param[0]] = str(decrypted_param)
+                    except:
+                        db[param[0]] = ""
                 else:
                     db[param[0]] = param[1]
         elif section == 'app':

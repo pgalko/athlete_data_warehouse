@@ -118,7 +118,11 @@ def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
     try:
         # connect to the PostgreSQL server
         params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
-        conn_localhost = psycopg2.connect(**params)
+        postgres_db = params.get("database")
+        superuser_un = params.get("user")
+        superuser_pw = params.get("password")
+
+        conn_localhost = psycopg2.connect(dbname=postgres_db, user=superuser_un, password=superuser_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -201,7 +205,11 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
     #Insert user db connection info into postgres/db_info table 
     try:
         params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
-        conn_localhost = psycopg2.connect(**params)
+        postgres_db = params.get("database")
+        superuser_un = params.get("user")
+        superuser_pw = params.get("password")
+
+        conn_localhost = psycopg2.connect(dbname=postgres_db, user=superuser_un, password=superuser_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -363,18 +371,32 @@ def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,super
 @processify
 def create_sample_db(encr_pass):
     conn = None
-    db_name = "sample_db"
     
-    sql_get_lc_collate = "SHOW LC_COLLATE"
-    sql_check_db_exists = "select exists(SELECT datname FROM pg_catalog.pg_database WHERE datname = %s);"
-    sql_create_db = "CREATE DATABASE \""+ db_name +"\" WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = %s LC_CTYPE = %s;"
-
     try:
         # read connection parameters
         params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
 
-        # connect to the PostgreSQL server
-        conn = psycopg2.connect(**params)
+        sample_db_host = params.get("sample_db_host")
+        sample_db_port = params.get("sample_db_port")
+        if sample_db_port == "":
+            sample_db_port == "5432"
+        db_name = params.get("sample_db")
+        superuser_un = params.get("user")
+        superuser_pw = params.get("password")
+        ro_user = params.get("ro_user")
+        ro_password = params.get("ro_password")
+
+        sql_get_lc_collate = "SHOW LC_COLLATE"
+        sql_check_db_exists = "select exists(SELECT datname FROM pg_catalog.pg_database WHERE datname = %s);"
+        sql_create_db = "CREATE DATABASE \""+ db_name +"\" WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = %s LC_CTYPE = %s;"
+        sql_create_ro_role = "CREATE ROLE " + ro_user + " WITH LOGIN PASSWORD \'"+ ro_password +"\' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION VALID UNTIL \'infinity\';"
+        sql_grant_permissions_1 = "GRANT CONNECT ON DATABASE "+db_name+" TO "+ro_user+";"
+        sql_grant_permissions_2 = "GRANT USAGE ON SCHEMA public TO "+ro_user+";"
+        sql_grant_permissions_3 = "GRANT SELECT ON ALL TABLES IN SCHEMA public TO "+ro_user+";"
+        sql_grant_permissions_4 = "GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "+ro_user+";"
+
+        # connect to the PostgreSQL server postgres db to check whether sample db exists and create it if doesnt.
+        conn = psycopg2.connect(dbname="postgres", user=superuser_un, password=superuser_pw, host=sample_db_host, port=sample_db_port)
         conn.autocommit = True
 
         # create a cursor
@@ -404,14 +426,9 @@ def create_sample_db(encr_pass):
             #PG: Read SQL query to restore db schema from file
             sql_file = open('db_schema.sql', 'r')
             sql_restore_db_schema = s = " ".join(sql_file.readlines())
-            try:
-                # read connection parameters
-                params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
-                superuser_un = params.get("user")
-                superuser_pw = params.get("password")
-                
+            try:                
                 # connect to the PostgreSQL server (sample_db)
-                conn = psycopg2.connect(dbname=db_name, user=superuser_un, password=superuser_pw)
+                conn = psycopg2.connect(dbname=db_name, user=superuser_un, password=superuser_pw, host=sample_db_host, port=sample_db_port)
                 conn.autocommit = True
                 # create a cursor
                 cur = conn.cursor()
@@ -419,6 +436,18 @@ def create_sample_db(encr_pass):
                     print("Restoring sample DB schema...")
                 cur.execute(sql_restore_db_schema)
                 cur.close()
+                cur = conn.cursor()
+                with ConsolidatedProgressStdoutRedirection():
+                    print("Creating sample db RO user and granting RO permissions...")
+                cur.execute(sql_create_ro_role)
+                cur.close()
+                cur = conn.cursor()
+                cur.execute(sql_grant_permissions_1)
+                cur.execute(sql_grant_permissions_2)
+                cur.execute(sql_grant_permissions_3)
+                cur.execute(sql_grant_permissions_4)
+                cur.close()
+                conn.close()
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))

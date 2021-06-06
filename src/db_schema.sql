@@ -891,7 +891,7 @@ CREATE TABLE public.oura_activity_daily_summary(
   met_min_medium integer,
   met_min_high integer,
   average_met real,
-  rest_mode_state integer
+  rest_mode_state integer,
   to_target_km real, 
   target_miles real,  
   total integer, 

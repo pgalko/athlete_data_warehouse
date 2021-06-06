@@ -40,7 +40,7 @@ def decrypt(ciphertext, password):
     plaintext = unpad_text(padded_plaintext)
     return plaintext 
 
-def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db=None,):
+def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db_host,sample_db_port,sample_db=None,):
 
     ################################
     ####       Create app       ####
@@ -110,7 +110,7 @@ def create_dashboard1(flask_server,encr_pass,sample_db_un,sample_db_pw,sample_db
     inner join garmin_connect_original_lap t3 on t2.gc_activity_id=t3.gc_activity_id 
     where t2.sport = 'cycling' and t2.total_timer_time>0;
     """
-    conn = psycopg2.connect(dbname=sample_db, host=db_host, user=sample_db_un, password=sample_db_pw)
+    conn = psycopg2.connect(dbname=sample_db, host=sample_db_host, port=sample_db_port, user=sample_db_un, password=sample_db_pw)
     cur = conn.cursor()
     cur.execute(sql_fit_swim,())
     rows0 = cur.fetchall()

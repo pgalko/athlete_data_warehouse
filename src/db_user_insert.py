@@ -5,6 +5,7 @@ from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,Progres
 import sys
 from processify import processify
 import os
+import datetime
 
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
@@ -461,7 +462,11 @@ def gc_user_update(gc_username,db_host,db_name,superuser_un,superuser_pw,encrypt
         #Insert user autosynch preference into postgres/db_info table 
         try:
                 params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
-                conn_localhost = psycopg2.connect(**params)
+                postgres_db = params.get("database")
+                postgres_un = params.get("user")
+                postgres_pw = params.get("password")
+
+                conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
                 conn_localhost.autocommit = True
 
                 # create a cursor

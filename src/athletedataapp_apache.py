@@ -764,7 +764,6 @@ def db_info():
         head, sep, tail = text.partition('@')
         db_username = head
         db_info = str(str2md5(user)) + '_Athlete_Data_DB'
-        sample_db = "sample_db"
         
         # Check if the sample DB exists, and create it if it does not.
         create_sample_db(encr_pass)
@@ -772,12 +771,16 @@ def db_info():
         # read DB connection parameters from ini file
         conn = None
         params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
-        superuser_un = params.get("user")
-        superuser_pw = params.get("password")
-        host = params.get("host")
+        sample_db_host = params.get("sample_db_host")
+        sample_db_port = params.get("sample_db_port")
+        if sample_db_port == "":
+            sample_db_port == "5432"
+        sample_db = params.get("sample_db")
+        ro_user = params.get("ro_user")
+        ro_password = params.get("ro_password")
 
-        # connect to the PostgreSQL server
-        conn = psycopg2.connect(dbname=sample_db, host=host, user=superuser_un, password=superuser_pw)
+        # connect to the PostgreSQL server (sample_db)
+        conn = psycopg2.connect(dbname=sample_db, user=ro_user, password=ro_password, host=sample_db_host, port=sample_db_port)
 
         sql = """
         SELECT table_name,column_name,data_type
@@ -920,16 +923,19 @@ def dummy1():
 
 # read DB connection parameters from ini file
 params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
+
+sample_db_host = params.get("sample_db_host")
+sample_db_port = params.get("sample_db_port")
 db_user = params.get("user")
 db_pw = params.get("password")
+db = params.get("sample_db")
 
-db = 'sample_db'
 
 # Check if the sample DB exists, and create it if it does not.
-create_sample_db(encr_pass)                                       
+create_sample_db(encr_pass)
 
 #Uncomment if you want to enable the sample visualisation (needs data in sample db to work)                                
-#dash_app = create_dashboard1(app,encr_pass,db_user,db_pw,db)
+#dash_app = create_dashboard1(app,encr_pass,db_user,db_pw,sample_db_host,sample_db_port,db)
 
 
 if __name__ == '__main__':

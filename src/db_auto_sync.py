@@ -8,6 +8,7 @@ from main_data_autosynch import auto_synch
 import Crypto.Random
 from Crypto.Cipher import AES
 import base64
+import datetime
 
 #----Crypto Variables----
 # salt size in bytes
@@ -53,11 +54,16 @@ def get_databases_list(encr_pass):
     try:
         # read connection parameters
         params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
+
+        postgres_db = params.get("database")
+        postgres_un = params.get("user")
+        postgres_pw = params.get("password")
+
+        conn = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
          
         # connect to the PostgreSQL server
         with ConsolidatedProgressStdoutRedirection():
             print('Connecting to the PostgreSQL server to get list of databases...')
-        conn = psycopg2.connect(**params)
 
         # create a cursor
         cur = conn.cursor()
