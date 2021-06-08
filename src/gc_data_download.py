@@ -86,8 +86,12 @@ def check_gc_creds(username,password):
     #use regular expression to search for auth ticket url in response. If there is a nmatch the login has ben successfull
     match = re.search(r'response_url\s*=\s*"(https:[^"]+)"', auth_response.text)
     if not match:
+        with ErrorStdoutRedirection(username):
+            print(str(datetime.datetime.now()) + " Garmin Auth failure. Status code: " + str(auth_response.status_code))
         cred_valid = False
     else:
+        with ProgressStdoutRedirection(username):
+            print(str(datetime.datetime.now()) + " Garmin Auth success. Status code: " + str(auth_response.status_code))
         cred_valid = True
         
     return cred_valid
@@ -148,7 +152,7 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                     return agent
                 except Exception as e:
                     with ErrorStdoutRedirection(username):
-                        print((str(datetime.datetime.now())+ str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             else:
                 #PG: Check whether the user database exists
                 try:
@@ -181,15 +185,15 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                     return agent
                 except Exception as e:
                     with ErrorStdoutRedirection(username):
-                        print((str(datetime.datetime.now())+ str(e)))
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 # In theory, we're in.
         else:
             with ErrorStdoutRedirection(username):
-                print((str(datetime.datetime.now())+ 'Auth failure: unable to extract auth ticket URL.'))
+                print((str(datetime.datetime.now())+ ' Garmin Auth failure: unable to extract auth ticket URL.'))
     except Exception as e:
         with ErrorStdoutRedirection(username):
-            print((str(datetime.datetime.now())+ str(e)))
-    
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         #yield start_date + datetime.timedelta(n) #ascending start date to end date

@@ -338,6 +338,7 @@ def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,super
     sql_grant_userpriv = "GRANT ALL PRIVILEGES ON DATABASE \""+ db_name +"\" to \""+db_username+"\";"
     sql_grant_table_permissions = "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \""+db_username+"\";"    
     sql_revoke_public = "REVOKE ALL ON DATABASE \""+ db_name +"\" FROM PUBLIC;"
+    sql_revoke_public_1 = "REVOKE ALL ON DATABASE postgres FROM PUBLIC;"
 
 
     try:
@@ -357,6 +358,7 @@ def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,super
         cur.execute(sql_grant_userpriv)
         cur.execute(sql_grant_table_permissions)
         cur.execute(sql_revoke_public)
+        cur.execute(sql_revoke_public_1)
 
         # close the communication with the PostgreSQL
         cur.close()
@@ -394,6 +396,8 @@ def create_sample_db(encr_pass):
         sql_grant_permissions_2 = "GRANT USAGE ON SCHEMA public TO "+ro_user+";"
         sql_grant_permissions_3 = "GRANT SELECT ON ALL TABLES IN SCHEMA public TO "+ro_user+";"
         sql_grant_permissions_4 = "GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "+ro_user+";"
+        sql_revoke_public = "REVOKE ALL ON DATABASE \""+ db_name +"\" FROM PUBLIC;"
+        sql_revoke_public_1 = "REVOKE ALL ON DATABASE postgres FROM PUBLIC;"
 
         # connect to the PostgreSQL server postgres db to check whether sample db exists and create it if doesnt.
         conn = psycopg2.connect(dbname="postgres", user=superuser_un, password=superuser_pw, host=sample_db_host, port=sample_db_port)
@@ -446,6 +450,8 @@ def create_sample_db(encr_pass):
                 cur.execute(sql_grant_permissions_2)
                 cur.execute(sql_grant_permissions_3)
                 cur.execute(sql_grant_permissions_4)
+                cur.execute(sql_revoke_public)
+                cur.execute(sql_revoke_public_1)
                 cur.close()
                 conn.close()
             except (Exception, psycopg2.DatabaseError) as error:
