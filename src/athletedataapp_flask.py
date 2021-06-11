@@ -747,7 +747,7 @@ def create_app(encr_pass_input,debug=False):
         #Get hostname/IP address
         if request.args.get('dbhost')=='':# Local DB host
             try:
-                host_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+                host_ip = urllib.request.urlopen('https://v4.ident.me').read().decode('utf8')
             except:
                 text = request.host
                 head, sep, tail = text.partition(':')
