@@ -171,7 +171,7 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                 else:
                     create_user_db(username,password,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass)
                     restore_db_schema(username,password,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,oura_refresh_token,encr_pass)
+                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encrypted_oura_refresh_token,encr_pass)
                 
                 try:
                     #create auth ticket url.eg https://connect.garmin.com/modern?ticket=ST-2112503-Ez4g4H9bWnU0dOo9S06b-cas
