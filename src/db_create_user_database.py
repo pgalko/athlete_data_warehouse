@@ -103,6 +103,7 @@ def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
         db_host character varying(50) COLLATE pg_catalog."default",
         db_un character varying(50) COLLATE pg_catalog."default",
         db_pw character varying(50) COLLATE pg_catalog."default",
+        last_synch character varying(50) COLLATE pg_catalog."default",
         db_auto_synch boolean,
         CONSTRAINT db_info_pkey PRIMARY KEY (id),
         CONSTRAINT db_info_unique UNIQUE (db_name))

@@ -11,16 +11,17 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass):
+def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,last_synch):
         gc_user = (gc_username, )
         gc_pwd = (gc_password, )
         mfp_user = (mfp_username, )
         head, sep, tail = gc_username.partition('@')
         db_user = head
         db_password = gc_decr_pw
-        db_name = (db_name)
+        user_db = (db_name, )
         auth_token_tuple = (dbx_auth_token, )
         oura_token_tuple = (oura_refresh_token, )
+        last_synch = (last_synch, )
         
         conn = None
 
@@ -87,6 +88,12 @@ def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_na
 
         """
 
+        sql_postgres_db ="""
+        
+        UPDATE db_info SET last_synch = %s where db_name= %s;
+
+        """
+
         try:
          
                 # connect to the PostgreSQL server
@@ -123,6 +130,36 @@ def gc_user_insert(gc_username,gc_decr_pw,gc_password,mfp_username,db_host,db_na
         finally:
                 if conn is not None:
                         conn.close()
+
+        #Insert last_synch into postgres/db_info table 
+        try:
+                params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
+                postgres_db = params.get("database")
+                postgres_un = params.get("user")
+                postgres_pw = params.get("password")
+
+                conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+                conn_localhost.autocommit = True
+
+                # create a cursor
+                cur_localhost = conn_localhost.cursor()
+
+                # execute a statement
+                with ProgressStdoutRedirection(gc_username):
+                    print('Inserting last_synch timestamp into postgres/db_info table:')
+                
+                cur_localhost.execute(sql_postgres_db,(last_synch,user_db))
+                
+                # close the communication with the PostgreSQL
+                cur_localhost.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+                with ErrorStdoutRedirection(gc_username):
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
+
+        finally:
+                if conn_localhost is not None:
+                    conn_localhost.close
+            
                         
 @processify
 def mfp_user_insert(mfp_username,mfp_password,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass):

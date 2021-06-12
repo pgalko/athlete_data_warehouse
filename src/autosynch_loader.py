@@ -8,11 +8,11 @@
 from db_auto_sync import get_databases_list,retrieve_decrypt_creds
 import time
 import os
+import sys
 import multiprocessing
 import getpass
 from datetime import datetime
 from Athlete_Data_Utills import ConsolidatedProgressStdoutRedirection
-import sys
 from database_ini_parser import config
 
 
@@ -36,9 +36,9 @@ def start_autosynch_loop(encr_pass=None):
         encr_pass = passphrase_input 
 
     while True:
-        autosynch_params = config(filename="encrypted_settings.ini", section="autosynch",encr_pass=encr_pass)
-        interval = int(autosynch_params.get("interval")) #number of seconds to wait between runs
+        interval = 3600 #number of seconds to wait between runs
         task_start = time.time()
+        # Retrieve list of credentials for user DB's with last synch older than n (specified in .ini)
         retrieve_decrypt_creds(get_databases_list(encr_pass),encr_pass)
         task_end = time.time()
         

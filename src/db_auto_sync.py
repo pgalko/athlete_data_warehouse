@@ -41,23 +41,29 @@ def get_databases_list(encr_pass):
     WHERE 
        datname like '%_Athlete_Data_DB';
     """
-
+    # Retrieve list of databases with last synch older than n
     sql_get_databases_db_info = """
     SELECT
         db_name
     FROM
        db_info 
     WHERE 
-       db_auto_synch = 'true';
+       db_auto_synch = 'true' AND last_synch::timestamp < %s::timestamp;
     """
 
     try:
         # read connection parameters
         params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
-
+        autosynch_params = config(filename="encrypted_settings.ini", section="autosynch",encr_pass=encr_pass)
+        
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+
+        interval = int(autosynch_params.get("interval")) #The amount of time in seconds to wait before attempting next synch
+        time_now = datetime.datetime.now()
+        now_less_interval_dt = time_now - datetime.timedelta(seconds=interval)
+        now_less_interval_str = now_less_interval_dt.strftime("%Y-%m-%d %H:%M:%S")
 
         conn = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
          
@@ -67,7 +73,8 @@ def get_databases_list(encr_pass):
 
         # create a cursor
         cur = conn.cursor()
-        cur.execute(sql_get_databases_db_info)
+        # Retrieve list of databases with last synch older than n
+        cur.execute(sql_get_databases_db_info,(now_less_interval_str,))
         conn.commit()
         databases = cur.fetchall()
 

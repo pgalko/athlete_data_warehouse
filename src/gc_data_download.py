@@ -43,7 +43,7 @@ NUMBER_OF_ITERATIONS = 2000 # PG:Consider increasing number of iterations
 # the size multiple required for AES
 AES_MULTIPLE = 16
 
-BASE_URL = "https://sso.garmin.com/sso/login"
+BASE_URL = "https://sso.garmin.com/sso/signin"
 HOSTNAME = "https://connect.garmin.com"
 GAUTH = "https://connect.garmin.com/auth/hostname"
 SSO = "https://sso.garmin.com/sso"
@@ -101,6 +101,8 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36'
     db_name = str(str2md5(username)) + '_Athlete_Data_DB'
 
+    last_synch = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     #Encrypt password
     if save_pwd == True:
         encrypted_pwd = base64.b64encode(encrypt(password, encr_pass))
@@ -137,6 +139,7 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                                             data={"username": username,"password": password,"embed": "false",},)
         #use regular expression to search for auth ticket url in response
         match = re.search(r'response_url\s*=\s*"(https:[^"]+)"', auth_response.text)
+
         if match:
             #If retrying to login from inside data download functions
             if login_retry==True:
@@ -167,11 +170,11 @@ def login(username, password, mfp_username,db_host, superuser_un,superuser_pw,db
                 
                 if db_exists == True:
                     # PG: Insert gc username and password into postgreSQL
-                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encrypted_oura_refresh_token,encr_pass)
+                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encrypted_oura_refresh_token,encr_pass,last_synch)
                 else:
                     create_user_db(username,password,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass)
                     restore_db_schema(username,password,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encrypted_oura_refresh_token,encr_pass)
+                    gc_user_insert(username,password,encrypted_pwd,mfp_username,db_host,db_name,superuser_un,superuser_pw,encrypted_dbx_auth_token,encrypted_oura_refresh_token,encr_pass,last_synch)
                 
                 try:
                     #create auth ticket url.eg https://connect.garmin.com/modern?ticket=ST-2112503-Ez4g4H9bWnU0dOo9S06b-cas
