@@ -235,7 +235,6 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
 @processify
 def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
 
-    db_name = (db_name)
     if os.name == 'nt':
         backup_file_path = output+'\\'+gc_username+'\DB_Backup.gz'
     else:
