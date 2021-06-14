@@ -89,34 +89,6 @@ def get_databases_list(encr_pass):
     return databases
 
 def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
-    conn = None
-    gc_un = None
-    gc_encr_pw = None
-    gc_decr_pw = None
-
-    mfp_un = None
-    mfp_encr_pw = None
-    mfp_decr_pw = None
-
-    cgm_un = None
-    cgm_encr_pw = None
-    cgm_decr_pw = None
-
-    dbx_encr_token = None
-    dbx_decr_token = None
-
-    oura_encr_token = None
-    oura_decr_token = None
-    
-    glimp_encr_export_link = None
-    glimp_decr_export_link = None
-
-    libreview_encr_export_link = None
-    libreview_decr_export_link = None
-
-    mm_encr_export_link = None
-    mm_decr_export_link = None	
-
     sql_get_creds = """
     SELECT 
         gc_email,gc_password,mfp_username,mfp_password,diasend_username,diasend_password,dropbox_access_token,glimp_export_link,libreview_export_link,mm_export_link,oura_refresh_token
@@ -133,9 +105,38 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
        db_name = %s;
     """
 
-    for row in synch_req_db_list:           
+    for row in synch_req_db_list:          
         for db in row:
             try:
+                #Reset all user variables
+                conn = None
+                gc_un = None
+                gc_encr_pw = None
+                gc_decr_pw = None
+
+                mfp_un = None
+                mfp_encr_pw = None
+                mfp_decr_pw = None
+
+                cgm_un = None
+                cgm_encr_pw = None
+                cgm_decr_pw = None
+
+                dbx_encr_token = None
+                dbx_decr_token = None
+
+                oura_encr_token = None
+                oura_decr_token = None
+                
+                glimp_encr_export_link = None
+                glimp_decr_export_link = None
+
+                libreview_encr_export_link = None
+                libreview_decr_export_link = None
+
+                mm_encr_export_link = None
+                mm_decr_export_link = None
+
                 # read connection parameters
                 dbsu_params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
                 superuser_un = dbsu_params.get("user")
@@ -206,7 +207,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                 if mm_encr_export_link is not None:
                     mm_decr_export_link = decrypt(base64.b64decode(mm_encr_export_link), encr_pass)	
                 if oura_encr_token is not None:
-                    oura_decr_token = decrypt(base64.b64decode(oura_encr_token), encr_pass) 							  
+                    oura_decr_token = decrypt(base64.b64decode(oura_encr_token), encr_pass)
 
                 ###Execute auto synch from "main_data_autosynch.py"###
                 auto_synch(db, db_host, superuser_un, superuser_pw, gc_un, gc_decr_pw, mfp_un, mfp_decr_pw, cgm_un, cgm_decr_pw, glimp_decr_export_link, libreview_decr_export_link, mm_decr_export_link, dbx_decr_token, oura_decr_token, encr_pass)
