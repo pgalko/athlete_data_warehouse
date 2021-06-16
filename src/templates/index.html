@@ -91,9 +91,15 @@
         </small>
     </div>
     <div>
-        <span><a class="btn btn-outline-primary" id="browse_sample_data" href="http://pgweb.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-aperture" aria-hidden="true"></span> View DB data</a></span>
-        <span><a class="btn btn-outline-primary" id="datamodel_preview" href="/datamodel_preview?gc=1&wel=1&mfp=1&dia=1" target="_blank" style="margin-left: 15px"><span class="oi oi-fork" aria-hidden="true" onclick="addAtribs()"></span> View DB model</a></span> 
-        <span><a class="btn btn-outline-primary" id="db_info" href="/db_info?user=&dbhost=" style="margin-left: 15px"><span class="oi oi-script" aria-hidden="true" onclick="addAtribs()"></span> View DB info</a></span>    
+        <form method="POST" action="/dummy_1" enctype="multipart/form-data">
+            <input type="hidden" name="dash_un" id="dash_un">  
+            <input type="hidden" name="dash_pw" id="dash_pw"> 
+            <span><a class="btn btn-outline-primary" id="datamodel_preview" href="/datamodel_preview?gc=1&wel=1&mfp=1&dia=1" target="_blank" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-fork" aria-hidden="true"></span> View DB model</a></span> 
+            <span><a class="btn btn-outline-primary" id="db_info" href="/db_info?user=&dbhost=" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-script" aria-hidden="true"></span> View DB info</a></span>    
+            <span><a class="btn btn-outline-primary" id="browse_sample_data" href="http://pgweb.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse sample DB</a></span>
+            <!-- Submit Dash Visualization Hidden Form. Hiden by default "display:none"  -->     
+            <span><button id='dashboard_1'type="submit" class="btn btn-outline-primary" style="margin-left: 15px; display:none" title="If the user DB already exists the real user data will be displayed. Otherwise the visualisation will use sample data." onclick="addAtribs()"><span class="oi oi-graph" aria-hidden="true"></span> View Sample Data Visualization...</button></span>
+        </form>
     </div>
     <hr>
 
@@ -725,13 +731,5 @@
     <div>																				 
         <!--<a id="dashboard_1" href="/dummy_1" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" onclick="addAtribs()">View Sample Data Visualization...</a> -->
     </div>
-
-<!-- Submit Dash Visualization Hidden Form.  -->    
-
-    <form method="POST" action="/dummy_1" enctype="multipart/form-data" style="display: none">
-        <input type="hidden" name="dash_un" id="dash_un">  
-        <input type="hidden" name="dash_pw" id="dash_pw"> 
-        <button id='dashboard_1'type="submit" class="btn btn-link" style="margin-left: 1px;margin-bottom:15px" title="If the user DB already exists the real user data will be displayed. Otherwise the visualisation will use sample data." onclick="addAtribs()">View Sample Data Visualization...</button>
-    </form>
 
 </html>
