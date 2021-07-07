@@ -16,7 +16,7 @@ from db_encrypt import str2md5
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
-def check_db_server_connectivity(gc_username,db_host,superuser_un,superuser_pw):
+def check_db_server_connectivity(ath_un,db_host,superuser_un,superuser_pw):
     conn = None
     
     sql_svr_conn = """
@@ -39,7 +39,7 @@ def check_db_server_connectivity(gc_username,db_host,superuser_un,superuser_pw):
         cur.close()
         return connection
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + ' ' + str(error)))
         connection = str(error)
         return connection
@@ -47,11 +47,10 @@ def check_db_server_connectivity(gc_username,db_host,superuser_un,superuser_pw):
         if conn is not None:
             conn.close()
         
-def check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_pw,encr_pass):
+def check_user_db_exists(ath_un,db_host,superuser_un,superuser_pw):
     conn = None
-    username = (gc_username)
-    db_name = str(str2md5(username)) + '_Athlete_Data_DB'
-    with ProgressStdoutRedirection(gc_username):
+    db_name = str(str2md5(ath_un)) + '_Athlete_Data_DB'
+    with ProgressStdoutRedirection(ath_un):
         print(('User DB Name: '+str(db_name)))
 
     sql_check_db_exists = """
@@ -68,7 +67,7 @@ def check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_
         cur = conn.cursor()
 
         # execute a statement
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Executing SQL to check whether the database aleady exists')
         
         cur.execute(sql_check_db_exists,(db_name,))
@@ -82,35 +81,19 @@ def check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-         with ErrorStdoutRedirection(gc_username):
+         with ErrorStdoutRedirection(ath_un):
              print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error))) 
 
     finally:
         if conn is not None:
             conn.close()
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print('Database connection closed.')
             
     return db_exists
 
-def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
+def check_host_record_exists(ath_un,db_name,db_host,encr_pass):
     conn_localhost = None
-
-    sql_create_info_db_table = """
-    CREATE TABLE IF NOT EXISTS public.db_info
-        (id serial NOT NULL,
-        db_name character varying(50) COLLATE pg_catalog."default",
-        db_host character varying(50) COLLATE pg_catalog."default",
-        db_un character varying(50) COLLATE pg_catalog."default",
-        db_pw character varying(50) COLLATE pg_catalog."default",
-        last_synch character varying(50) COLLATE pg_catalog."default",
-        db_auto_synch boolean,
-        CONSTRAINT db_info_pkey PRIMARY KEY (id),
-        CONSTRAINT db_info_unique UNIQUE (db_name))
-    WITH (OIDS = FALSE)
-    TABLESPACE pg_default;
-    ALTER TABLE public.db_info OWNER to postgres;
-    """
 
     sql_check_db_host_exists = """
     SELECT db_host FROM db_info WHERE db_name = %s;
@@ -130,14 +113,13 @@ def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
         cur = conn_localhost.cursor()
 
         # execute a statement
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Checking whether the db_host record aleady exists')
         
-        cur.execute(sql_create_info_db_table)
         cur.execute(sql_check_db_host_exists,(db_name,))
         result = cur.fetchone()
 
-        if result is not None:#Previous record exists
+        if result[0] is not None:#Previous record exists
             stored_db_host = result[0]
             if stored_db_host != db_host:#Previous record does not match
                 db_host_diff = True
@@ -149,7 +131,7 @@ def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
@@ -159,22 +141,20 @@ def check_host_record_exists(gc_username,db_name,db_host,encr_pass):
     return db_host_diff
 
 @processify
-def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass):
+def create_user_db(ath_un,ath_pw,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass):
     conn = None
-    username = (gc_username)
-    db_name = (db_name)
-    head, sep, tail = username.partition('@')
+    head, sep, tail = ath_un.partition('@')
     db_username = head
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
     
     sql_get_lc_collate = "SHOW LC_COLLATE"
     sql_create_db = "CREATE DATABASE \""+ db_name +"\" WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = %s LC_CTYPE = %s;"
-    sql_create_dbuser = "CREATE USER \""+db_username+"\" WITH PASSWORD \'"+ gc_password +"\';"
-    sql_insert_db_info_record = "INSERT INTO db_info (db_name, db_host, db_un, db_pw,db_auto_synch) VALUES (%s,%s,%s,%s,%s) ON CONFLICT (db_name) DO NOTHING; "
+    sql_create_dbuser = "CREATE USER \""+db_username+"\" WITH PASSWORD \'"+ ath_pw +"\';"
+    sql_update_db_info_record = "UPDATE db_info SET db_name = %s, db_host = %s, db_un = %s, db_pw = %s, db_auto_synch = %s WHERE ath_un= %s; "
     
     try:    
         conn = psycopg2.connect(dbname='postgres', host=db_host, user=superuser_un, password=superuser_pw)
@@ -184,7 +164,7 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
         cur = conn.cursor()
 
         # execute a statement
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Creating user database...')
         
         cur.execute(sql_get_lc_collate)
@@ -196,7 +176,7 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
@@ -217,15 +197,15 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
         cur_localhost = conn_localhost.cursor()
 
         # execute a statement
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Inserting DB connection info...')
-        
-        cur_localhost.execute(sql_insert_db_info_record,(db_name,db_host,superuser_un,encrypted_superuser_pw,save_pwd))
+
+        cur_localhost.execute(sql_update_db_info_record,(db_name,db_host,superuser_un,encrypted_superuser_pw,save_pwd,ath_un))
         
         # close the communication with the PostgreSQL
         cur_localhost.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:
@@ -233,16 +213,16 @@ def create_user_db(gc_username,gc_password,db_host,db_name,superuser_un,superuse
             conn_localhost.close 
 
 @processify
-def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
+def backup_user_db(db_name,ath_un,output,dbx_auth_token, encr_pass):
 
     if os.name == 'nt':
-        backup_file_path = output+'\\'+gc_username+'\DB_Backup.gz'
+        backup_file_path = output+'\\'+ath_un+'\DB_Backup.gz'
     else:
-        backup_file_path = output+'/'+gc_username+'/DB_Backup.gz'
+        backup_file_path = output+'/'+ath_un+'/DB_Backup.gz'
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
     open(pidfile).close
 
@@ -254,9 +234,9 @@ def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
     
     try:
         with gzip.open(backup_file_path, 'wb') as f:
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print('Backing up DB, please wait....')
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print('Backing up DB, please wait....')
      
             # create .pgpass in user's AppData or home directory 
@@ -284,14 +264,14 @@ def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
             try:
                 os.remove(pgpassfile)
             except Exception as e:
-                 with ErrorStdoutRedirection(gc_username):
+                 with ErrorStdoutRedirection(ath_un):
                      print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print('DB backup completed. The backup file will be uploaded to Dropbox now.')
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print('DB backup completed. The backup file will be uploaded to Dropbox now.')
     except Exception as e:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     
     today = datetime.datetime.today().strftime('%Y%m%d')
@@ -300,34 +280,34 @@ def backup_user_db(db_name,gc_username,output,dbx_auth_token, encr_pass):
 
     dbx_file_exists = check_if_file_exists_in_dbx(file_name_to,dbx_auth_token,download_folder_dbx)
     if dbx_file_exists == True:
-        with StdoutRedirection(gc_username):
+        with StdoutRedirection(ath_un):
             print((file_name_to+' already exists in Dropbox, skipping.'))
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print((file_name_to+' already exists in Dropbox, skipping.'))
     else:
         try:
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print(('Uploading '+file_name_to+' Dropbox, please wait.'))
             download_files_to_dbx(backup_file_path,file_name_to,dbx_auth_token, download_folder_dbx)
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print('DB Backup file uploaded to Dropbox successfuly')
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print('DB Backup file uploaded to Dropbox successfuly')
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
 @processify
-def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw):
     conn = None
-    username = (gc_username)
+    username = (ath_un)
     db_name = (db_name)
     head, sep, tail = username.partition('@')
     db_username = head
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     
@@ -351,7 +331,7 @@ def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,super
         cur = conn.cursor()
 
         # execute a statement
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Restoring DB schema...')
         
         cur.execute(sql_restore_db_schema)
@@ -363,7 +343,7 @@ def restore_db_schema(gc_username,gc_password,db_host,db_name,superuser_un,super
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:

@@ -40,13 +40,13 @@ def encrypt(plaintext, password):
     return ciphertext_with_salt 
 
 @processify
-def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx_link,save_pwd,db_host,db_name,superuser_un,superuser_pw):
+def glimp_data_insert(output,start_date,end_date,ath_un,encr_pass,glimp_dbx_link,save_pwd,db_host,db_name,superuser_un,superuser_pw):
     # Before executing the script go to your droppox Apps/Glimp folder and locate ClicemiaMisurazioni.csv.gz file.
     # Right click on the file, select 'Share' option and copy the generated link.
     # Assign the link string to the 'glimp_dbx_link' parameter.
     glimp_export_csv = 'GlicemiaMisurazioni.csv'
     glimp_export_csv_gz = 'GlicemiaMisurazioni.csv.gz'
-    user_output = os.path.join(output, gc_username)
+    user_output = os.path.join(output, ath_un)
     download_folder = os.path.join(user_output, 'CGM_Historical_BG')
     archive_folder = os.path.join(download_folder, 'Archive')
     glimp_file_path = os.path.join(download_folder, glimp_export_csv)
@@ -54,7 +54,7 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     path_params = config(filename="encrypted_settings.ini", section="archive")
@@ -108,7 +108,7 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
                 #os.remove(os.path.join(download_folder,item)) #Delete the GZ file after content extracted
             else:#The file is manualy download from LibreView
                 z.extract(item,download_folder)
-    db_name = str(str2md5(gc_username)) + '_Athlete_Data_DB'
+    db_name = str(str2md5(ath_un)) + '_Athlete_Data_DB'
 
     conn = None
          
@@ -120,7 +120,7 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
         INSERT INTO diasend_cgm(athlete_id,timestamp,glucose_nmol_l,glucose_nmol_l_15min_avrg,data_source,timestamp_gmt)
 
         VALUES
-        ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s)
+        ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s)
 
         ON CONFLICT (athlete_id,timestamp,data_source) DO NOTHING;
         
@@ -168,7 +168,7 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
                         utc_time_dt = local_time_dt - result[0]
                         utc_time_str = datetime.datetime.strftime((utc_time_dt), "%Y-%m-%d %H:%M:%S")
                 except (Exception, psycopg2.DatabaseError) as error:
-                    with ErrorStdoutRedirection(gc_username):
+                    with ErrorStdoutRedirection(ath_un):
                         print((str(datetime.now()) + '  ' + str(error)))
 
             # Compare if the Record Date is within the download Date range. This only works if parsed from top of the csv file.
@@ -178,22 +178,22 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
             if local_time_dt < start_date_dt:
                 break 
 
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print(('Inserting BG record from Glimp/LibreView. Time: '+str(local_time_str)+'  Glucose: '+str(glucose_nmol)))
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print(('Inserting BG record from Glimp/LibreView. Time: '+str(local_time_str)+'  Glucose: '+str(glucose_nmol)))
 
             try:
                 # create a cursor
                 cur = conn.cursor()
                 # execute a statement
-                cur.execute(sql,(gc_username,local_time_str,glucose_nmol,glucose_nmol_avrg,data_source,utc_time_str))
+                cur.execute(sql,(ath_un,local_time_str,glucose_nmol,glucose_nmol_avrg,data_source,utc_time_str))
                 conn.commit()
                 # close the communication with the PostgreSQL
                 cur.close()
                 
             except (Exception, psycopg2.DatabaseError) as error:
-                with ErrorStdoutRedirection(gc_username):
+                with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.now()) + '  ' + str(error)))
 
     # Iterate throught files in the download folder
@@ -201,7 +201,7 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
         #The file is an export from Glimp app
         if item == glimp_export_csv:
             #Insert Glimp export link into database
-            glimp_user_insert(encrypted_link,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+            glimp_user_insert(encrypted_link,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
             data_source = 'glimp_android'
             # Read/Parse the .csv file
             dataset = pd.read_csv(glimp_file_path, sep=";", encoding='UTF-16 LE', header=None)
@@ -218,7 +218,7 @@ def glimp_data_insert(output,start_date,end_date,gc_username,encr_pass,glimp_dbx
         #The file is an export from LibreView
         elif re.match(r"^[a-zA-Z0-9]+_glucose_[0-9|-]+.csv",item): #Search for pattern FirstLast_glucose_dd-mm-yyyy.csv
             #Insert LIbreView export link into database
-            libreview_user_insert(encrypted_link,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+            libreview_user_insert(encrypted_link,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
             data_source = 'libre_view'
             dataset = pd.read_csv(os.path.join(download_folder,item), sep=",",skiprows=1)
             dataset = dataset.iloc[:, :6]# Keep first 6 columns and drop everything else

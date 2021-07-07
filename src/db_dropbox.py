@@ -7,6 +7,7 @@ from db_encrypt import generate_key,pad_text,unpad_text
 import Crypto.Random
 from Crypto.Cipher import AES
 import base64
+import datetime
 
 #----Crypto Variables----
 # salt size in bytes
@@ -27,19 +28,19 @@ def decrypt(ciphertext, password):
     plaintext = unpad_text(padded_plaintext)
     return plaintext 
 
-def check_user_token_exists(gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def check_user_token_exists(ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
     conn = None
-    gc_username = gc_username
+    ath_un = ath_un
     db_name = db_name
     decrypted_dbx_token = None
 
     sql_check_dbx_token_exists = """
-    SELECT dropbox_access_token FROM athlete WHERE gc_email = %s;
+    SELECT dropbox_access_token FROM athlete WHERE ath_un = %s;
     """
 
     try: 
         # connect to the PostgreSQL server
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Connecting to the PostgreSQL server to check whether the dbx token exist...')
         
 
@@ -51,7 +52,7 @@ def check_user_token_exists(gc_username,db_host,db_name,superuser_un,superuser_p
 
         # execute a statement
         try:
-            cur.execute(sql_check_dbx_token_exists,(gc_username,))
+            cur.execute(sql_check_dbx_token_exists,(ath_un,))
             result = cur.fetchone()
             if result[0] is not None:  
                 token_exists = True
@@ -67,7 +68,7 @@ def check_user_token_exists(gc_username,db_host,db_name,superuser_un,superuser_p
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:

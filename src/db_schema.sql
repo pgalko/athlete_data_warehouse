@@ -27,14 +27,15 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 ---ATHLETE
 ---
 CREATE TABLE public.athlete (
-    gc_email character varying(30),
+    ath_un character varying(50),
+    gc_email character varying(50),
     gc_password character varying(300),
     id integer NOT NULL,
-    mfp_username character varying(30),
+    mfp_username character varying(50),
     mfp_password character varying(300),
     dropbox_access_token character varying(300),
     auto_sync boolean,
-    diasend_username character varying(30),
+    diasend_username character varying(50),
     diasend_password character varying(300),
     glimp_export_link character varying(300),
     libreview_export_link character varying(300),

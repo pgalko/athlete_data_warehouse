@@ -13,10 +13,8 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def gc_dailysummary_insert(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
         """ Connect to the PostgreSQL database server """
-        file2import = (file_path, )
-        athlete_id = (athlete, )
         db_name = (db_name)
         conn = None
         #Lists to store the data from xml
@@ -28,7 +26,7 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
         
         #Get PID of the current process and write it in the file
         pid = str(os.getpid())
-        pidfile = PID_FILE_DIR + athlete + '_PID.txt'
+        pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
         open(pidfile, 'w').write(pid)
 
         # PG Amend path for postgres "pg_read_file()" function.
@@ -41,7 +39,7 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
         
         SELECT
         
-        (select id from athlete where gc_email=%s),
+        (select id from athlete where ath_un=%s),
         to_char(to_timestamp(unnest (xpath('//*[local-name()="item"]/*[local-name()="startGMT"]/text()', x))::text::text,'YYYY-MM-DD HH24:MI:SS'),'YYYY-MM-DD HH24:MI:SS') AS start_gmt,
         to_char(to_timestamp(unnest (xpath('//*[local-name()="item"]/*[local-name()="endGMT"]/text()', x))::text::text,'YYYY-MM-DD HH24:MI:SS'),'YYYY-MM-DD HH24:MI:SS') AS end_gmt,
         unnest (xpath('//*[local-name()="item"]/*[local-name()="activityLevelConstant"]/text()', x))::text::bool AS activity_level_constant,
@@ -59,7 +57,7 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
         INSERT INTO garmin_connect_daily_summary (athlete_id,start_gmt,end_gmt,activity_level_constant,steps,primary_activity_level)
 
         VALUES
-            ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s)
+            ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s)
         
         ON CONFLICT (athlete_id,start_gmt) DO NOTHING;
 
@@ -69,7 +67,7 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
         INSERT INTO gmt_local_time_difference (athlete_id,local_date,local_midnight_timestamp,gmt_midnight_timestamp,gmt_local_difference)
 
         VALUES
-            ((select id from athlete where gc_email=%s),%s,%s,%s,%s)
+            ((select id from athlete where ath_un=%s),%s,%s,%s,%s)
 
         ON CONFLICT (local_date) DO NOTHING;
         """
@@ -125,9 +123,9 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
                 # create a cursor
                 cur = conn.cursor()
                 # execute a statement
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print('Inserting Daily Summary Data into postgreSQL:')
-                cur.execute(pd_df_sql,(athlete,row_startGMT,row_endGMT,row_activityLevelConstant,row_steps,row_primaryActivityLevel))
+                cur.execute(pd_df_sql,(ath_un,row_startGMT,row_endGMT,row_activityLevelConstant,row_steps,row_primaryActivityLevel))
                 #conn.commit() 
                 # close the communication with the PostgreSQL
                 cur.close()
@@ -144,7 +142,7 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
                         # create a cursor
                         cur = conn.cursor()
                         # execute a statement
-                        with StdoutRedirection(athlete):
+                        with StdoutRedirection(ath_un):
                             print('Inserting Sleep Tracking Data into postgreSQL:')
                         cur.execute(sql_sleep_tracking,(row_startGMT_str,row_startLocal_str,row_startGMT_str,row_startGMT_str,row_startGMT_str))
                         # close the communication with the PostgreSQL
@@ -154,25 +152,25 @@ def gc_dailysummary_insert(file_path,athlete,db_host,db_name,superuser_un,superu
             # create a cursor
             cur = conn.cursor()
             # execute a statement
-            with StdoutRedirection(athlete):
+            with StdoutRedirection(ath_un):
                 print('Inserting Local to GMT time difference into postgreSQL:')
-            cur.execute(sql_time_diff,(athlete,date_str,midnight_local_dt,midnight_gmt_dt,local_gmt_time_diff))
+            cur.execute(sql_time_diff,(ath_un,date_str,midnight_local_dt,midnight_gmt_dt,local_gmt_time_diff))
             # close the communication with the PostgreSQL
             cur.close()
-            with StdoutRedirection(athlete):
+            with StdoutRedirection(ath_un):
                 print('Local to GMT time difference Data Inserted Successfully')
-            with ProgressStdoutRedirection(athlete):
+            with ProgressStdoutRedirection(ath_un):
                 print('Local to GMT time difference Data Inserted Successfully')
             try:
                 conn.tpc_prepare()
             except  (Exception, psycopg2.DatabaseError) as error:
                 conn.tpc_rollback()
-                with ErrorStdoutRedirection(athlete):
+                with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
             else:
                 conn.tpc_commit()
         except (Exception, psycopg2.DatabaseError) as error:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         finally:
                 if conn is not None:

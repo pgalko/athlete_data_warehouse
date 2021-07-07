@@ -10,14 +10,14 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def data_file_path_insert(file_path,athlete,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def data_file_path_insert(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
     file2import = (file_path)
-    athlete_id = (athlete)
+    athlete_id = (ath_un)
     db_name = (db_name)
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + athlete + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     conn = None
@@ -27,14 +27,14 @@ def data_file_path_insert(file_path,athlete,db_host,db_name,superuser_un,superus
     INSERT INTO files (data_file_path,athlete_id)
 
     VALUES
-    (%s,(select id from athlete where gc_email=%s))
+    (%s,(select id from athlete where ath_un=%s))
 
     ON CONFLICT (data_file_path) DO NOTHING;
     """
     try:
         
         # connect to the PostgreSQL server
-        with ProgressStdoutRedirection(athlete):
+        with ProgressStdoutRedirection(ath_un):
             print('Connecting to the PostgreSQL server to insert data_file_path...')
         conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
 
@@ -50,33 +50,33 @@ def data_file_path_insert(file_path,athlete,db_host,db_name,superuser_un,superus
         cur.close()
  
     except Exception as e:
-        with ErrorStdoutRedirection(athlete):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     finally:
         if conn is not None:
             conn.close()
 
 @processify
-def check_data_file_exists(data_file_path,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def check_data_file_exists(data_file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
     conn = None
-    gc_username = (gc_username)
+    ath_un = (ath_un)
     data_file_path = (data_file_path)
     db_name = db_name
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
 
     sql_check_file_exists = """
-    SELECT data_file_path FROM files WHERE athlete_id = (select id from athlete where gc_email=%s) and data_file_path =%s;
+    SELECT data_file_path FROM files WHERE athlete_id = (select id from athlete where ath_un=%s) and data_file_path =%s;
     """
 
     try:
          
         # connect to the PostgreSQL server
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print('Connecting to the PostgreSQL server to check if the data_file already exists...')
         conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
 
@@ -84,7 +84,7 @@ def check_data_file_exists(data_file_path,gc_username,db_host,db_name,superuser_
         cur = conn.cursor()
 
         # execute a statement      
-        cur.execute(sql_check_file_exists,(gc_username,data_file_path))
+        cur.execute(sql_check_file_exists,(ath_un,data_file_path))
         result = cur.fetchone()
         if not result:  
             data_file_exists = False
@@ -95,7 +95,7 @@ def check_data_file_exists(data_file_path,gc_username,db_host,db_name,superuser_
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:

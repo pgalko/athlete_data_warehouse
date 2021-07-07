@@ -39,9 +39,9 @@ def encrypt(plaintext, password):
     return ciphertext_with_salt  
 
 @processify
-def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_date,encr_pass,save_pwd,auto_synch,db_host,superuser_un,superuser_pw):
+def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,encr_pass,save_pwd,auto_synch,db_host,superuser_un,superuser_pw):
     Crypto.Random.atfork() 
-    db_name = str(str2md5(gc_username)) + '_Athlete_Data_DB'
+    db_name = str(str2md5(ath_un)) + '_Athlete_Data_DB'
 
     if save_pwd == True:
         encrypted_pwd = base64.b64encode(encrypt(mfp_password, encr_pass))
@@ -51,33 +51,33 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
 
     #Get PID of the current process and write it in the file
     pid = (str(os.getpid()))
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
-    with StdoutRedirection(gc_username):
+    with StdoutRedirection(ath_un):
         print("Attempting to login to MFP...")     
-    with ProgressStdoutRedirection(gc_username):
+    with ProgressStdoutRedirection(ath_un):
         print("Attempting to login to MFP...")
     try:
         client = myfitnesspal.Client(mfp_username,mfp_password)       
     except ValueError as e:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '-E1- ' + str(e)))
-        with StdoutRedirection(gc_username):
+        with StdoutRedirection(ath_un):
             print(('Wrong MFP credentials for user {}. Skipping.'.format(mfp_username)))
         return
-    with StdoutRedirection(gc_username):
+    with StdoutRedirection(ath_un):
         print('MFP Login successful! Proceeding...')
-    with ProgressStdoutRedirection(gc_username):
+    with ProgressStdoutRedirection(ath_un):
         print('MFP Login successful! Proceeding...')
 
-    mfp_user_insert(mfp_username,encrypted_pwd,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass) #PG: insert MFP user details into database
+    mfp_user_insert(mfp_username,encrypted_pwd,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass) #PG: insert MFP user details into database
 
     # read DB connection parameters from ini file
     conn = None
 
     # connect to the PostgreSQL server
-    with ProgressStdoutRedirection(gc_username):
+    with ProgressStdoutRedirection(ath_un):
         print('Connecting to the PostgreSQL server...')
 
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
@@ -88,17 +88,17 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
 
         #PG: Check whether the data for this date have been inserted into to DB during one of the previous runs 
         if auto_synch == False:         
-            data_exists = check_data_file_exists(data_exist_for_date,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+            data_exists = check_data_file_exists(data_exist_for_date,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
             if data_exists == True:
-                with StdoutRedirection(gc_username):
+                with StdoutRedirection(ath_un):
                     print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
-                with ProgressStdoutRedirection(gc_username):
+                with ProgressStdoutRedirection(ath_un):
                     print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
                 continue
 
-        with StdoutRedirection(gc_username):
+        with StdoutRedirection(ath_un):
             print(('Downloading nutrition data: '+date_in_range))
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print(('Downloading nutrition data: '+date_in_range))
 
         try:
@@ -108,13 +108,13 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
             for meal in meals:
                 meal_name = meal.name
                 entry = meal.entries
-                with StdoutRedirection(gc_username):
+                with StdoutRedirection(ath_un):
                     print(('****' + meal_name + '****'))
                 for item in entry:
                     food_item = item.short_name
                     if food_item is None:
                         food_item = 'Generic'
-                    with StdoutRedirection(gc_username):
+                    with StdoutRedirection(ath_un):
                         print((food_item.encode("utf-8")))
                     units = item.unit
                     if units is None:
@@ -149,9 +149,9 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
                         # create a cursor
                         cur = conn.cursor()
                         # execute a statement
-                        with StdoutRedirection(gc_username):
+                        with StdoutRedirection(ath_un):
                             print('Inserting record....')
-                        with ProgressStdoutRedirection(gc_username):
+                        with ProgressStdoutRedirection(ath_un):
                             print('Inserting record....')
                         cur.execute(sql,(mfp_username,date_in_range,meal_name,food_item,units,quantity,fiber_value,sodium_value,carbohydrates_value,calories_value,fat_value,protein_value))
                         conn.commit()
@@ -159,13 +159,13 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
                         cur.close()
                         
                     except  (Exception, psycopg2.DatabaseError) as error:
-                        with ErrorStdoutRedirection(gc_username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '-E2-  ' + str(error)))
 
                     # Update the files table 
-                    data_file_path_insert(data_exist_for_date,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                    data_file_path_insert(data_exist_for_date,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
         except Exception as e:
-             with ErrorStdoutRedirection(gc_username):
+             with ErrorStdoutRedirection(ath_un):
                  print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '-E3-  ' + str(e)))
              continue
      
@@ -173,7 +173,7 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_
     if conn is not None:
         conn.close()             
                     
-    with StdoutRedirection(gc_username):    
+    with StdoutRedirection(ath_un):    
         print('--- All nutrition data inserted successfully. ---')
-    with ProgressStdoutRedirection(gc_username):   
+    with ProgressStdoutRedirection(ath_un):   
         print('--- All nutrition data inserted successfully. ---') 

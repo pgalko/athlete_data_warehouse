@@ -7,6 +7,7 @@ from db_encrypt import generate_key,pad_text,unpad_text
 import Crypto.Random
 from Crypto.Cipher import AES
 import base64
+import datetime
 
 #----Crypto Variables----
 # salt size in bytes
@@ -27,14 +28,14 @@ def decrypt(ciphertext, password):
     plaintext = unpad_text(padded_plaintext)
     return plaintext 
 
-def check_oura_token_exists(gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def check_oura_token_exists(ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
     conn = None
-    gc_username = gc_username
+    ath_un = ath_un
     db_name = db_name
     decrypted_oura_token = None
 
     sql_check_oura_token_exists = """
-    SELECT oura_refresh_token FROM athlete WHERE gc_email = %s;
+    SELECT oura_refresh_token FROM athlete WHERE ath_un = %s;
     """
 
     try: 
@@ -46,7 +47,7 @@ def check_oura_token_exists(gc_username,db_host,db_name,superuser_un,superuser_p
 
         # execute a statement
         try:
-            cur.execute(sql_check_oura_token_exists,(gc_username,))
+            cur.execute(sql_check_oura_token_exists,(ath_un,))
             result = cur.fetchone()
             if result[0] is not None:  
                 token_exists = True
@@ -56,13 +57,15 @@ def check_oura_token_exists(gc_username,db_host,db_name,superuser_un,superuser_p
             else:
                 token_exists = False
             conn.commit()
-        except:
+        except Exception as e:
+            with ErrorStdoutRedirection(ath_un):
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             token_exists = False
 
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     finally:

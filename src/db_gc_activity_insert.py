@@ -16,17 +16,17 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def gc_activity_insert(file_path,ath_un,activity,db_host,db_name,superuser_un,superuser_pw,encr_pass):
     """ Connect to the PostgreSQL database server """
     file2import = (file_path, )
-    athlete_id = (athlete, )
+    athlete_id = (ath_un, )
     activity_id = (activity, )
     db_name = db_name
     conn = None
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + athlete + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     sql = """DO
@@ -44,7 +44,7 @@ def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,s
       SELECT
             (xpath('//*[local-name()="Activity"]/*[local-name()="Id"]/text()', x))[1]::text::text AS activity_timestamp,
             (xpath('//*[local-name()="Activity"]/@Sport', x))[1]::text::text AS sport,
-            (select id from athlete where gc_email=%s),
+            (select id from athlete where ath_un=%s),
             %s
       FROM UNNEST 
             (xpath('//*[local-name()="Activity"]',pg_read_file(%s)::xml)) x;
@@ -108,7 +108,7 @@ def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,s
       INSERT INTO garmin_connect_activity (activity_timestamp,sport,athlete_id,gc_activity_id)
       SELECT
             (xpath('//*[local-name()="Activity"]/*[local-name()="Id"]/text()', x))[1]::text::text AS activity_timestamp,
-            (xpath('//*[local-name()="Activity"]/@Sport', x))[1]::text::text AS sport,(select id from athlete where gc_email=%s),
+            (xpath('//*[local-name()="Activity"]/@Sport', x))[1]::text::text AS sport,(select id from athlete where ath_un=%s),
             %s
       FROM UNNEST (xpath('//*[local-name()="Activity"]',pg_read_file(%s)::xml)) x;
 
@@ -174,24 +174,24 @@ def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,s
     try:
          
         # connect to the PostgreSQL server
-        with ProgressStdoutRedirection(athlete):
+        with ProgressStdoutRedirection(ath_un):
             print('Connecting to the PostgreSQL server to insert TCX activity data...')
         try:
             conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
         except Exception as e:
-            with ProgressStdoutRedirection(athlete):
+            with ProgressStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e))) 
         # create a cursor
         try:
             cur = conn.cursor()
         except Exception as e:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e))) 
 
         # execute a statement
-        with StdoutRedirection(athlete):
+        with StdoutRedirection(ath_un):
             print('Inserting Activity Data into postgreSQL:')
-        with ProgressStdoutRedirection(athlete):
+        with ProgressStdoutRedirection(ath_un):
             print('Inserting Activity Data into postgreSQL:')
         cur.execute(sql,(file2import,athlete_id,activity_id,file2import,activity_id,file2import,file2import,file2import,athlete_id,activity_id,file2import,activity_id,file2import,file2import))
         conn.commit()
@@ -201,12 +201,12 @@ def gc_activity_insert(file_path,athlete,activity,db_host,db_name,superuser_un,s
     
     except (Exception, psycopg2.IntegrityError) as ex:
         if ex.pgcode == '23505':
-            with StdoutRedirection(athlete):
+            with StdoutRedirection(ath_un):
                 print('The record for this activity already exists in the database.Skipping...')
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print('The record for this activity already exists in the database.Skipping...')
     except (Exception, psycopg2.DatabaseError) as error:
-        with ErrorStdoutRedirection(athlete):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     
     finally:

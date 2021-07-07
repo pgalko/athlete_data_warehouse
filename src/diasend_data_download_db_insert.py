@@ -39,7 +39,7 @@ def encrypt(plaintext, password):
     return ciphertext_with_salt  
 
 @processify
-def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_username,cgm_password,encr_pass,save_pwd,archive_to_dropbox,archive_radio,dbx_auth_token,db_host,superuser_un,superuser_pw):
+def diasend_data_export_insert(output,start_date,end_date,ath_un,cgm_username,cgm_password,encr_pass,save_pwd,archive_to_dropbox,archive_radio,dbx_auth_token,db_host,superuser_un,superuser_pw):
     agent = me.Browser()    
     agent.set_handle_robots(False)   # no robots
     agent.set_handle_refresh(False)  # can sometimes hang without this
@@ -47,7 +47,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     path_params = config(filename="encrypted_settings.ini", section="path")
@@ -62,15 +62,15 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
     login_url = 'https://diasend.com//'
     export_data_url = 'https://international.diasend.com/patient/account/export-data'
     login_form_action = 'https://international.diasend.com/diasend/includes/account/login.php'
-    user_output = os.path.join(output, gc_username)
+    user_output = os.path.join(output, ath_un)
     download_folder = os.path.join(user_output, 'CGM_Historical_BG')
     archive_folder = os.path.join(download_folder, 'Archive')
     download_folder_dbx = 'CGM_Historical_BG'
     dbx_file_exists = None
     xls_export_file = datetime.datetime.today().strftime('%Y-%m-%d-%H-%M') + '_diasend_export.xls'
     xls_file_path = os.path.join(download_folder, xls_export_file)
-    captcha_file_path = os.path.join(TEMP_FILE_PATH, gc_username + '_captcha.jpg')
-    solved_captcha_file_path = os.path.join(TEMP_FILE_PATH, gc_username + '_captcha.txt')
+    captcha_file_path = os.path.join(TEMP_FILE_PATH, ath_un + '_captcha.jpg')
+    solved_captcha_file_path = os.path.join(TEMP_FILE_PATH, ath_un + '_captcha.txt')
 
     # Create output directory (if it does not already exist).
     if not os.path.exists(download_folder):
@@ -132,7 +132,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
             #f.write(solved_captcha)
     except AnticatpchaException as e:
         if e.error_code == 'ERROR_ZERO_BALANCE':
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e.error_id, e.error_code, e.error_description)))
         else:
             raise
@@ -151,18 +151,18 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
         fileobj = open(xls_file_path,"wb")
         fileobj.write(res_download.read())
     except Exception as e:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     finally:
         fileobj.close()
     
-    db_name = str(str2md5(gc_username)) + '_Athlete_Data_DB'
+    db_name = str(str2md5(ath_un)) + '_Athlete_Data_DB'
     conn = None
     #PG: insert Diasend user credentials into database
-    diasend_user_insert(cgm_username,encrypted_pwd,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass) 
+    diasend_user_insert(cgm_username,encrypted_pwd,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass) 
 
     # connect to the PostgreSQL server
-    with StdoutRedirection(gc_username):
+    with StdoutRedirection(ath_un):
         print('Connecting to the PostgreSQL server to insert CGM data...')
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
 
@@ -175,15 +175,15 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
                     dbx_file_exists = check_if_file_exists_in_dbx(filename,dbx_auth_token,download_folder_dbx)
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         #PG: Check whether the data from this file "file_path" have been inserted into to DB during one of the previous runs
-        data_file_exists = check_data_file_exists(file_path,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+        data_file_exists = check_data_file_exists(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
         if data_file_exists == True:
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print(('{} already exists in {}. Skipping.'.format(filename, download_folder)))
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print(('{} already exists in {}. Skipping.'.format(filename, download_folder)))
             # PG Archive to dbx already localy existing file
             if dbx_file_exists == False:
@@ -201,7 +201,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
             INSERT INTO diasend_cgm(athlete_id,timestamp,glucose_nmol_l,data_source)
 
             VALUES
-            ((select id from athlete where gc_email=%s),%s,%s,%s)
+            ((select id from athlete where ath_un=%s),%s,%s,%s)
 
             ON CONFLICT (athlete_id,timestamp) DO NOTHING;
             
@@ -216,15 +216,15 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
             else:
                 continue
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) +'  '+str(file_path)+': '+ str(e)))
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) +'  '+str(file_path)+' could not be imported and will be deleted.'))
                 os.remove(file_path)
             continue
 
-        with StdoutRedirection(gc_username):
+        with StdoutRedirection(ath_un):
             print(('Parsing and Inserting cgm records from '+str(filename)+'....'))
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print(('Parsing and Inserting cgm records from '+str(filename)+'....'))
         for row in dataset.itertuples():
             timestamp = row._1 # Format: 01/01/2017 00:21
@@ -238,20 +238,20 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                 break 
 
             glucose = float(row._2)
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print(('Time: '+str(timestamp_str)+'  Glucose: '+str(glucose)))
             # Insert parsed data to db
             try:
                 # create a cursor
                 cur = conn.cursor()
                 # execute a statement
-                cur.execute(sql,(gc_username,timestamp_str,glucose,"diasend_web"))
+                cur.execute(sql,(ath_un,timestamp_str,glucose,"diasend_web"))
                 conn.commit()
                 # close the communication with the PostgreSQL
                 cur.close()
                 
             except  (Exception, psycopg2.DatabaseError) as error:
-                with ErrorStdoutRedirection(gc_username):
+                with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         
         # PG Archive to dbx newly downloaded file
@@ -259,7 +259,7 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
             download_files_to_dbx(file_path,filename,dbx_auth_token,download_folder_dbx)
         
         try:
-            data_file_path_insert(file_path,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+            data_file_path_insert(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
             #Move the csv to archive folder
             if not os.path.exists(os.path.join(archive_folder,filename)):
                 os.rename(os.path.join(download_folder,filename), os.path.join(archive_folder,filename))
@@ -267,12 +267,12 @@ def diasend_data_export_insert(output,start_date,end_date,gc_username,cgm_userna
                 #Remove the csv file from download folder
                 os.remove(os.path.join(download_folder,filename))
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
-        with StdoutRedirection(gc_username):
+        with StdoutRedirection(ath_un):
             print(('Diasend cgm records from '+str(filename)+' inserted successfully'))
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print(('Diasend cgm records from '+str(filename)+' inserted successfully'))
 
     # close the communication with the PostgreSQL

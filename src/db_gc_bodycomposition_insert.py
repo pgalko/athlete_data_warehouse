@@ -14,9 +14,9 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_bodycomposition_insert(file_path,athlete,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def gc_bodycomposition_insert(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
         """ Connect to the PostgreSQL database server """
-        athlete_id = (athlete, )
+        athlete_id = (ath_un, )
         db_name = (db_name)
         body_water=[]
         muscle_mass_gm=[]
@@ -35,7 +35,7 @@ def gc_bodycomposition_insert(file_path,athlete,db_host,db_name,superuser_un,sup
 
         #Get PID of the current process and write it in the file
         pid = str(os.getpid())
-        pidfile = PID_FILE_DIR + athlete + '_PID.txt'
+        pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
         open(pidfile, 'w').write(pid)
 
         # PG Amend path for postgres "pg_read_file()" function.
@@ -51,7 +51,7 @@ def gc_bodycomposition_insert(file_path,athlete,db_host,db_name,superuser_un,sup
 
         SELECT
 
-        (select id from athlete where gc_email=%s),
+        (select id from athlete where ath_un=%s),
         unnest (xpath('//*[local-name()="item"]/*[local-name()="bodyWater"]/text()', x))::text::numeric AS body_water,
         unnest (xpath('//*[local-name()="item"]/*[local-name()="muscleMass"]/text()', x))::text::int AS muscle_mass_gm,
         unnest (xpath('//*[local-name()="item"]/*[local-name()="visceralFat"]/text()', x))::text::int AS visceral_fat,
@@ -78,7 +78,7 @@ def gc_bodycomposition_insert(file_path,athlete,db_host,db_name,superuser_un,sup
                                                         body_fat,physique_rating,timestamp,calendar_date,metabolic_age,
                                                         bone_mass_gm,caloric_intake,source_type)
 
-        VALUES ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        VALUES ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
           
         ON CONFLICT (athlete_id,timestamp) DO NOTHING;
         """
@@ -116,9 +116,9 @@ def gc_bodycomposition_insert(file_path,athlete,db_host,db_name,superuser_un,sup
                 # create a cursor
                 cur = conn.cursor()
 
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print('Inserting Body composition Data into postgreSQL:')
-                with ProgressStdoutRedirection(athlete):
+                with ProgressStdoutRedirection(ath_un):
                     print('Inserting Body composition Data into postgreSQL:')
                 #Iterate through rows in pandas dataframe
                 for row in df.itertuples():
@@ -145,12 +145,12 @@ def gc_bodycomposition_insert(file_path,athlete,db_host,db_name,superuser_un,sup
                 # close the communication with the PostgreSQL
                 cur.close()
         except (Exception, psycopg2.DatabaseError) as error:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         finally:
                 if conn is not None:
                         conn.close()
-                        with StdoutRedirection(athlete):
+                        with StdoutRedirection(ath_un):
                             print('Body composition Data Inserted Successfully')
 
 

@@ -49,10 +49,10 @@ def fix_times(messages):
         yield message
 
 @processify
-def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def gc_original_wellness_insert(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass):
     start=time.time()
     file2import = (file_path)
-    athlete_id = (athlete)
+    athlete_id = (ath_un)
     db_name = (db_name)
     active_calories, active_time, activity_type, distance, duration_min, steps, timestamp, heart_rate, timestamp_16,intensity, stress_level_time, stress_level_value = [None]*12
     current_activity_type_intensity = (None)
@@ -60,7 +60,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + athlete + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
     
     messages = fitfile.get_messages()
@@ -70,7 +70,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
     # connect to the PostgreSQL server
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
     #two-phase insert
-    conn.tpc_begin(conn.xid(42, 'transaction ID', athlete))
+    conn.tpc_begin(conn.xid(42, 'transaction ID', ath_un))
 
     # Get all data messages 
     for message in fix_times(messages):
@@ -108,7 +108,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             INSERT INTO gc_original_wellness_act_type_summary(active_calories, active_time, activity_type, distance, duration_min, steps, timestamp,athlete_id)
 
             VALUES
-            (%s,%s,%s,%s,%s,%s,%s,(select id from athlete where gc_email=%s))
+            (%s,%s,%s,%s,%s,%s,%s,(select id from athlete where ath_un=%s))
             
             ON CONFLICT (athlete_id,activity_type,timestamp) DO NOTHING;
 
@@ -118,7 +118,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             INSERT INTO gc_original_wellness_hr_tracking(heart_rate, timestamp_16, timestamp,athlete_id)
 
             VALUES
-            (%s,%s,%s,(select id from athlete where gc_email=%s))
+            (%s,%s,%s,(select id from athlete where ath_un=%s))
             
             ON CONFLICT (athlete_id,timestamp) DO NOTHING;
 
@@ -128,7 +128,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             INSERT INTO gc_original_wellness_activity_tracking(activity_type, current_activity_type_intensity,intensity,timestamp,athlete_id)
 
             VALUES
-            (%s,%s,%s,%s,(select id from athlete where gc_email=%s))
+            (%s,%s,%s,%s,(select id from athlete where ath_un=%s))
             
             ON CONFLICT (athlete_id,timestamp) DO NOTHING;
 
@@ -139,7 +139,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             INSERT INTO gc_original_wellness_stress_tracking(stress_level_time, stress_level_value,timestamp,athlete_id)
 
             VALUES
-            (%s,%s,%s,(select id from athlete where gc_email=%s))
+            (%s,%s,%s,(select id from athlete where ath_un=%s))
             
             ON CONFLICT (athlete_id,timestamp) DO NOTHING;
 
@@ -149,7 +149,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             cur = conn.cursor()
             if duration_min is not None:
                 # execute a statement
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print(('Inserting Activity Type Summary record : ' + ' with timestamp:' + str(timestamp)))
                 cur.execute(sql_act_type_summary,(active_calories, active_time, activity_type, distance, duration_min, steps, timestamp,athlete_id))
                 # close the communication with the PostgreSQL
@@ -159,7 +159,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
                 
             if heart_rate is not None:
                 # execute a statement
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print(('Inserting Heart Rate Tracking record : ' + ' with timestamp:' + str(timestamp)))
                 cur.execute(sql_hr_tracking,(heart_rate, timestamp_16, timestamp,athlete_id))
                 # close the communication with the PostgreSQL
@@ -169,7 +169,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
             
             if intensity is not None:
                 # execute a statement
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print(('Inserting Activity Tracking record : ' + ' with timestamp:' + str(timestamp)))
                 cur.execute(sql_activity_tracking,(activity_type, list(current_activity_type_intensity),intensity,timestamp,athlete_id))
                 # close the communication with the PostgreSQL
@@ -179,7 +179,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
                 
             if stress_level_value is not None:
                 # execute a statement
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print(('Inserting Stress Tracking record : ' + ' with timestamp:' + str(timestamp)))
                 cur.execute(sql_stress_tracking,(stress_level_time, stress_level_value,timestamp,athlete_id))
                 # close the communication with the PostgreSQL
@@ -188,7 +188,7 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
                 current_activity_type_intensity = (None)
                     
         except  (Exception, psycopg2.DatabaseError) as error:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     #two-phase insert commit or rollback
@@ -196,28 +196,28 @@ def gc_original_wellness_insert(file_path,athlete,db_host,db_name,superuser_un,s
         conn.tpc_prepare()
     except  (Exception, psycopg2.DatabaseError) as error:
         conn.tpc_rollback()
-        with ErrorStdoutRedirection(athlete):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     else:
         try:
             conn.tpc_commit()
         except Exception as e:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))      
        
     # close the communication with the PostgreSQL
     if conn is not None:
         conn.close()  
                 
-    with StdoutRedirection(athlete):
+    with StdoutRedirection(ath_un):
         print('--- All wellness record data inserted successfully. ---')
-    with ProgressStdoutRedirection(athlete):
+    with ProgressStdoutRedirection(ath_un):
         print('--- All wellness record data inserted successfully. ---')
 
     end = time.time()
-    with ProgressStdoutRedirection(athlete):
+    with ProgressStdoutRedirection(ath_un):
         print('\nExecution_time:')
-    with ProgressStdoutRedirection(athlete):
+    with ProgressStdoutRedirection(ath_un):
         print((end-start))
     
         

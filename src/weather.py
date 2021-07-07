@@ -15,7 +15,7 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date,encr_pass):
+def get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date,encr_pass):
 
     sql_timezones_select = '''
     SELECT timestamp_gmt,end_time_gmt,long_degr,lat_degr,alt_avrg from timezones 
@@ -25,13 +25,13 @@ def get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_da
 
     pd_df_sql = """
     INSERT INTO weather(athlete_id,timestamp_gmt,temperature,dew_point,relative_humidity,precipitation,snow,wind_direction,wind_speed,wind_gust,sea_air_pressure,total_sunshine,condition_code)
-    VALUES ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    VALUES ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     ON CONFLICT (athlete_id,timestamp_gmt) DO NOTHING;
     """
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     try:
@@ -106,9 +106,9 @@ def get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_da
             #If subsequent activities not within 30km, download weather data and reset end and start times   
             else:
                 combined_df = combined_df.append(meteostat(lat_degr,long_degr,alt_avrg,start_time,end_time))
-                with StdoutRedirection(gc_username):
+                with StdoutRedirection(ath_un):
                     print(('Inserting weather data for period from: ' + str(start_time) + ' until: ' + str(end_time)))
-                with ProgressStdoutRedirection(gc_username):
+                with ProgressStdoutRedirection(ath_un):
                     print(('Inserting weather data for period from: ' + str(start_time) + ' until: ' + str(end_time)))
                 start_time = row_start_time_dt
                 end_time = row_end_time_dt
@@ -123,9 +123,9 @@ def get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_da
 
         #There is one more block to be retrieved   
         combined_df = combined_df.append(meteostat(lat_degr,long_degr,alt_avrg,start_time,end_time))
-        with StdoutRedirection(gc_username):
+        with StdoutRedirection(ath_un):
             print(('Inserting weather data for period from: ' + str(start_time) + ' until: ' + str(end_time)))
-        with ProgressStdoutRedirection(gc_username):
+        with ProgressStdoutRedirection(ath_un):
             print(('Inserting weather data for period from: ' + str(start_time) + ' until: ' + str(end_time)))
         cur.close()
 
@@ -149,12 +149,12 @@ def get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_da
             # create a cursor
             cur = conn.cursor()
             # execute a statement
-            cur.execute(pd_df_sql,(gc_username,row_timeGMT,row_temp,row_dwpt,row_rhum,row_prcp,row_snow,row_wdir,row_wspd,row_wpgt,row_pres,row_tsun,row_coco))
+            cur.execute(pd_df_sql,(ath_un,row_timeGMT,row_temp,row_dwpt,row_rhum,row_prcp,row_snow,row_wdir,row_wspd,row_wpgt,row_pres,row_tsun,row_coco))
             conn.commit() 
             # close the communication with the PostgreSQL
             cur.close()
     except Exception as e:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     finally:
         if conn is not None:

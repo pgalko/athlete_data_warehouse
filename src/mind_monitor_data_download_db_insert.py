@@ -37,17 +37,17 @@ def encrypt(plaintext, password):
     return ciphertext_with_salt 
 
 @processify
-def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,save_pwd,db_host,db_name,superuser_un,superuser_pw):
+def mm_data_insert(output,start_date,end_date,ath_un,encr_pass,mm_dbx_link,save_pwd,db_host,db_name,superuser_un,superuser_pw):
     # Before executing the script go to your droppox Apps/Mind Monitor folder.
     # Right click on the folder, select 'Share' option and copy the generated link.
     # Assign the link string to the 'mm_dbx_link' parameter.
-    user_output = os.path.join(output, gc_username)
+    user_output = os.path.join(output, ath_un)
     download_folder = os.path.join(user_output, 'MM_Historical_EEG')
     archive_folder = os.path.join(download_folder, 'Archive')
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     path_params = config(filename="encrypted_settings.ini", section="archive")
@@ -60,7 +60,7 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
         encrypted_link = None
 
     #PG: insert MM export link into database
-    mm_user_insert(encrypted_link,gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+    mm_user_insert(encrypted_link,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
     
 
     # Download the MM export csv file from dropbox using share link 
@@ -107,19 +107,19 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
                 continue
             else:
                 #PG: Check whether the data from this file "file_path" have been inserted into to DB during one of the previous runs
-                data_file_exists = check_data_file_exists(os.path.join(download_folder,item),gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                data_file_exists = check_data_file_exists(os.path.join(download_folder,item),ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
                 if data_file_exists == True:
-                    with StdoutRedirection(gc_username):
+                    with StdoutRedirection(ath_un):
                         print(('{} already exists in {}. Skipping.'.format(item, download_folder)))
-                    with ProgressStdoutRedirection(gc_username):
+                    with ProgressStdoutRedirection(ath_un):
                         print(('{} already exists in {}. Skipping.'.format(item, download_folder)))
                     continue
                 z.extract(item,download_folder)
                 #Insert filepath into the db
                 try:
-                    data_file_path_insert(os.path.join(download_folder,item),gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)           
+                    data_file_path_insert(os.path.join(download_folder,item),ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)           
                 except Exception as e:
-                        with ErrorStdoutRedirection(gc_username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     for filename in os.listdir(download_folder):
@@ -127,12 +127,12 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
             with zipfile.ZipFile(os.path.join(download_folder,filename), 'r') as z:
                 z.extractall(download_folder)
             os.remove(os.path.join(download_folder,filename))
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print(('The content of \"{}\" extracted into csv and the original removed'.format(filename)))
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print(('The content of \"{}\" extracted into csv and the original removed'.format(filename)))
 
-    db_name = str(str2md5(gc_username)) + '_Athlete_Data_DB'
+    db_name = str(str2md5(ath_un)) + '_Athlete_Data_DB'
 
     conn = None
          
@@ -147,7 +147,7 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
         gyro_x,gyro_y,gyro_z,head_band_on,hsi_tp9,hsi_af7,hsi_af8,hsi_tp10,battery,elements,timestamp_gmt)
 
         VALUES
-        (%s,%s,%s,%s,%s,(select id from athlete where gc_email=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+        (%s,%s,%s,%s,%s,(select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
         ,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 
         ON CONFLICT (athlete_id,timestamp) DO NOTHING;
@@ -163,9 +163,9 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
     for filename in os.listdir(download_folder):
         if filename.endswith(".csv"):        
             # Read/Parse the .csv file and load the data into pandas dataset
-            with StdoutRedirection(gc_username):
+            with StdoutRedirection(ath_un):
                 print(('Parsing and inserting the content of \"{}\" into the DB'.format(filename)))
-            with ProgressStdoutRedirection(gc_username):
+            with ProgressStdoutRedirection(ath_un):
                 print(('Parsing and inserting the content of \"{}\" into the DB'.format(filename)))
             dataset = pd.read_csv(os.path.join(download_folder,filename), sep=",",header=None)
             dataset.drop(dataset.index[:1], inplace=True) #Drop the first row
@@ -232,13 +232,13 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
                             utc_time_dt = local_time_dt - result[0]
                             utc_time_str = datetime.datetime.strftime((utc_time_dt), "%Y-%m-%d %H:%M:%S.%f")
                     except (Exception, psycopg2.DatabaseError) as error:
-                        with ErrorStdoutRedirection(gc_username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.now()) + '  ' + str(error))) 
                     try:
                         # create a cursor
                         cur = conn.cursor()
                         # execute a statement
-                        cur.execute(sql,(local_time_str,delta_tp9,delta_af7,delta_af8,delta_tp10,gc_username,theta_tp9,theta_af7,theta_af8,theta_tp10,alpha_tp9,alpha_af7,alpha_af8,
+                        cur.execute(sql,(local_time_str,delta_tp9,delta_af7,delta_af8,delta_tp10,ath_un,theta_tp9,theta_af7,theta_af8,theta_tp10,alpha_tp9,alpha_af7,alpha_af8,
                                         alpha_tp10,beta_tp9,beta_af7,beta_af8,beta_tp10,gamma_tp9,gamma_af7,gamma_af8,gamma_tp10,raw_tp9,raw_af7,raw_af8,raw_tp10,aux_right,accelerometer_x,accelerometer_y,accelerometer_z,
                                         gyro_x,gyro_y,gyro_z,head_band_on,hsi_tp9,hsi_af7,hsi_af8,hsi_tp10,battery,elements,utc_time_str))
                         conn.commit()
@@ -246,24 +246,24 @@ def mm_data_insert(output,start_date,end_date,gc_username,encr_pass,mm_dbx_link,
                         cur.close()
                         
                     except (Exception, psycopg2.DatabaseError) as error:
-                        with ErrorStdoutRedirection(gc_username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.now()) + '  ' + str(error)))
 
             if preserve_files == "false":
                 #Remove the csv file from download folder
                 os.remove(os.path.join(download_folder,filename))
-                with StdoutRedirection(gc_username):
+                with StdoutRedirection(ath_un):
                     print(('The content of \"{}\" parsed and inserted into DB and the original csv file removed'.format(filename)))
-                with ProgressStdoutRedirection(gc_username):
+                with ProgressStdoutRedirection(ath_un):
                     print(('The content of \"{}\" parsed and inserted into DB and the original csv file removed'.format(filename)))
 
             else:
                 #Move the csv to archive folder
                 if not os.path.exists(os.path.join(archive_folder,filename)):
                     os.rename(os.path.join(download_folder,filename), os.path.join(archive_folder,filename))
-                    with StdoutRedirection(gc_username):
+                    with StdoutRedirection(ath_un):
                         print(('The content of \"{}\" parsed and inserted into DB and the original csv file archived'.format(filename)))
-                    with ProgressStdoutRedirection(gc_username):
+                    with ProgressStdoutRedirection(ath_un):
                         print(('The content of \"{}\" parsed and inserted into DB and the original csv file archived'.format(filename)))
                 else:
                     #Remove the csv file from download folder

@@ -8,10 +8,10 @@ import base64
 from db_encrypt import generate_key,pad_text,unpad_text,str2md5
 import Crypto.Random
 from Crypto.Cipher import AES
-from db_oura_auth import check_oura_token_exists
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
 import sys
+
 
 
 #----Crypto Variables----
@@ -31,7 +31,7 @@ def encrypt(plaintext, password):
     ciphertext_with_salt = salt + ciphertext
     return ciphertext_with_salt 
 
-def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date_dt,end_date_dt,save_pwd,encr_pass):
+def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date_dt,end_date_dt,save_pwd,encr_pass):
     
     oura_params = config(filename="encrypted_settings.ini", section="oura",encr_pass=encr_pass)
     OURA_CLIENT_ID = str(oura_params.get("oura_client_id"))
@@ -61,8 +61,8 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
         DO
             $do$
                 BEGIN
-                    IF EXISTS (SELECT id FROM athlete WHERE gc_email = %s) THEN
-                        UPDATE athlete SET oura_refresh_token = %s where gc_email= %s;
+                    IF EXISTS (SELECT id FROM athlete WHERE ath_un = %s) THEN
+                        UPDATE athlete SET oura_refresh_token = %s where ath_un= %s;
                     END IF;
                 END
             $do$
@@ -76,7 +76,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
         hr_average ,rmssd,breath_average ,temperature_delta ,bedtime_end_delta,midpoint_at_delta,bedtime_start_delta,temperature_deviation,temperature_trend_deviation)
 
         VALUES
-        ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 
         ON CONFLICT (summary_date,period_id) DO NOTHING;
         
@@ -89,7 +89,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
         cal_active,met_min_inactive,met_min_low,met_min_medium,met_min_high,average_met,rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km)
 
         VALUES
-        ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 
         ON CONFLICT (summary_date) DO NOTHING;
         
@@ -101,7 +101,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
         score_activity_balance,score_resting_hr,score_hrv_balance,score_recovery_index,score_temperature,rest_mode_state)
 
         VALUES
-        ((select id from athlete where gc_email=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 
         ON CONFLICT (summary_date,period_id) DO NOTHING;
         
@@ -131,11 +131,11 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
 
     try:       
         cur = conn.cursor()
-        cur.execute(sql_insert_oura_refresh_token,(gc_username,encrypted_refresh_token,gc_username))
+        cur.execute(sql_insert_oura_refresh_token,(ath_un,encrypted_refresh_token,ath_un))
         conn.commit()       
         cur.close()
     except Exception as e:
-        with ErrorStdoutRedirection(gc_username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
 
@@ -197,7 +197,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
 
         try:       
             cur = conn.cursor()
-            cur.execute(sql_insert_sleep_summary,(gc_username,summary_date,period_id,is_longest,timezone,datetime.datetime.strftime(bedtime_start,"%Y-%m-%d %H:%M:%S"),
+            cur.execute(sql_insert_sleep_summary,(ath_un,summary_date,period_id,is_longest,timezone,datetime.datetime.strftime(bedtime_start,"%Y-%m-%d %H:%M:%S"),
                        datetime.datetime.strftime(bedtime_end,"%Y-%m-%d %H:%M:%S"),score,score_total,score_disturbances,score_efficiency,score_latency,score_rem,score_deep,
                        score_alignment,total,duration,awake,light,rem,deep,onset_latency,restless,efficiency,midpoint_time,hr_lowest,hr_average ,rmssd,breath_average ,
                        temperature_delta,bedtime_end_delta,midpoint_at_delta,bedtime_start_delta,temperature_deviation,temperature_trend_deviation)
@@ -205,7 +205,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
             conn.commit()       
             cur.close()
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         #Create and populate a list of 5min intervals starting from bedtime_start
@@ -236,7 +236,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
                 conn.commit()       
                 cur.close()
             except Exception as e:
-                with ErrorStdoutRedirection(gc_username):
+                with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
 
@@ -302,7 +302,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
 
         try:       
             cur = conn.cursor()
-            cur.execute(sql_insert_activity_summary,(gc_username,summary_date,datetime.datetime.strftime(day_start,"%Y-%m-%d %H:%M:%S"),datetime.datetime.strftime(day_end,"%Y-%m-%d %H:%M:%S"),
+            cur.execute(sql_insert_activity_summary,(ath_un,summary_date,datetime.datetime.strftime(day_start,"%Y-%m-%d %H:%M:%S"),datetime.datetime.strftime(day_end,"%Y-%m-%d %H:%M:%S"),
                         timezone,score,score_stay_active,score_move_every_hour,score_meet_daily_targets,score_training_frequency,score_training_volume,score_recovery_time,daily_movement,
                         non_wear,rest,inactive,inactivity_alerts,low,medium,high,steps,cal_total,cal_active,met_min_inactive,met_min_low,met_min_medium,met_min_high,average_met,
                         rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km)
@@ -311,7 +311,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
             cur.close()
         
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
   
         #Create and populate a list of 1min intervals starting from day_start
@@ -355,7 +355,7 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
                 conn.commit()       
                 cur.close()
             except Exception as e:
-                with ErrorStdoutRedirection(gc_username):
+                with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     
@@ -386,13 +386,12 @@ def dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw
 
         try:       
             cur = conn.cursor()
-            cur.execute(sql_insert_readiness_summary,(gc_username,summary_date,period_id,score,score_previous_night,score_sleep_balance,score_previous_day,
+            cur.execute(sql_insert_readiness_summary,(ath_un,summary_date,period_id,score,score_previous_night,score_sleep_balance,score_previous_day,
                     score_activity_balance,score_resting_hr,score_hrv_balance,score_recovery_index,score_temperature,rest_mode_state)
                         )
             conn.commit()       
             cur.close()
 
         except Exception as e:
-            with ErrorStdoutRedirection(gc_username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
- 

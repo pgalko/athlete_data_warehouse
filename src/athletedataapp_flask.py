@@ -4,6 +4,7 @@
 #
 
 from flask import Flask,render_template,request,flash,session,redirect, url_for
+import jwt
 import datetime
 import os
 import time
@@ -12,8 +13,9 @@ import gc_data_download as gc
 import delete_data as clr
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
 import sys
-from db_create_user_database import check_user_db_exists,check_host_record_exists,backup_user_db,create_sample_db,check_db_server_connectivity
-from db_user_insert import gc_user_update
+from athlete_auth import ath_auth_register,ath_auth_login,ath_auth_reset
+from db_create_user_database import create_user_db,restore_db_schema,check_user_db_exists,check_host_record_exists,backup_user_db,create_sample_db,check_db_server_connectivity
+from db_user_insert import update_autosynch_prefrnc,user_tokens_insert,insert_last_synch_timestamp,gc_user_insert,check_user_exists
 from db_dropbox import check_user_token_exists
 from db_oura_auth import check_oura_token_exists
 from diasend_data_download_db_insert import diasend_data_export_insert
@@ -33,7 +35,7 @@ import Crypto.Random
 from Crypto.Cipher import AES
 import base64
 from requests_oauthlib import OAuth2Session
-                                    
+                      
 #----Crypto Variables----
 # salt size in bytes
 SALT_SIZE = 16
@@ -137,6 +139,9 @@ def create_app(encr_pass_input,debug=False):
         archive_radio = None
         dbx_auth_token = session.get('dbx_auth_token',None)
         oura_refresh_token = session.get('oura_refresh_token',None)
+        signin_valid = session.get('signin_valid',None)
+        ath_pw = session.get('ath_pw',None)
+        ath_un = signin_valid
         auto_synch = False
 
         output = DOWNLOAD_DIR
@@ -146,16 +151,12 @@ def create_app(encr_pass_input,debug=False):
 
             #----GC Login variables----
             if request.form.get('GCCheckbox') is not None:
-                gc_login_radio = request.form.get('GCcredRadio')
-                if gc_login_radio == 'enterGCcredRadio':
-                    gc_username = str(request.form.get('gcUN'))
-                    gc_password = str(request.form.get('gcPW'))
-                elif gc_login_radio == 'getGCcredfromCSV':
-                    gc_username = str(request.form.get('gcUN'))
-                    gc_password = str(request.form.get('gcPW'))
+                gc_username = str(request.form.get('gcUN'))
+                gc_password = str(request.form.get('gcPW'))
+
                         
             #----Destination DB variables-----
-            db_name = str(str2md5(gc_username)) + '_Athlete_Data_DB'
+            db_name = str(str2md5(ath_un)) + '_Athlete_Data_DB'
             
             #If user  wishes to download to his db, credentials to be provided and retrieved from the form.
             data_destination = request.form.get('dbSvr')
@@ -165,10 +166,10 @@ def create_app(encr_pass_input,debug=False):
                 encrypted_superuser_pw = base64.b64encode(encrypt(superuser_pw, encr_pass))
                 db_host = str(request.form.get('dbHost'))
                 #Test Connectivity to user db
-                connection = check_db_server_connectivity(gc_username,db_host,superuser_un,superuser_pw)
+                connection = check_db_server_connectivity(ath_un,db_host,superuser_un,superuser_pw)
                 if connection != 'SUCCESS':
                     flash('  Could cot connect to the DB Host.The host returned an error:  '+connection,'danger')
-                    return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                    return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
             else:
                 #If user does not wish to download to his db, credentials to be retrieved from .ini.
                 params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
@@ -178,17 +179,16 @@ def create_app(encr_pass_input,debug=False):
                 db_host = params.get("host")
 
             #Check if the user has a DB recorded in the info_db. If yes, stop execution and show warning message, otherwise proceed
-            host_record_exists = check_host_record_exists(gc_username,db_name,db_host,encr_pass)
+            host_record_exists = check_host_record_exists(ath_un,db_name,db_host,encr_pass)
             if host_record_exists == True:
                 flash('  You can only download to one db host. Please correct the db_hostname and try again','warning')
-                return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
             #----Check if the provided GC credentials are valid-----
-            gc_cred_valid = gc.check_gc_creds(gc_username,gc_password)
-            if gc_cred_valid == False:
-                flash('  The Garmin Connect login credentials are not valid. Please try again','warning')
-                return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
-
+            #gc_cred_valid = gc.check_gc_creds(gc_username,gc_password)
+            #if gc_cred_valid == False:
+                #flash('  The Garmin Connect login credentials are not valid. Please try again','warning')
+                #return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
             #----- Set Auto_Synch variables--------
 
@@ -199,9 +199,13 @@ def create_app(encr_pass_input,debug=False):
                 auto_synch_checkbox = False 
                 save_pwd = False
 
+            #-----Check if the user DB already exists----
+
+            db_exists = check_user_db_exists(ath_un,db_host,superuser_un,superuser_pw)
+
             #----PID File check to prevent concurrent executions for the same user-----
 
-            pidfile = PID_FILE_DIR + gc_username + '_PID.txt'
+            pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
 
             if os.path.isfile(pidfile):
                 #read PID from file
@@ -209,10 +213,10 @@ def create_app(encr_pass_input,debug=False):
                     pid_from_file = f.read()
                 #check whether the PID from file is still running
                 if psutil.pid_exists(int(pid_from_file)):
-                    with ProgressStdoutRedirection(gc_username):
+                    with ProgressStdoutRedirection(ath_un):
                         print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + "  %s already exists, the previous execution of the task is still running... Web App exiting!" % pidfile))
                     continue_btn = 'none'
-                    user=gc_username
+                    user=ath_un
                     flash('  The previous execution of the task for: ' +user+ ' is still running... You can check the status below.','danger')
                     return redirect(url_for('process_running',user=user)) 
                 else:
@@ -221,23 +225,13 @@ def create_app(encr_pass_input,debug=False):
             
             #-----MFP Login variables------        
             if request.form.get('MFPCheckbox') is not None:
-                mfp_login_radio = request.form.get('MFPcredRadio')
-                if mfp_login_radio == 'enterMFPcredRadio':
-                    mfp_username = str(request.form.get('mfpUN'))
-                    mfp_password = str(request.form.get('mfpPW'))
-                elif mfp_login_radio == 'getMFPcredfromCSV':
-                    mfp_username = str(request.form.get('mfpUN'))
-                    mfp_password = str(request.form.get('mfpPW'))
+                mfp_username = str(request.form.get('mfpUN'))
+                mfp_password = str(request.form.get('mfpPW'))
                     
             #-----Diasend Login variables------        
             if request.form.get('diasendCheckbox') is not None:
-                diasend_login_radio = request.form.get('diasendCredRadio')
-                if diasend_login_radio == 'enterDiasendCredRadio':
-                    diasend_username = str(request.form.get('diasendUN'))
-                    diasend_password = str(request.form.get('diasendPW'))
-                elif diasend_login_radio == 'getDiasendCredfromCSV':
-                    diasend_username = str(request.form.get('diasendUN'))
-                    diasend_password = str(request.form.get('diasendPW'))
+                diasend_username = str(request.form.get('diasendUN'))
+                diasend_password = str(request.form.get('diasendPW'))
             
             #-----Link to Glimp export file------
             if request.form.get('glimpCheckbox') is not None:
@@ -250,10 +244,9 @@ def create_app(encr_pass_input,debug=False):
             #----Check for and Retrieve Dropbox token----   
             if request.form.get('archiveDataCheckbox') is not None:
                 archive_radio = request.form.get('archiveData')
-                if dbx_auth_token is None:
-                    db_exists = check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_pw,encr_pass)       
+                if dbx_auth_token is None:       
                     if db_exists == True:
-                        dbx_token_exists, dbx_token_from_db = check_user_token_exists(gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass) 
+                        dbx_token_exists, dbx_token_from_db = check_user_token_exists(ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass) 
                         if dbx_token_exists == True: # token exists in database and it is not None
                             dbx_auth_token = dbx_token_from_db    
                             archive_to_dropbox = True
@@ -266,10 +259,9 @@ def create_app(encr_pass_input,debug=False):
 
             #----Check for and Retrieve Oura token----
             if request.form.get('ouraCheckbox') is not None:
-                if oura_refresh_token is None:
-                    db_exists = check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_pw,encr_pass)       
+                if oura_refresh_token is None:     
                     if db_exists == True:
-                        oura_token_exists, oura_token_from_db = check_oura_token_exists(gc_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                        oura_token_exists, oura_token_from_db = check_oura_token_exists(ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
                         if oura_token_exists == True: # token exists in database and it is not None
                             oura_refresh_token = oura_token_from_db
                             print('Refresh Token: {}'.format(oura_refresh_token))
@@ -283,109 +275,102 @@ def create_app(encr_pass_input,debug=False):
             #----Delete Files and DB Data variables----
             try:            
                 if request.form.get('dataDeleteCheckbox') is not None:
-                    clearall_radio = request.form.get('deleteData')
-                    db_exists = check_user_db_exists(gc_username,gc_password,db_host,superuser_un,superuser_pw,encr_pass)       
+                    clearall_radio = request.form.get('deleteData')      
                     if db_exists == True:
                         if clearall_radio == 'deleteAllData':
                             try:
                                 del_progress = 'Delete started'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                clr.delete_all_files(output, gc_username)  
-                                clr.delete_all_db_data(gc_username,mfp_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                                clr.delete_all_files(output, ath_un)  
+                                clr.delete_all_db_data(ath_un,mfp_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
                                 del_progress = 'All data deleted succesfully'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ProgressStdoutRedirection(gc_username):
+                                with ProgressStdoutRedirection(ath_un):
                                     print(del_progress)
                             except:
                                 del_progress = 'Error deleting data'
                                 progress_error = True
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ErrorStdoutRedirection(gc_username):
+                                with ErrorStdoutRedirection(ath_un):
                                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                         elif clearall_radio == 'deleteFiles':
                             try:
                                 del_progress = 'Delete started'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                clr.delete_all_files(output, gc_username)
+                                clr.delete_all_files(output, ath_un)
                                 del_progress = 'All data deleted succesfully'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ProgressStdoutRedirection(gc_username):
+                                with ProgressStdoutRedirection(ath_un):
                                     print(del_progress)
                             except:
                                 del_progress = 'Error deleting data'
                                 progress_error = True
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ErrorStdoutRedirection(gc_username):
+                                with ErrorStdoutRedirection(ath_un):
                                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                         elif clearall_radio == 'deleteDBdata':
                             try:
                                 del_progress = 'Delete started'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                clr.delete_all_db_data(gc_username,mfp_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                                clr.delete_all_db_data(ath_un,mfp_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
                                 del_progress = 'All data deleted succesfully'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ProgressStdoutRedirection(gc_username):
+                                with ProgressStdoutRedirection(ath_un):
                                     print(del_progress)
                             except:
                                 del_progress = 'Error deleting data'
                                 progress_error = True
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ErrorStdoutRedirection(gc_username):
+                                with ErrorStdoutRedirection(ath_un):
                                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
                         elif clearall_radio == 'deleteAlldataExit':
                             try:
                                 del_progress = 'Delete started'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                clr.delete_all_files(output, gc_username)
-                                clr.delete_all_db_data(gc_username,mfp_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                                clr.delete_all_files(output, ath_un)
+                                clr.delete_all_db_data(ath_un,mfp_username,db_host,db_name,superuser_un,superuser_pw,encr_pass)
                                 del_progress = 'All data deleted succesfully'
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ProgressStdoutRedirection(gc_username):
+                                with ProgressStdoutRedirection(ath_un):
                                     print(del_progress)
-                                return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                                return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
                             except:
                                 del_progress = 'Error deleting data'
                                 progress_error = True
-                                with StdoutRedirection(gc_username):
+                                with StdoutRedirection(ath_un):
                                     print(del_progress)
                                 time.sleep(1)
-                                with ErrorStdoutRedirection(gc_username):
+                                with ErrorStdoutRedirection(ath_un):
                                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
-                                return render_template("index.html",del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
-
-                        
-                if gc_username is None and gc_password is None and mfp_username is None and mfp_password is None:
-                    progress_error = True
-                    continue_btn = 'none'
-                    flash(' Must either specify a garmin connect or/and MFP login credentials. Or a path to garmin connect or/and MFP CSV credentials file.','danger')    
+                                return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
                         
 
                 #----Check and set start_date and end_date variables and proceed with download----
                 try:
                     start_date = datetime.datetime.strptime((request.form.get('startDate')), "%Y-%m-%d")
-                    text = gc_username
+                    text = ath_un
                     head, sep, tail = text.partition('@')
                     display_name = head
                     #user provided end_date 
@@ -401,162 +386,177 @@ def create_app(encr_pass_input,debug=False):
                         end_date = datetime.datetime.today() - datetime.timedelta(days=1)#yesterday
                         end_date_today = datetime.datetime.today()  #today
                 except Exception as e:
-                    with ErrorStdoutRedirection(gc_username):
+                    with ErrorStdoutRedirection(ath_un):
                         print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #PG:If start date not provided render index and flash warning   
                     flash('  Please provide a valid start date and try again!','danger')
-                    return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                    return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
                 # DATA DOWNLOAD -------------------------------------- 
                                         
-                #PG:Call to execute "GC login" script
-                if gc_username is not None:
-                    try:        
-                        gc_agent = gc.login(gc_username, gc_password, mfp_username,db_host,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
-                        session['oura_refresh_token'] = None
-                        gc_user_update(gc_username,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch---- 
-                        gc_login_progress = 'Login to GC successfull'
-                        with StdoutRedirection(gc_username):
-                            print(gc_login_progress)
-                        with ProgressStdoutRedirection(gc_username):
-                            print(gc_login_progress)                                
-                    except Exception as e:
-                        with ErrorStdoutRedirection(gc_username):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        gc_login_progress = 'GC login error.Check UN and PW'
-                        progress_error = True
-                        with StdoutRedirection(gc_username):
-                            print(gc_login_progress)
-                        with ErrorStdoutRedirection(gc_username):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_login_progress))
-                        flash('  There was a problem logging in to Garmin Connect. Please try again later','warning')
-                        return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                if ath_un is not None:    
+                    if db_exists == True:
+                        # PG: Insert user details into postgreSQL
+                        user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
+                        insert_last_synch_timestamp(ath_un,encr_pass,db_name)
+                        update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch----
+                    else:
+                        create_user_db(ath_un,ath_pw,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass)
+                        restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw)
+                        user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
+                        insert_last_synch_timestamp(ath_un,encr_pass,db_name)
+                        update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch----
+                    session['oura_refresh_token'] = None
+   
+                    #----------------------------------  Activity  ---------------------------------------   
 
-                    #----------------------------------  Activity  ---------------------------------------    
-                    
-                    #PG:Call to execute "Parse and insert FIT activities" script
-                    try:
-                        gc_fit_activ_progress = 'GC FIT activities download started'
-                        with StdoutRedirection(gc_username):
-                            print(gc_fit_activ_progress)
-                        time.sleep(1)        
-                        gc.dwnld_insert_fit_activities(gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw,archive_to_dropbox,archive_radio,dbx_auth_token, auto_synch,encr_pass)
-                        gc_fit_activ_progress = 'GC FIT activities downloaded successfully'
-                        with StdoutRedirection(gc_username):
-                            print(gc_fit_activ_progress)
-                        time.sleep(1)
-                        with ProgressStdoutRedirection(gc_username):
-                            print(gc_fit_activ_progress) 
-                    except Exception as e:
-                        with ErrorStdoutRedirection(gc_username):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        gc_fit_activ_progress = 'Error downloading GC FIT activities'
-                        progress_error = True
-                        with StdoutRedirection(gc_username):
-                            print(gc_fit_activ_progress)
-                        time.sleep(1)
-                        with ErrorStdoutRedirection(gc_username):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_fit_activ_progress))
+                    if gc_username is not None:
+                        #PG:Call to execute "GC login" script
+                        try:        
+                            gc_agent = gc.login(gc_username, gc_password)
+                            if gc_agent is not None: 
+                                gc_login_progress = 'Login to GC successfull'
+                                gc_user_insert(ath_un,gc_username, gc_password, db_host,db_name,superuser_un,superuser_pw,encr_pass,save_pwd)
+                                with StdoutRedirection(ath_un):
+                                    print(gc_login_progress)
+                                with ProgressStdoutRedirection(ath_un):
+                                    print(gc_login_progress)
+                            else:
+                                raise Exception('There was a problem logging in to Garmin Connect.')                                
+                        except Exception as e:
+                            with ErrorStdoutRedirection(ath_un):
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                            gc_login_progress = 'GC login error.Check UN and PW'
+                            progress_error = True
+                            with StdoutRedirection(ath_un):
+                                print(gc_login_progress)
+                            flash('  There was a problem logging in to Garmin Connect. Please try again later','warning')
+                            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+
+                        #PG:Call to execute "Parse and insert FIT activities" script
+                        if request.form.get('GCCheckbox') is not None:
+                            try:
+                                gc_fit_activ_progress = 'GC FIT activities download started'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_fit_activ_progress)
+                                time.sleep(1)        
+                                gc.dwnld_insert_fit_activities(ath_un, gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw,archive_to_dropbox,archive_radio,dbx_auth_token, auto_synch,encr_pass)
+                                gc_fit_activ_progress = 'GC FIT activities downloaded successfully'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_fit_activ_progress)
+                                time.sleep(1)
+                                with ProgressStdoutRedirection(ath_un):
+                                    print(gc_fit_activ_progress) 
+                            except Exception as e:
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                                gc_fit_activ_progress = 'Error downloading GC FIT activities'
+                                progress_error = True
+                                with StdoutRedirection(ath_un):
+                                    print(gc_fit_activ_progress)
+                                time.sleep(1)
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_fit_activ_progress))
+                            
+                        #----------------------------------  Wellness  ----------------------------------------
                         
-                    #----------------------------------  Wellness  ----------------------------------------
-                    
-                    #PG:Call to execute "Parse and insert FIT wellness data" script
-                    if request.form.get('wellnessCheckbox') is not None:
-                        try:
-                            gc_fit_well_progress = 'GC FIT wellness download started'
-                            with StdoutRedirection(gc_username):
-                                print(gc_fit_well_progress)
-                            time.sleep(1)        
-                            gc.dwnld_insert_fit_wellness(gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
-                            gc_fit_well_progress = 'GC FIT wellness data downloaded successfully'
-                            with StdoutRedirection(gc_username):
-                                print(gc_fit_well_progress)
-                            time.sleep(1)
-                            with ProgressStdoutRedirection(gc_username):
-                                print(gc_fit_well_progress) 
-                        except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            gc_fit_well_progress = 'Error downloading GC FIT wellness data'
-                            progress_error = True
-                            with StdoutRedirection(gc_username):
-                                print(gc_fit_well_progress)
-                            time.sleep(1)
-                            with ErrorStdoutRedirection(gc_username):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_fit_well_progress))
+                        #PG:Call to execute "Parse and insert FIT wellness data" script
+                        if request.form.get('wellnessCheckbox') is not None:
+                            try:
+                                gc_fit_well_progress = 'GC FIT wellness download started'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_fit_well_progress)
+                                time.sleep(1)        
+                                gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
+                                gc_fit_well_progress = 'GC FIT wellness data downloaded successfully'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_fit_well_progress)
+                                time.sleep(1)
+                                with ProgressStdoutRedirection(ath_un):
+                                    print(gc_fit_well_progress) 
+                            except Exception as e:
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                                gc_fit_well_progress = 'Error downloading GC FIT wellness data'
+                                progress_error = True
+                                with StdoutRedirection(ath_un):
+                                    print(gc_fit_well_progress)
+                                time.sleep(1)
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_fit_well_progress))
 
-                        #PG:Call to execute "Parse and insert JSON wellness data" script
-                        try:
-                            gc_json_well_progress = 'GC JSON wellness download started'
-                            with StdoutRedirection(gc_username):
-                                print(gc_json_well_progress)
-                            time.sleep(1)                
-                            gc.dwnld_insert_json_wellness(gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
-                            gc.dwnld_insert_json_body_composition(gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, archive_radio, dbx_auth_token,encr_pass)
-                            gc_json_well_progress = 'GC JSON wellness data downloaded successfully'
-                            with StdoutRedirection(gc_username):
-                                print(gc_json_well_progress)
-                            time.sleep(1)
-                            with ProgressStdoutRedirection(gc_username):
-                                print(gc_json_well_progress) 
-                        except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            gc_json_well_progress = 'Error downloading GC JSON wellness data'
-                            progress_error = True
-                            with StdoutRedirection(gc_username):
-                                print(gc_json_well_progress)
-                            time.sleep(1)
-                            with ErrorStdoutRedirection(gc_username):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_json_well_progress))
+                            #PG:Call to execute "Parse and insert JSON wellness data" script
+                            try:
+                                gc_json_well_progress = 'GC JSON wellness download started'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_json_well_progress)
+                                time.sleep(1)                
+                                gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
+                                gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, archive_radio, dbx_auth_token,encr_pass)
+                                gc_json_well_progress = 'GC JSON wellness data downloaded successfully'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_json_well_progress)
+                                time.sleep(1)
+                                with ProgressStdoutRedirection(ath_un):
+                                    print(gc_json_well_progress) 
+                            except Exception as e:
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                                gc_json_well_progress = 'Error downloading GC JSON wellness data'
+                                progress_error = True
+                                with StdoutRedirection(ath_un):
+                                    print(gc_json_well_progress)
+                                time.sleep(1)
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_json_well_progress))
 
-                        #PG:Call to execute "Parse and insert JSON Daily summary data" script
-                        try:
-                            gc_json_dailysum_progress = 'GC JSON daily summary download started'
-                            with StdoutRedirection(gc_username):
-                                print(gc_json_dailysum_progress)
-                            time.sleep(1)        
-                            gc.dwnld_insert_json_dailysummary(gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
-                            gc_json_dailysum_progress = 'GC JSON daily summary data downloaded successfully'
-                            with StdoutRedirection(gc_username):
-                                print(gc_json_dailysum_progress)
-                            time.sleep(1)
-                            with ProgressStdoutRedirection(gc_username):
-                                print(gc_json_dailysum_progress) 
-                        except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            gc_json_dailysum_progress = 'Error downloading GC JSON daily summary'
-                            progress_error = True
-                            with StdoutRedirection(gc_username):
-                                print(gc_json_dailysum_progress)
-                            time.sleep(1)
-                            with ErrorStdoutRedirection(gc_username):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_json_dailysum_progress)) 
+                            #PG:Call to execute "Parse and insert JSON Daily summary data" script
+                            try:
+                                gc_json_dailysum_progress = 'GC JSON daily summary download started'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_json_dailysum_progress)
+                                time.sleep(1)        
+                                gc.dwnld_insert_json_dailysummary(ath_un,gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
+                                gc_json_dailysum_progress = 'GC JSON daily summary data downloaded successfully'
+                                with StdoutRedirection(ath_un):
+                                    print(gc_json_dailysum_progress)
+                                time.sleep(1)
+                                with ProgressStdoutRedirection(ath_un):
+                                    print(gc_json_dailysum_progress) 
+                            except Exception as e:
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                                gc_json_dailysum_progress = 'Error downloading GC JSON daily summary'
+                                progress_error = True
+                                with StdoutRedirection(ath_un):
+                                    print(gc_json_dailysum_progress)
+                                time.sleep(1)
+                                with ErrorStdoutRedirection(ath_un):
+                                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + gc_json_dailysum_progress)) 
                      
                     #PG:Call to execute "Parse and insert Oura wellness data" script 
                     if request.form.get('ouraCheckbox') is not None:
                         try:
                             oura_well_progress = 'Oura wellness download started'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(oura_well_progress)
                             time.sleep(1)        
-                            dwnld_insert_oura_data(gc_username,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date,end_date,save_pwd,encr_pass)
+                            dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date,end_date,save_pwd,encr_pass)
                             oura_well_progress = 'Oura wellness data downloaded successfully'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(oura_well_progress)
                             time.sleep(1)
-                            with ProgressStdoutRedirection(gc_username):
+                            with ProgressStdoutRedirection(ath_un):
                                 print(oura_well_progress) 
                         except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             oura_well_progress = 'Error downloading Oura wellness data'
                             progress_error = True
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(oura_well_progress)
                             time.sleep(1)
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + oura_well_progress))
 
                     #----------------- Nutrition MFP ---------------------------    
@@ -564,24 +564,24 @@ def create_app(encr_pass_input,debug=False):
                     if mfp_username is not None:   
                         try:
                             mfp_progress = 'MFP download started'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(mfp_progress)
                             time.sleep(1)
-                            mfp.dwnld_insert_nutrition(mfp_username,mfp_password,gc_username,start_date,end_date,encr_pass,save_pwd,auto_synch,db_host,superuser_un,superuser_pw)
+                            mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,encr_pass,save_pwd,auto_synch,db_host,superuser_un,superuser_pw)
                             mfp_progress = 'MFP nutrition data downloaded successfully'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(mfp_progress)
                             time.sleep(1)
-                            with ProgressStdoutRedirection(gc_username):
+                            with ProgressStdoutRedirection(ath_un):
                                 print(mfp_progress)
                         except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             mfp_progress = 'Error downloading MFP nutrition data'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(mfp_progress)
                             time.sleep(1)
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + mfp_progress))
                     
                     #-------------------- BG Diasend --------------------------            
@@ -589,19 +589,19 @@ def create_app(encr_pass_input,debug=False):
                     if diasend_username is not None:   
                         try:
                             diasend_progress = 'Diasend CGM download started'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(diasend_progress)
                             time.sleep(1)
-                            diasend_data_export_insert(output,start_date,end_date_today,gc_username,diasend_username,diasend_password,encr_pass,save_pwd,archive_to_dropbox,archive_radio,dbx_auth_token,db_host,superuser_un,superuser_pw)
+                            diasend_data_export_insert(output,start_date,end_date_today,ath_un,diasend_username,diasend_password,encr_pass,save_pwd,archive_to_dropbox,archive_radio,dbx_auth_token,db_host,superuser_un,superuser_pw)
                             diasend_progress = 'Diasend CGM data downloaded successfully'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(diasend_progress)
                             time.sleep(1)
                         except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             diasend_progress = 'Error downloading Diasend GCM data'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(diasend_progress)
                             time.sleep(1)
                             
@@ -610,19 +610,19 @@ def create_app(encr_pass_input,debug=False):
                     if glimp_export_link is not None:
                         try:
                             glimp_progress = 'Glimp CGM download started'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(glimp_progress)
                             time.sleep(1)
-                            glimp_data_insert(output,start_date,end_date_today,gc_username,encr_pass,glimp_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
+                            glimp_data_insert(output,start_date,end_date_today,ath_un,encr_pass,glimp_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
                             glimp_progress = 'Glimp CGM data downloaded successfully'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(glimp_progress)
                             time.sleep(1)
                         except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             glimp_progress = 'Error downloading Glimp CGM data'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(glimp_progress)
                             time.sleep(1)
 
@@ -631,47 +631,43 @@ def create_app(encr_pass_input,debug=False):
                     if mm_export_link is not None:
                         try:
                             mm_progress = 'Mind Monitor download started'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(mm_progress)
                             time.sleep(1)
-                            mm_data_insert(output,start_date,end_date_today,gc_username,encr_pass,mm_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
+                            mm_data_insert(output,start_date,end_date_today,ath_un,encr_pass,mm_export_link,save_pwd,db_host,db_name,superuser_un,superuser_pw)
                             mm_progress = 'Mind Monitor data downloaded successfully'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(mm_progress)
                             time.sleep(1)
                         except Exception as e:
-                            with ErrorStdoutRedirection(gc_username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                             mm_progress = 'Error downloading Mind Monitor data'
-                            with StdoutRedirection(gc_username):
+                            with StdoutRedirection(ath_un):
                                 print(mm_progress)
                             time.sleep(1)
 
                     #--------------- Weather --------------
                     #PG:Call to execute "retrieve and insert weather/meteostat data" script
                     try:
-                        get_weather(gc_username,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
+                        get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
                     except Exception as e:
-                        with ErrorStdoutRedirection(gc_username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
 
                     #------Archive DB to Dropbox-------
                     try:
                         if archive_to_dropbox == True:
                             if archive_radio == "archiveAllData" or archive_radio == "archiveDBdata":
-                                backup_user_db(db_name,gc_username,output,dbx_auth_token,encr_pass)
+                                backup_user_db(db_name,ath_un,output,dbx_auth_token,encr_pass)
                     except Exception as e:
-                        with ErrorStdoutRedirection(gc_username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        pass
-
-                                    
-
-                        
+                        pass       
                 
                 if progress_error is True:
                     error_log_entry = 'With Errors'
-                    continue_btn_entry = 'no_delete'
+                    continue_btn = 'no_delete'
                     flash('  There was a problem downloading or processing the data. When you choose "Continue" the app will check the data integrity and it will pick up where it left off, skipping the already downloaded and processed data.','danger')
                     if send_emails == 'true':
                         send_email(
@@ -679,7 +675,7 @@ def create_app(encr_pass_input,debug=False):
                             'The athlete data download has failed',
                             'There was a problem downloading or processing the data.Please start the download process again. The app will check the data integrity and it will pick up where it left off, skipping the already downloaded and processed data.',
                             None,
-                            gc_username
+                            ath_un
                         )
             
                 else:
@@ -692,22 +688,22 @@ def create_app(encr_pass_input,debug=False):
                             'The athlete data download has completed successfully',
                             'The athlete data download has completed successfully',
                             None,
-                            gc_username
+                            ath_un
                         ) 
 
 
-                with ErrorStdoutRedirection(gc_username):
-                    print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Finished Data Download ' + error_log_entry +' -------------' ))
-                with ProgressStdoutRedirection(gc_username):
-                    print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + gc_username + '  Finished Data Download ' + error_log_entry +' -------------' ))
+                with ErrorStdoutRedirection(ath_un):
+                    print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + ath_un + '  Finished Data Download ' + error_log_entry +' -------------' ))
+                with ProgressStdoutRedirection(ath_un):
+                    print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + ath_un + '  Finished Data Download ' + error_log_entry +' -------------' ))
 
-                return render_template("index.html",del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,glimp_progress = glimp_progress, mm_progress = mm_progress, gc_login_progress = gc_login_progress,
+                return render_template("index.html",signin_valid=signin_valid,del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,glimp_progress = glimp_progress, mm_progress = mm_progress, gc_login_progress = gc_login_progress,
                                     gc_fit_activ_progress = gc_fit_activ_progress,gc_tcx_activ_progress = gc_tcx_activ_progress,gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
                                     gc_json_dailysum_progress = gc_json_dailysum_progress, oura_well_progress = oura_well_progress, progress_error = progress_error, continue_btn = continue_btn,admin_email=admin_email,
                                     integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
             except Exception as e:
-                with ErrorStdoutRedirection(gc_username):
+                with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 os.unlink(pidfile)
 
@@ -717,8 +713,98 @@ def create_app(encr_pass_input,debug=False):
 
         else: # Request method is GET
             continue_btn = request.args.get('continue_btn')
-            return render_template("index.html",continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",signin_valid=signin_valid,continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+    
+    @app.route("/ath_register", methods = ['GET', 'POST'])
+    def ath_register():
+        ath_un = str(request.form.get('athUsernameReg'))
+        ath_pw = str(request.form.get('athPasswordReg'))
+        signin_valid = ath_auth_register(ath_un,ath_pw,encr_pass)
 
+        if signin_valid == ath_un:
+            session['signin_valid'] = signin_valid
+            session['ath_pw'] = ath_pw
+            flash('  Account created successfuly. You are now logged-in','success')
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+        else:
+            flash('  An account with this email address already exists','danger')
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+    
+    @app.route("/ath_login", methods = ['GET', 'POST'])
+    def ath_login():
+        ath_un = str(request.form.get('athUsernameLogin'))
+        ath_pw = str(request.form.get('athPasswordLogin'))
+        signin_valid = ath_auth_login(ath_un,ath_pw,encr_pass)
+
+        if signin_valid == ath_un:
+            session['signin_valid'] = signin_valid
+            session['ath_pw'] = ath_pw
+            flash('  Login successfull.','success')
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+        else:
+            flash('  Login failed, please try again.','danger')
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+    
+    @app.route("/ath_logout", methods = ['GET', 'POST'])
+    def ath_logout():
+        if 'signin_valid' in session:
+            session['signin_valid'] = None
+        return redirect(url_for('index'))
+
+    @app.route("/ath_reset_password", methods = ['GET', 'POST'])
+    def reset_request():
+        ath_un = str(request.form.get('athUserReset'))
+        if 'signin_valid' not in session:
+            session['signin_valid'] = None
+        if ath_un == session['signin_valid']:#User already logged in
+            #Log the user out
+            session['signin_valid'] = None
+            return redirect(url_for('index'))
+        else:
+            user_exists = check_user_exists(ath_un,encr_pass)
+            if not user_exists:
+                flash('  The submited email address does not exist in the database.','danger')
+                return redirect(url_for('index'))
+            else:
+                password_reset_token = jwt.encode({'reset_password': ath_un,'exp': time.time() + 300},key=app.secret_key, algorithm="HS256")
+                if send_emails == 'true':
+                    send_email(
+                        encr_pass,
+                        'athletedata.net password reset link',
+                        'You can reset your athletedata.net login password here: ' + str(request.host_url)+ 'password_reset_verified/'+password_reset_token, 
+                        None,
+                        ath_un
+                    )
+                flash('  The password reset link has been sent to your email.','success')
+                return redirect(url_for('index'))
+    
+    @app.route('/password_reset_verified/<password_reset_token>', methods=['GET', 'POST'])
+    def reset_verified(password_reset_token):
+        try:
+            #Decode and retrieve ath_un from the link
+            ath_un = jwt.decode(password_reset_token, key=app.secret_key, algorithms="HS256")['reset_password']
+            if not ath_un:
+                flash('  Something went wrong. Please request a new password reset link.','danger')
+                return redirect(url_for('index'))
+        except:
+            #Token expired
+            jwt.exceptions.ExpiredSignatureError
+            flash('  You used an expired password reset link. Please request a new one.','danger')
+            return redirect(url_for('index')) 
+
+        new_password = request.form.get('newPwd')
+        if new_password:
+            #Log user in
+            session['signin_valid'] = ath_un
+            session['ath_pw'] = new_password
+            #Save the new password in db
+            ath_auth_reset(ath_un,new_password,encr_pass)
+            flash('  Password reset successfull. You are now logged in with the new password','success')
+            return render_template("index.html",signin_valid=ath_un,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+
+        return render_template('reset_verified.html',admin_email=admin_email)
+ 
+        
     @app.route("/datamodel_preview")
     def datamodel_preview():
         #Currently defaults to /static/images/Athlete_DB_Model_Visualisation_New.jpg Data Model image until I figure out the best way to highlight selected tables.

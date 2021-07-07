@@ -9,8 +9,13 @@
         <link rel="shortcut icon" href="{{ url_for('static', filename='pulse.ico') }}">
         <style type="text/css" media="screen">
             #MsgBox {
-                background:lightyellow;
+                background:#F3F9FB;
             } 
+            #userModal {
+                top:1%;
+                left:70%;
+                outline: none;
+                }
             .calendar {
                 background: url(static/open-iconic/png/grid-four-up-3x.png) no-repeat scroll 4px 7px;
                 padding-left: 40px;  
@@ -42,8 +47,8 @@
     </head>
 
     <div class="alert alert-info alert-dismissible" role="alert" id ="alertBrClose" hidden>               
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button> 
-        
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>    
+
     </div>
     
     <div>
@@ -71,149 +76,217 @@
             {% endif %}
         {% endwith %}
     </div>
-
     
+    <!--Navigation Bar-->
 
-    <div class="header">
-        <h2 style="margin-left: 15px; margin-top:10px"><span class="oi oi-pulse" ></span> 
-        <!--Excersize, wellness, nutrition, blood glucose and EEG/meditation data download tool.</h2>--> 
-        Athlete Data Warehouse - Performance/Health Data Download Utility.</h2>
-    </div>
-    
-    <div>
-        <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px" >This tool automates health and performance data download from Garmin Connect, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
-            It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
-            Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
-            <p>
-            Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
-            This is an experimental project of mine and all functionality is provided free of charge. The user has an ability to delete the database and all data at any time. More info in the FAQ section.
-            </p>            
-        </small>
-    </div>
-    <div>
-        <form method="POST" action="/dummy_1" enctype="multipart/form-data">
-            <input type="hidden" name="dash_un" id="dash_un">  
-            <input type="hidden" name="dash_pw" id="dash_pw"> 
-            <span><a class="btn btn-outline-primary" id="datamodel_preview" href="/datamodel_preview?gc=1&wel=1&mfp=1&dia=1" target="_blank" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-fork" aria-hidden="true"></span> View DB model</a></span> 
-            <span><a class="btn btn-outline-primary" id="db_info" href="/db_info?user=&dbhost=" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-script" aria-hidden="true"></span> View DB info</a></span>    
-            <span><a class="btn btn-outline-primary" id="browse_sample_data" href="http://pgweb.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse sample DB</a></span>
-            <!-- Submit Dash Visualization Hidden Form. Hiden by default "display:none"  -->     
-            <span><button id='dashboard_1'type="submit" class="btn btn-outline-primary" style="margin-left: 15px; display:none" title="If the user DB already exists the real user data will be displayed. Otherwise the visualisation will use sample data." onclick="addAtribs()"><span class="oi oi-graph" aria-hidden="true"></span> View Sample Data Visualization...</button></span>
-        </form>
-    </div>
-    <hr>
+    <nav class="navbar navbar-dark" style="background-color:#0275d8">
+        <a class="navbar-brand" href="#">
+        <!-- Toggler/collapsibe Button -->
+        <button class="navbar-toggler" type="button" style="margin-right:5px" data-toggle="collapse" data-target="#collapsibleNavbar"><span class="navbar-toggler-icon"></span>
+        </button><b>Athlete Data Warehouse</b> - Performance/Health Data Download Utility.</a>
+        {% if signin_valid %}
+            <a data-target="#userModal" data-toggle="modal" id="userAccountLink" href="#userModal" title="logged-in" style="color:#f7f7f7" onchange="EnableDisableElmnt(this)"><span class="oi oi-lock-unlocked h3"></span></a>
+        {% else %}
+            <a data-target="#userModal" data-toggle="modal" id="userAccountLink" href="#userModal" title="not logged-in" style="color:#f7f7f7" onchange="EnableDisableElmnt(this)"><span class="oi oi-lock-locked h3"></span></a>
+        {% endif %}
+        
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            {% if signin_valid %}
+                <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Logged in as: {{signin_valid}}</b></small>
+            {% else %}
+                <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Not logged-in</b></small>
+            {% endif %}
+            <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7 " >This tool automates health and performance data download from Garmin Connect, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
+                It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
+                Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
+                <p>
+                Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
+                This is an experimental project of mine and all functionality is provided free of charge. The user has an ability to delete the database and all data at any time. More info in the FAQ section.
+                </p>            
+            </small>
+            <form method="POST" action="/dummy_1" enctype="multipart/form-data">
+                <input type="hidden" name="dash_un" id="dash_un">  
+                <input type="hidden" name="dash_pw" id="dash_pw"> 
+                <span><a class="btn btn-outline-light" id="datamodel_preview" href="/datamodel_preview?gc=1&wel=1&mfp=1&dia=1" target="_blank" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-fork" aria-hidden="true"></span> View DB model</a></span> 
+                <span><a class="btn btn-outline-light" id="db_info" href="/db_info?user=&dbhost=" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-script" aria-hidden="true"></span> View DB info</a></span>    
+                <span><a class="btn btn-outline-light" id="browse_sample_data" href="http://pgweb.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse sample DB</a></span>
+                <!-- Submit Dash Visualization Hidden Form. Hiden by default "display:none"  -->     
+                <span><button id='dashboard_1'type="submit" class="btn btn-outline-primary" style="margin-left: 15px; display:none" title="If the user DB already exists the real user data will be displayed. Otherwise the visualisation will use sample data." onclick="addAtribs()"><span class="oi oi-graph" aria-hidden="true"></span> View Sample Data Visualization...</button></span>
+            </form>
+        </div>
+    </nav>
+
+    <!-- User Login Modal-->
+
+    <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <nav class="navbar navbar-dark" style="background-color:#0275d8">
+                    <a class="navbar-brand" href="#">
+                    <!-- Toggler/collapsibe Button -->
+                    <button class="navbar-toggler" type="button" style="margin-right:5px" data-toggle="collapse" data-target="#collapsibleModalNavbar"><span class="navbar-toggler-icon"></span>
+                    </button><b>Athlete</b> - Login/Register.</a>
+                    <button type="button" class="close" style="color:#f7f7f7" data-dismiss="modal" aria-hidden="true">×</button>
+                    <!-- Navbar links -->
+                    <div class="collapse navbar-collapse" id="collapsibleModalNavbar">
+                        {% if signin_valid %}
+                            <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Logged in as: {{signin_valid}}</b></small>
+                            <input type="hidden" name="athUN" id="athUN" value={{signin_valid}}>
+                        {% else %}
+                            <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Not logged-in</b></small>
+                        {% endif %}
+                        <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7 " >You will need to sign in to use this web app. 
+                            You will not receive any marketing info and your information will not be shared with anybody. This is just to simplify the usage of the app, and better protect your data. 
+                            Initialy this was not required, but with the increasing complexity of the app and groving number of data sources it has become a necessity.                            
+                            More info in the FAQ section.           
+                        </small>
+                    </div>
+                </nav>
+                <div class="modal-body">
+                    <div></div>
+                    <div class="bs-example">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item">
+                                <a href="#login_tab" class="nav-link active" data-toggle="tab"><h6><span class="oi oi-lock-unlocked"></span><b> Login</b></h6></a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#register_tab" class="nav-link" data-toggle="tab"><h6><span class="oi oi-pencil"></span><b> Register</b></h6></a>
+                            </li>
+                        </ul>
+                        <!-- Login tab-->
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="login_tab" style="margin-top:15px">
+                                <!--Login From-->
+                                <form method="post" action='/ath_login' name="login_form" style="margin-left:20px;margin-right:20px;">
+                                    <div class="form-group">
+                                        <label for="athUsernameLogin"><b>Email:</b></label>
+                                        <input type="email" class="form-control" id="athUsernameLogin" name="athUsernameLogin" aria-describedby="emailHelp" placeholder="Enter Email">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 25px;">
+                                        <label for="athPasswordLogin"><b>Password:</b></label>
+                                        <input type="password" class="form-control"  id="athPasswordLogin" name="athPasswordLogin" placeholder="Enter Password" >
+                                    </div>
+                                    <p><button type="submit" class="btn btn-primary">Sign in</button>
+                                    <a href="#" onclick="ShowHideDiv('reset_pwd_form')">Forgot Password?</a>
+                                    <a href="/ath_logout" >| Sign out</a>
+                                    </p>
+                                </form>
+                                <hr>
+                                <!--Reset password form-->
+                                <form method="post" action='/ath_reset_password' id="reset_pwd_form" name="reset_pwd_form" style="margin-left:20px;margin-right:20px; display: none;">
+                                    <div class="form-group">
+                                        <label for="athUsernameReset"><b>Please enter the email that you registered with:</b></label>
+                                        <input type="email" class="form-control" id="athUserReset" name="athUserReset" aria-describedby="emailHelp" placeholder="Enter Email">
+                                    </div>
+                                    <p><button type="submit" class="btn btn-primary">Request pwd reset</button>
+                                    </p>
+                                </form>
+                            </div>
+                            <!-- Register tab-->
+                            <div class="tab-pane fade" id="register_tab"style="margin-top:15px">
+                                <!--Register form-->
+                                <form method="post" action='/ath_register' name="register_form" style="margin-left:20px;margin-right:20px;">
+                                    <div class="form-group">
+                                        <label for="athUsernameReg"><b>Your Email:</b></label>
+                                        <input type="email" class="form-control" id="athUsernameReg" name="athUsernameReg" aria-describedby="emailHelp" placeholder="Enter Email" onkeyup="ValidateEmail()">
+                                        <span id='check_email_msg'></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="athPasswordReg"><b>Your Password:</b></label>
+                                        <input type="password" class="form-control"  id="athPasswordReg" name="athPasswordReg" placeholder="Enter Password" onkeyup="ValidatePassword()">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 25px;">
+                                        <label for="athPasswordRegRep"><b>Repeat Password:</b></label>
+                                        <input type="password" class="form-control"  id="athPasswordRegRep" name="athPasswordRegRep" placeholder="Enter Password" onkeyup="ValidatePassword()">
+                                        <span id='compare_passwords_msg'></span>
+                                    </div>
+                                    <p><button type="submit" id="signupButton" class="btn btn-primary" disabled>Sign Up</button>
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
 <!--Beginning of the form  -->     
     
     <form method="POST"  action= "/" enctype="multipart/form-data" id='athlete-input-form' onsubmit="return ConfirmDelete()">
-        <!--Select what data to download section-->
+        <!--Select what data to download section -->
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-cloud-download" ></span>  <b>Data Sources</b> - What data do you want to include in the download (GarminConnect activities required, GarminConnect Wellness, Oura, MFP, Diasend, Glimp, LibreView, Mind Monitor optional): </h5>
+            <h5 style="margin-left: 35px; margin-top:30px"><span class="oi oi-cloud-download" ></span>  <b>Data Sources</b> - What data do you want to include in the download: </h5>
         </div>
 
         <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Select the below checkboxes depending on what data and from what source you would like to download. The GarminConnect activities checkbox is required and selected by default, the rest of the datasources and datatypes are optional.</small>
-        </div>
-
-        <div class="container" style="margin-left: 5px; margin-top:5px">
-            <div class="row justify-content-start">
-                <div class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px"> 
-                    <!--Garmin Connect Activities checkbox-->
-                    <div class="header" style="color:#0275d8">
-                        <p></p>
-                        <b><span style="margin-right: 10px; margin-top:15px; margin-bottom: 5px;"></span>Activities <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a> : </b>
-                    </div>
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
-                        <input type="checkbox" class="form-check-input" id="GCCheckbox" name="GCCheckbox" value="GCCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        <label class="form-check-label" for="GCCheckbox">Check to login to Garmin Connect and download your activity data (Required)</label>
-                    </div>
-                    
-                    <!--Garmin Connect Wellness and Oura checkbox-->
-                    <div class="header" style="color:#0275d8">
-                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Wellness <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a>, <a href="https://www.ouraring.com/" class="badge badge-pill badge-secondary">Oura</a> : </b>
-                    </div>
-                    <!--Garmin Connect Checkbox-->
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 5px;">
-                        <input type="checkbox" class="form-check-input" id="wellnessCheckbox" name="wellnessCheckbox" value="wellnessCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        <label class="form-check-label" for="wellnessCheckbox">Check to login to Garmin Connect and download your welness data </label> 
-                    </div>
-                    <!--Oura Checkbox-->
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;" >
-                        {% if oura_enabled == True %}
-                        <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        {% else %}
-                        <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
-                        {% endif %}
-                        <label class="form-check-label" for="ouraCheckbox">Check to connect to Oura API and download your wellness data </label> 
-                    </div>
-                    
-                    <!--MYFitnessPal checkbox-->
-                    <div class="header" style="color:#0275d8">
-                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Nutrition <a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-secondary">MyFitnessPal</a> : </b>
-                    </div>
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
-                        <input type="checkbox" class="form-check-input" id="MFPCheckbox" name="MFPCheckbox" value="MFPCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        <label class="form-check-label" for="MFPCheckbox">Check to login to MyFitnessPal and download your nutrition data</label>
-                    </div>
-                    
-                    <!--Diasend checkbox-->
-                    <div class="header" style="color:#0275d8">
-                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Blood Glucose <a href="https://diasend.com//en/" class="badge badge-pill badge-secondary">Diasend</a>, <a href="https://www.deebee.it/?p=1411" class="badge badge-pill badge-secondary">Glimp</a>, <a href="https://www.libreview.com/" class="badge badge-pill badge-secondary">LIbreView</a> : </b>
-                    </div>
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 5px;">
-                        {% if diasend_enabled == True %}
-                            <input type="checkbox" class="form-check-input" id="diasendCheckbox" name="diasendCheckbox" value="diasendCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        {% else %}
-                            <input type="checkbox" class="form-check-input" id="diasendCheckbox" name="diasendCheckbox" value="diasendCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
-                        {% endif %}    
-                        <label class="form-check-label" for="diasendCheckbox">Check to login to Diasend and download your blood glucose data</label>
-                    </div>
-
-                    <!--Glimp checkbox-->
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
-                        <input type="checkbox" class="form-check-input" id="glimpCheckbox" name="glimpCheckbox" value="glimpCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        <label class="form-check-label" for="glimpCheckbox">Check to download your blood glucose data that Glimp android app exports/archives to Dropbox, or if you have manualy downloaded your BG data from LibreView and stored it in Dropbox (Doesn't require login). </label>
-                    </div>
-                    <!--MM eeg checkbox-->
-                    <div class="header" style="color:#0275d8">
-                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>EEG/Meditation <a href="https://mind-monitor.com/" class="badge badge-pill badge-secondary">Mind Monitor/Muse</a> : </b>
-                    </div>
-                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
-                        <input type="checkbox" class="form-check-input" id="mmCheckbox" name="mmCheckbox" value="mmCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                        <label class="form-check-label" for="mmCheckbox">Check to download your EEG data that Mind Monitor ios/android app exports/archives to Dropbox (Doesn't require login) </label>
-                    </div>
-                </div>
-            </div>
-        </div>    
-    <hr>       
-        <!--Login Section-->
-        
-        <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-key" ></span>  <b>Logins</b> - What are the  login credentials for your Garmin connect, MFP and Diasend accounts, and alternatively the link to Glimp, LibreView and/or Mind Monitor archive files: </h5>
-        </div>
-
-        <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect, MyFitnessPal and Diasend accounts if selected for data download in the previous section. Alternatively provide path to a CSV file with these credentials (username,password). 
-                If you have selected the option to download Glimp or LibreView BG data, you will have to first share the "Glimp" or "LibreView" archive folder located in your Dropbox and input the generated link in the below section. If you have selected the option to download Mind Monitor EEG data colected from muse device, you will have to first share the Mind Monitor archive folder located in your Dropbox and input the generated link in the below section.
-            </small>
+            <small class="form-text text-muted" style="margin-left: 35px; margin-bottom:15px; margin-top:5px; max-width: 800px" >Select the below checkboxes depending on what data and from what source you would like to download. The GarminConnect activities checkbox is required and selected by default, the rest of the datasources and datatypes are optional.</small>
         </div>
         
-        <div class="container" style="margin-left: 5px; margin-top:5px">
-            <div class="border" style="margin-top:5px; margin-bottom: 5px">
-                <div class="row justify-content-start"> 
-                    
+        <div class="bs-example" style="margin-left: 35px">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a id="act_link" href="#act_well_tab" class="nav-link active" data-toggle="tab" onclick="EnableDisableElmnt(this)"><b>Activities</b></a>
+                </li>
+                <li class="nav-item">
+                    <a id="well_link" href="#act_well_tab" class="nav-link" data-toggle="tab" onclick="EnableDisableElmnt(this)"><b>Wellness</b></a>
+                </li>
+                <li class="nav-item">
+                    <a href="#nutrition_tab" class="nav-link" data-toggle="tab"><b>Nutrition</b></a>
+                </li>
+                <li class="nav-item">
+                    <a href="#blood_glucose_tab" class="nav-link" data-toggle="tab"><b>Blood Glucose</b></a>
+                </li>
+                <li class="nav-item">
+                    <a href="#eeg_tab" class="nav-link" data-toggle="tab"><b>EEG/Meditation</b></a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="act_well_tab">
+                    <!--Garmin Connect Activities tab-->
+                    <div id="act_well_activities" style="display: block;">
+                        <div>
+                            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect account. Alternatively provide path to a CSV file with these credentials (username,password). 
+                            </small>
+                        </div>
+                        <p><div class="header" style="color:#0275d8">
+                            <b><span style="margin-right: 10px; margin-top:15px; margin-bottom: 5px;"></span>Activities <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a> : </b>
+                        </div>
+                        <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                            <input type="checkbox" class="form-check-input" id="GCCheckbox" name="GCCheckbox" value="GCCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="GCCheckbox">Check to login to Garmin Connect and download your activity data</label>
+                        </div></p>
+                    </div>
+                    <!--Garmin Connect Wellness tab-->
+                    <div id="act_well_wellness" style="display: none;">
+                        <div>
+                            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect account. Alternatively provide path to a CSV file with these credentials (username,password). If you select to download Oura data, you will be prompted to authorize this app to access your Oura account upon submiting this form.
+                            </small>
+                        </div>
+                        <p><div class="header" style="color:#0275d8">
+                            <b><span style="margin-right: 10px; margin-top:15px; margin-bottom: 5px;"></span>Wellness <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a>, <a href="https://www.ouraring.com/" class="badge badge-pill badge-secondary">Oura</a> : </b>
+                        </div>
+                        <!--Garmin Connect Wellness Checkbox-->
+                        <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 5px;">
+                            <input type="checkbox" class="form-check-input" id="wellnessCheckbox" name="wellnessCheckbox" value="wellnessCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                            <label class="form-check-label" for="wellnessCheckbox">Check to login to Garmin Connect and download your welness data </label> 
+                        </div>
+                        <!--Oura Checkbox-->
+                        <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;" >
+                            {% if oura_enabled == True %}
+                            <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                            {% else %}
+                            <input type="checkbox" class="form-check-input" id="ouraCheckbox" name="ouraCheckbox" value="ouraCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
+                            {% endif %}
+                            <label class="form-check-label" for="ouraCheckbox">Check to connect to Oura API and download your wellness data </label> 
+                        </div></p>
+                    </div>
                     <!--Garmin connect login-->
-                
-                    <div class="col" style="margin-top:10px; margin-left: 10px; margin-bottom: 10px">
-                        <b style="color:#0275d8">Activities + Wellness:</b>
+                    <div class="col" style="margin-top:10px; margin-left: 10px; margin-bottom: 10px; max-width: 380px">
                         <div class="border" id="gcLoginBorder">
                             <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">
                                 
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="GCcredRadio" id="enterGCcredRadio" value="enterGCcredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                                    <label class="form-check-label" for="enterGCcredRadio">Enter the Garmin Connect credentials</label>
-                                </div>
-                        
                                 <div class="form-group">
                                     <label for="gcUsernameInput"><b>Garmin Connect Username:</b></label>
                                     <input type="email" class="form-control" id="gcUsernameInput" name="gcUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
@@ -224,17 +297,7 @@
                                     <label for="gcPasswordInput"><b>Garmin Connect Password:</b></label>
                                     <input type="password" class="form-control"  id="gcPasswordInput" name="gcPasswordInput" placeholder="Enter Password"  disabled>
                                 </div>
-                        
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="GCcredRadio" id="getGCcredfromCSV" value="getGCcredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                                    <label class="form-check-label" for="getGCcredfromCSV">Load the Garmin Connect credentials from CSV file</label>
-                                </div>
-                        
-                                <div class="form-group">
-                                    <label for="CSVgcCredentialsFile"><b>CSV file with Garmin Connect credentials:</b></label>
-                                    <input type="file" class="form-control-file" id="CSVgcCredentialsFile" name="CSVgcCredentialsFile" disabled>
-                                </div>
-                                
+
                                 <div>
                                     <input type="hidden" name="gcUN" id="gcUN">  
                                     <input type="hidden" name="gcPW" id="gcPW">   
@@ -242,146 +305,140 @@
                             </div>
                         </div>
                     </div>
-                
-                
-                        
-                <!--MyFitnessPal login-->
-                        
-                
-                <div class="col" style="margin-left: 5px; margin-top:10px">
-                    <b style="color:#0275d8">Nutrition:</b>
-                    <div class="border" id="mfpLoginBorder">
-                        <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">                  
-                            
-                    
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="MFPcredRadio" id="enterMFPcredRadio" value="enterMFPcredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                                <label class="form-check-label" for="enterMFPcredRadio">Enter the MyFitnessPal credentials</label>
-                            </div>
-                    
-                            <div class="form-group">
-                                <label for="mfpUsernameInput"><b>MyFitnessPal Username:</b></label>
-                                <input type="email" class="form-control" id="mfpUsernameInput" name="mfpUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
-                                <small id="mfpEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
-                            </div>
+                </div>
 
-                            <div class="form-group">
-                                <label for="mfpPasswordInput"><b>MyFitnessPal Password:</b></label>
-                                <input type="password" class="form-control"  id="mfpPasswordInput" name="mfpPasswordInput" placeholder="Enter Password"  disabled>
-                            </div>
+                <!--MYFitnessPalTab-->
+                <div class="tab-pane fade" id="nutrition_tab">
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your MyFitnessPal account. Alternatively provide path to a CSV file with these credentials (username,password).
+                    </small>
+                    <p><div class="header" style="color:#0275d8">
+                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Nutrition <a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-secondary">MyFitnessPal</a> : </b>
+                    </div>
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                        <input type="checkbox" class="form-check-input" id="MFPCheckbox" name="MFPCheckbox" value="MFPCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        <label class="form-check-label" for="MFPCheckbox">Check to login to MyFitnessPal and download your nutrition data</label>
+                    </div></p>
+                    <!--MyFitnessPal login-->
+                    <div class="col" style="margin-top:10px; margin-left: 10px; margin-bottom: 10px; max-width: 380px">
+                        <div class="border" id="mfpLoginBorder">
+                            <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">                  
                         
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="MFPcredRadio" id="getMFPcredfromCSV" value="getMFPcredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                                <label class="form-check-label" for="getMFPcredfromCSV">Load the MyFitnessPal credentials from CSV file</label>
-                            </div>
-                    
-                            <div class="form-group">
-                                <label for="CSVmfpCredentialsFile"><b>CSV file with MFP credentials:</b></label>
-                                <input type="file" class="form-control-file" id="CSVmfpCredentialsFile" name="CSVmfpCredentialsFile" disabled>
-                            </div>
+                                <div class="form-group">
+                                    <label for="mfpUsernameInput"><b>MyFitnessPal Username:</b></label>
+                                    <input type="email" class="form-control" id="mfpUsernameInput" name="mfpUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
+                                    <small id="mfpEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
+                                </div>
 
-                            <div>
-                                <input type="hidden" name="mfpUN" id="mfpUN">  
-                                <input type="hidden" name="mfpPW" id="mfpPW">   
+                                <div class="form-group">
+                                    <label for="mfpPasswordInput"><b>MyFitnessPal Password:</b></label>
+                                    <input type="password" class="form-control"  id="mfpPasswordInput" name="mfpPasswordInput" placeholder="Enter Password"  disabled>
+                                </div>
+
+                                <div>
+                                    <input type="hidden" name="mfpUN" id="mfpUN">  
+                                    <input type="hidden" name="mfpPW" id="mfpPW">   
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 
-
-                <!--Diasend login-->
+                <!--Blood Glucose Tab checkbox-->
+                <div class="tab-pane fade" id="blood_glucose_tab">
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Diasend account. Alternatively provide path to a CSV file with these credentials (username,password). If you have selected the option to download Glimp or LibreView BG data, you will have to first share the "Glimp" or "LibreView" archive folder located in your Dropbox and input the generated link in the below section.
+                    </small>
+                    <p><div class="header" style="color:#0275d8">
+                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Blood Glucose <a href="https://diasend.com//en/" class="badge badge-pill badge-secondary">Diasend</a>, <a href="https://www.deebee.it/?p=1411" class="badge badge-pill badge-secondary">Glimp</a>, <a href="https://www.libreview.com/" class="badge badge-pill badge-secondary">LIbreView</a> : </b>
+                    </div>
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 5px;">
+                        {% if diasend_enabled == True %}
+                            <input type="checkbox" class="form-check-input" id="diasendCheckbox" name="diasendCheckbox" value="diasendCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        {% else %}
+                            <input type="checkbox" class="form-check-input" id="diasendCheckbox" name="diasendCheckbox" value="diasendCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
+                        {% endif %}    
+                        <label class="form-check-label" for="diasendCheckbox">Check to login to Diasend and download your blood glucose data</label>
+                    </div>
+                    <!--Glimp checkbox-->
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                        <input type="checkbox" class="form-check-input" id="glimpCheckbox" name="glimpCheckbox" value="glimpCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        <label class="form-check-label" for="glimpCheckbox">Check to download your blood glucose data that Glimp android app exports/archives to Dropbox, or if you have manualy downloaded your BG data from LibreView and stored it in Dropbox (Doesn't require login). </label>
+                    </div></p>    
+                    <!--Diasend login-->
+                    <div class="col" style="margin-top:10px; margin-left: 10px; margin-bottom: 10px; max-width: 380px"> 
+                        <div class="border" id="diasendLoginBorder">
+                            <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">                    
                         
-                
-                <div class="col" style="margin-left: 5px; margin-top:10px; margin-right:10px"> 
-                    <b style="color:#0275d8">Blood Glucose:</b>
-                    <div class="border" id="diasendLoginBorder">
-                        <div style = "margin-top:10px; margin-left: 10px; margin-bottom: 10px; margin-right: 10px">                    
-                    
-                            <div class="form-check">
-                                {% if diasend_enabled == True %}
-                                    <input class="form-check-input" type="radio" name="diasendCredRadio" id="enterDiasendCredRadio" value="enterDiasendCredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                                {% else %}
-                                    <input class="form-check-input" type="radio" name="diasendCredRadio" id="enterDiasendCredRadio" value="enterDiasendCredRadio" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
-                                {% endif %}   
-                                <label class="form-check-label" for="enterDiasendCredRadio">Enter the Diasend credentials</label>
-                            </div>
-                    
-                            <div class="form-group">
-                                <label for="diasendUsernameInput"><b>Diasend Username:</b></label>
-                                <input type="email" class="form-control" id="diasendUsernameInput" name="diasendUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
-                                <small id="diasendEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
-                            </div>
+                                <div class="form-group">
+                                    <label for="diasendUsernameInput"><b>Diasend Username:</b></label>
+                                    <input type="email" class="form-control" id="diasendUsernameInput" name="diasendUsernameInput" aria-describedby="emailHelp" placeholder="Enter Username" disabled>
+                                    <small id="diasendEmailHelp" class="form-text text-muted" >Your details will never be shared with anyone else.</small>
+                                </div>
 
-                            <div class="form-group">
-                                <label for="diasendPasswordInput"><b>Diasend Password:</b></label>
-                                <input type="password" class="form-control"  id="diasendPasswordInput" name="diasendPasswordInput" placeholder="Enter Password"  disabled>
-                            </div>
-                        
-                            <div class="form-check">
-                                {% if diasend_enabled == True %}
-                                    <input class="form-check-input" type="radio" name="diasendCredRadio" id="getDiasendCredfromCSV" value="getDiasendCredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
-                                {% else %}
-                                    <input class="form-check-input" type="radio" name="diasendCredRadio" id="getDiasendCredfromCSV" value="getDiasendCredfromCSV" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
-                                {% endif %}  
-                                <label class="form-check-label" for="getDiasendCredfromCSV">Load the Diasend CGM credentials from CSV file</label>
-                            </div>
-                    
-                            <div class="form-group">
-                                <label for="CSVdiasendCredentialsFile"><b>CSV file with Diasend credentials:</b></label>
-                                <input type="file" class="form-control-file" id="CSVdiasendCredentialsFile" name="CSVdiasendCredentialsFile" disabled>
-                            </div>
+                                <div class="form-group">
+                                    <label for="diasendPasswordInput"><b>Diasend Password:</b></label>
+                                    <input type="password" class="form-control"  id="diasendPasswordInput" name="diasendPasswordInput" placeholder="Enter Password"  disabled>
+                                </div>
 
-                            <div>
-                                <input type="hidden" name="diasendUN" id="diasendUN">  
-                                <input type="hidden" name="diasendPW" id="diasendPW">   
+                                <div>
+                                    <input type="hidden" name="diasendUN" id="diasendUN">  
+                                    <input type="hidden" name="diasendPW" id="diasendPW">   
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <!--Link to Glimp export file-->
+                    <div class="container" style="margin-left: 20px">
+                        <div class="row justify-content-start">
+                            <span class="border" id="glimpLoginBorder" style="margin-left: 5px; margin-bottom: 10px">
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;">
+                                    <label for="GlimpExportLink"><b>Link to the Dropbox folder containing Glimp and/or LibreView export files (You will need to share this folder and generate the link first):</b></label>   
+                                    <textarea id="GlimpExportLink" name="GlimpExportLink" class="form-control" rows="1" title="Before you can use this option you will first need to enable Dropbox integration in your Glimp android app and then share the generated Glimp export folder. Go to your droppox Apps folder and locate Glimp. Right click on the Glimp folder, select the 'Share' option and copy the download link. Paste the copied link into the text input box. For LibreView you will need to login to your LibreView account and manualy download your data (csv) and store it the Dropbox folder of your choice and than share the folder as per the above and provide the generated link to it." placeholder="Paste the link to a folder containing Glimp or LibreView export files here..." disabled></textarea>        
+                                </div>
+                            </span>
+                        </div> 
+                    </div>
                 </div>
-                
-            <!--Link to Glimp export file-->
-            <div class="container" style="margin-left: 20px">
-                <b style="color:#0275d8">Blood Glucose:</b>
-                <div class="row justify-content-start">
-                    <span class="border" id="glimpLoginBorder" style="margin-left: 5px; margin-bottom: 10px">
-                        <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;">
-                            <label for="GlimpExportLink"><b>Link to the Dropbox folder containing Glimp and/or LibreView export files (You will need to share this folder and generate the link first):</b></label>   
-                            <textarea id="GlimpExportLink" name="GlimpExportLink" class="form-control" rows="1" title="Before you can use this option you will first need to enable Dropbox integration in your Glimp android app and then share the generated Glimp export folder. Go to your droppox Apps folder and locate Glimp. Right click on the Glimp folder, select the 'Share' option and copy the download link. Paste the copied link into the text input box. For LibreView you will need to login to your LibreView account and manualy download your data (csv) and store it the Dropbox folder of your choice and than share the folder as per the above and provide the generated link to it." placeholder="Paste the link to a folder containing Glimp or LibreView export files here..." disabled></textarea>        
-                        </div>
-                    </span>
-                </div> 
-            </div>
-            
-            <!--Link to a folder containing Mind Monitor export files-->
-                <div class="container" style="margin-left: 20px">
-                    <b style="color:#0275d8">EEG/Meditation:</b>
-                    <div class="row justify-content-start">
-                        <span class="border" id="mmLoginBorder" style="margin-left: 5px; margin-bottom: 10px">
-                            <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;">
-                                <label for="mmExportLink"><b>Link to the Dropbox folder containing Mind Monitor export files (You will need to share this folder and generate the link first):</b></label>   
-                                <textarea id="mmExportLink" name="mmExportLink" class="form-control" rows="1" title="Before you can use this option you will first need to save the Mind Monitor recordings into a dropbox folder of your choice and then share it. Right click on the folder where you decided to store the Mind Monitor recordings, select the 'Share' option and copy the download link. Paste the copied link into the text input box" placeholder="Paste the link to a folder containing Mind Monitor export files here..." disabled></textarea>        
-                            </div>
-                        </span>
-                    </div> 
+
+                <!--MM EEG checkbox-->
+                <div class="tab-pane fade" id="eeg_tab">
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" > If you have selected the option to download Mind Monitor EEG data colected from muse device, you will have to first share the Mind Monitor archive folder located in your Dropbox and input the generated link in the below section.
+                    </small>
+                    <p><div class="header" style="color:#0275d8">
+                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>EEG/Meditation <a href="https://mind-monitor.com/" class="badge badge-pill badge-secondary">Mind Monitor/Muse</a> : </b>
+                    </div>
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                        <input type="checkbox" class="form-check-input" id="mmCheckbox" name="mmCheckbox" value="mmCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        <label class="form-check-label" for="mmCheckbox">Check to download your EEG data that Mind Monitor ios/android app exports/archives to Dropbox (Doesn't require login) </label>
+                    </div></p>
+                    <!--Link to a folder containing Mind Monitor export files-->
+                    <div class="container" style="margin-left: 20px">
+                        <div class="row justify-content-start">
+                            <span class="border" id="mmLoginBorder" style="margin-left: 5px; margin-bottom: 10px">
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;">
+                                    <label for="mmExportLink"><b>Link to the Dropbox folder containing Mind Monitor export files (You will need to share this folder and generate the link first):</b></label>   
+                                    <textarea id="mmExportLink" name="mmExportLink" class="form-control" rows="1" title="Before you can use this option you will first need to save the Mind Monitor recordings into a dropbox folder of your choice and then share it. Right click on the folder where you decided to store the Mind Monitor recordings, select the 'Share' option and copy the download link. Paste the copied link into the text input box" placeholder="Paste the link to a folder containing Mind Monitor export files here..." disabled></textarea>        
+                                </div>
+                            </span>
+                        </div> 
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div> 
 
-
-    <hr>
-    
+    <hr>       
+        
         <!--Date Range Section-->
 
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-calendar" ></span>  <b>DateRange</b> - Define custom time period for the data download: </h5>
+            <h5 style="margin-left: 35px; margin-top:2px"><span class="oi oi-calendar" ></span>  <b>DateRange</b> - Define custom time period for the data download: </h5>
         </div>
         
         <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" > Enter the start and optionaly the end date for the daterange that you want to download and insert to DB.</small>
+            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" > Enter the start and optionaly the end date for the daterange that you want to download and insert to DB.</small>
         </div>
         
-        <div class="container" style="margin-left: 5px; margin-top:5px">
+        <div class="container" style="margin-left: 35px; margin-top:5px">
             <div class="row justify-content-start">
                 <span class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px">
                     <div class="form-row">
@@ -405,18 +462,18 @@
         <!--Data Destination-->
                    
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-signpost" ></span>  <b>Data Destination</b> - Where do you want to store the downloaded data: </h5>
+            <h5 style="margin-left: 35px; margin-top:2px"><span class="oi oi-signpost" ></span>  <b>Data Destination</b> - Where do you want to store the downloaded data: </h5>
         </div>
         
         <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >
+            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" >
              By default your data will be inserted to a DB hosted on this server. If you wish to insert the data to a DB hosted on your own DB server, 
              please specify the hostname and the user credentials below (You will need to have a PostgreSQL installed, configured and accessible from the intenet on the default port). 
              Please choose carefully as you will not be able to change this option after the first download.
             </small>
         </div>
         
-        <div class="container" style="margin-left: 5px; margin-top:5px">
+        <div class="container" style="margin-left: 35px; margin-top:5px">
             <div class="row justify-content-start">                                      
                 <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
                     <div class="col-md-12">                             
@@ -457,17 +514,17 @@
         <!--Maintenance Section-Delete Files and DB data-->
         
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-loop-square" ></span>  <b>Housekeeping</b> - Do you want to delete all existing files and/or DB data from the server before proceeding with this download (optional): </h5>
+            <h5 style="margin-left: 35px; margin-top:2px"><span class="oi oi-loop-square" ></span>  <b>Housekeeping</b> - Do you want to delete all existing files and/or DB data from the server before proceeding with this download (optional): </h5>
         </div>
         
         <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >This option will <b>delete</b> all existing Files and/or DB data before the download, parsing and DB insert 
+            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" >This option will <b>delete</b> all existing Files and/or DB data before the download, parsing and DB insert 
             (This will not affect the data previously archived to Dropbox or Google Drive). 
             If left unchecked only the new data/files (currently not present in the DB) will be downloaded, parsed and inserted
             </small>
         </div>
         
-        <div class="container" style="margin-left: 5px; margin-top:5px">
+        <div class="container" style="margin-left: 35px; margin-top:5px">
             <div class="row justify-content-start">
                 <span class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px">
                     <div class="col-md-12"> 
@@ -507,17 +564,17 @@
         <!--Archive to Dropbox-->
                    
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-box" ></span>  <b>Archive</b> - Do you want to save copies of your activity files and/or copy of the DB to your Dropbox: </h5>
+            <h5 style="margin-left: 35px; margin-top:2px"><span class="oi oi-box" ></span>  <b>Archive</b> - Do you want to save copies of your activity files and/or copy of the DB to your Dropbox: </h5>
         </div>
         
         <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >
+            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" >
              The app will download the copies of your files and/or DB backup to your Dropbox account under/Apps/Athlete Data App folder. By choosing this option you confirm that you have an active Dropbox account.
              This app will only have acess to its own folder "/Apps/Athlete Data App folder" in your Dropbox file structure. All other files and folders will remain unacessible to it!
             </small>
         </div>
         
-        <div class="container" style="margin-left: 5px; margin-top:5px">
+        <div class="container" style="margin-left: 35px; margin-top:5px">
             <div class="row justify-content-start">                                      
                 <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
                     <div class="col-md-12">                             
@@ -567,17 +624,17 @@
         <!--Enable/Disable Periodic Auto_Synch-->
         
         <div class="header">
-            <h5 style="margin-left: 15px; margin-top:2px"><span class="oi oi-clock" ></span>  <b>Auto Synch</b> - Do you want to enable automatic data synchronisation: </h5>
+            <h5 style="margin-left: 35px; margin-top:2px"><span class="oi oi-clock" ></span>  <b>Auto Synch</b> - Do you want to enable automatic data synchronisation: </h5>
         </div>
     
         <div>
-            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >This option is <b>enabled</b> by default upon providing valid Garmin Connect UN and PWD. Please uncheck if you do not wish to synchronise your data automaticaly. 
+            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" >This option is <b>enabled</b> by default upon providing valid Garmin Connect UN and PWD. Please uncheck if you do not wish to synchronise your data automaticaly. 
                 If enabled, the server encrypts and stores your Garmin Connect, MFP and Diasend passwords in the DB and use them to periodicaly check with Garmin connect and MFP whether there are any new data present. If there are, they will be downloaded and stored in the DB (This happens behind the scenes and does not require any user intervention).
              <p>The data that will be downloaded are: FIT activities, FIT and XML Welness data, Body composition, Daily summaries, Nutrition, CGM and EEG data. If you provided a permision to connect to your Dropbox, the downloaded data will be also synchronised with your dropbox.</p>
              </small>
         </div>
     
-        <div class="container" style="margin-left: 5px; margin-top:5px">
+        <div class="container" style="margin-left: 35px; margin-top:5px">
             <div class="row justify-content-start">
                 <span class="border" style="margin-left: 15px; margin-top:5px; margin-bottom: 15px">
                     <div class="col-md-12"> 
@@ -594,14 +651,14 @@
 <hr>
         <!--Progress Msg Box section-->        
 
-        <div class="form-group" style="margin-left: 15px;margin-right: 15px; margin-top:2px;margin-bottom: 5px;">
+        <div class="form-group" style="margin-left: 35px;margin-right: 15px; margin-top:2px;margin-bottom: 5px;">
  
             <label for="MsgBox"><b>Status:</b></label>
              
             <textarea id="MsgBox" class="form-control" rows="2" placeholder="Once submited, you will see the progress of your task here..."></textarea> 
              
         </div>
-        <div>
+        <div style="margin-left: 20px">
             {% if del_progress == 'Error deleting data'%} <span class="badge badge-danger"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Error deleting data</span>
                 {% elif del_progress == 'All data deleted succesfully'%} <span class="badge badge-success"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - All data deleted succesfully</span>
                 {%else%}<span class="badge badge-secondary"  id="housekeeping" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Housekeeping - Will be skipped</span>
@@ -647,7 +704,7 @@
 
         <hr>
 
-        <!-- Modal -->
+        <!-- FAQ Modal -->
         <div class="modal fade" id="popupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -719,7 +776,7 @@
         
 <!-- Submit Main Form -->
 
-        <button id="btnSubmit" type="submit" class="btn btn-primary" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" disabled ><span class="oi oi-data-transfer-download" aria-hidden="true" ></span> Download & Insert</button>																																																										  
+        <button id="btnSubmit" type="submit" class="btn btn-primary" style="margin-left: 35px; margin-top:15px; margin-bottom:15px" disabled ><span class="oi oi-data-transfer-download" aria-hidden="true" ></span> Download & Insert</button>																																																										  
         
         <div>
             <a href="mailto:{{ admin_email }}" title="Contact Me" style="position:relative;float:right;margin-right:15px;margin-bottom:15px"><span class="oi oi-envelope-closed"></span> Contact me</a>

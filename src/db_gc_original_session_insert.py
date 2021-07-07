@@ -15,10 +15,10 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,superuser_un,superuser_pw,encr_pass):
     file2import = (file_path)
     gc_activity_id = (activity_id)
-    athlete_id = (athlete)
+    athlete_id = (ath_un)
     db_name = (db_name)
     avg_cadence,avg_combined_pedal_smoothness,avg_heart_rate,avg_left_pco,avg_left_pedal_smoothness,avg_left_torque_effectiveness,avg_power,avg_right_pco,avg_right_pedal_smoothness,avg_right_torque_effectiveness,avg_speed,enhanced_avg_speed,enhanced_max_speed,event,event_group,event_type, first_lap_index,intensity_factor,left_right_balance,max_cadence, max_heart_rate,max_power,max_speed,message_index,nec_lat,nec_long,normalized_power,num_laps,sport,stand_count,start_position_lat,start_position_long,start_time,sub_sport,swc_lat,swc_long,threshold_power,time_standing,timestamp,total_ascent,total_calories,total_cycles,total_descent,total_distance,total_elapsed_time,total_fat_calories,total_timer_time,total_work,training_stress_score,trigger = [None]*50
     avg_cadence_position = (None, None)
@@ -38,7 +38,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + athlete + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     conn = None
@@ -47,7 +47,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
 
     tz = tzwhere.tzwhere()
-
+    
     # Get all data messages that are of type record
     try:
         for record in fitfile.get_messages('record'):
@@ -200,7 +200,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
                 timezone = tz.tzNameAt(start_position_lat_degr,start_position_long_degr)
                 local_tz = pytz.timezone(timezone)
 
-                gmt_time_dt = datetime.datetime.strptime((str(timestamp)), "%Y-%m-%d %H:%M:%S")      
+                gmt_time_dt = datetime.datetime.strptime((str(timestamp)), "%Y-%m-%d %H:%M:%S")
                 #Calculate activity_end time 
                 activity_duration_dt =  datetime.timedelta(0,int(total_elapsed_time))
                 end_time_gmt_dt = gmt_time_dt + activity_duration_dt 
@@ -212,7 +212,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
                 local_time_str = datetime.datetime.strftime((local_dt_norm), "%Y-%m-%d %H:%M:%S")
 
         except Exception as e:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             pass
 
@@ -228,7 +228,7 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
 
             VALUES
             (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from athlete where gc_email=%s))
+            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from athlete where ath_un=%s))
 
             ON CONFLICT (gc_activity_id) DO NOTHING;
             """
@@ -245,9 +245,9 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
             #Insert session data into garmin_connect_original_session table
             cur = conn.cursor()
             # execute a statement
-            with StdoutRedirection(athlete):
+            with StdoutRedirection(ath_un):
                 print(('Inserting session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
-            with ProgressStdoutRedirection(athlete):
+            with ProgressStdoutRedirection(ath_un):
                 print(('Inserting session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
             
             cur.execute(sql,(avg_cadence,list(avg_cadence_position),avg_combined_pedal_smoothness,avg_heart_rate,avg_left_pco,
@@ -260,30 +260,30 @@ def gc_original_session_insert(file_path,activity_id,athlete, db_host,db_name,su
             conn.commit()
             # close the communication with the PostgreSQL
             cur.close()
-
+            
             if timezone is not None:
                 #Insert timezone and local time into timezones table
                 cur = conn.cursor()
                 # execute a statement
-                with StdoutRedirection(athlete):
+                with StdoutRedirection(ath_un):
                     print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
-                with ProgressStdoutRedirection(athlete):
+                with ProgressStdoutRedirection(ath_un):
                     print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
                 cur.execute(sql_timezone,(gc_activity_id,local_time_str,timestamp,timezone,start_position_long_degr,start_position_lat_degr,avg_altitude,end_time_gmt_str))
                 conn.commit()
                 # close the communication with the PostgreSQL
                 cur.close()       
         except Exception as e:
-            with ErrorStdoutRedirection(athlete):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         
     # close the communication with the PostgreSQL
     if conn is not None:
         conn.close() 
                 
-    with StdoutRedirection(athlete):
+    with StdoutRedirection(ath_un):
         print(('--- All summary data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
-    with ProgressStdoutRedirection(athlete):
+    with ProgressStdoutRedirection(ath_un):
         print(('--- All summary data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
 
 

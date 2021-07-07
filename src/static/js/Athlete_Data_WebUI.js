@@ -4,14 +4,18 @@ $.ajaxSetup ({
     cache: false
 });
 
-//window.onbeforeunload = function(e) {
-   // return '';
-//};
+//Variable to store a list of selected DataSources
+var dataSources = []
 
-function ShowHideDiv(chckBox,div2hide_id) {
-    var show_when_local = document.getElementById(div2hide_id);
-    show_when_local.style.display = chckBox.checked ? "block" : "none";
-}   
+
+function ShowHideDiv(div2hide) {
+    var x = document.getElementById(div2hide);
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+}
 
 function ConfirmDelete() { 
     var delete_checkbox = document.getElementById('dataDeleteCheckbox');
@@ -77,15 +81,45 @@ $(document).ready(function(){
     endDate.datepicker(options);
   })
 
+//Validate entered email address (userModal)
+function ValidateEmail(){
+    var email = document.getElementById('athUsernameReg');
+    var message1 = document.getElementById('check_email_msg');
+
+    if ((email.value != "") && (email.value.includes('@')) && (email.value.includes('.'))){
+        message1.innerHTML = 'OK';
+        message1.style.color = 'green';
+    }
+    else{
+        message1.innerHTML = 'Invalid email address';
+        message1.style.color = 'red'; 
+    }
+}
+
+//Validate entered passwords (userModal)
+function ValidatePassword(){
+    var password1 = document.getElementById('athPasswordReg');
+    var password2 = document.getElementById('athPasswordRegRep');
+    var message2 = document.getElementById('compare_passwords_msg');
+    var submitButton = document.getElementById('signupButton');
+    
+    if (password1.value == password2.value && password1.value != ""){
+        message2.innerHTML = 'OK';
+        message2.style.color = 'green';
+        submitButton.disabled = false;
+    }
+    else{
+        message2.innerHTML = 'Passwords not matching';
+        message2.style.color = 'red';
+        submitButton.disabled = true;
+    }
+}
+
 function EnableDisableElmnt(radioBtn){
     //Variables-----------------
     var gcUsernameTextbox = document.getElementById('gcUsernameInput');
     var gcPasswordTextbox = document.getElementById('gcPasswordInput');
     var gcCSVfileButtn = document.getElementById('CSVgcCredentialsFile');
-    var getGCcredfromCSV=document.getElementById('getGCcredfromCSV');
-    var enterGCcredRadio=document.getElementById('enterGCcredRadio');
-    var getMFPcredfromCSV=document.getElementById('getMFPcredfromCSV');
-    var enterMFPcredRadio=document.getElementById('enterMFPcredRadio');
     var mfpUsernameTextbox = document.getElementById('mfpUsernameInput');
     var mfpPasswordTextbox = document.getElementById('mfpPasswordInput');
     var mfpCSVfileButtn = document.getElementById('CSVmfpCredentialsFile');
@@ -94,9 +128,9 @@ function EnableDisableElmnt(radioBtn){
     var diasendLoginBorder = document.getElementById('diasendLoginBorder');
     var glimpLoginBorder = document.getElementById('glimpLoginBorder');
     var mmLoginBorder = document.getElementById('mmLoginBorder');
+    var act_well_act = document.getElementById('act_well_activities');
+    var act_well_well = document.getElementById('act_well_wellness');
 
-    var getDiasendCredfromCSV=document.getElementById('getDiasendCredfromCSV');
-    var enterDiasendCredRadio=document.getElementById('enterDiasendCredRadio');
     var diasendUsernameTextbox = document.getElementById('diasendUsernameInput');
     var diasendPasswordTextbox = document.getElementById('diasendPasswordInput');
     var diasendCSVfileButtn = document.getElementById('CSVdiasendCredentialsFile');
@@ -155,235 +189,19 @@ function EnableDisableElmnt(radioBtn){
 
     var btnSubmit = document.getElementById('btnSubmit');
 
+    //Tabs-------------------------
+
+    if (radioBtn==document.getElementById('act_link')){
+        act_well_act.style.display = "block";
+        act_well_well.style.display = "none"
+    }
+    if (radioBtn==document.getElementById('well_link')){
+        act_well_act.style.display = "none";
+        act_well_well.style.display = "block"
+    }
+
     //Radio Buttons-----------------
 
-    //Get GC Credentials from CSV radio button checked
-    if (radioBtn.checked == true && radioBtn == document.getElementById('getGCcredfromCSV')){
-        gcCheckbox.checked = true;
-        btnSubmit.disabled = false;
-        gcUsernameTextbox.disabled = true;
-        gcPasswordTextbox.disabled = true;
-        AutoSynchCheckbox.checked = true;
-        gcCSVfileButtn.disabled = false;         
-        var gcfileInput = document.getElementById('CSVgcCredentialsFile');
-        gcActvtFit.className = "badge badge-primary";
-        gcActvtFit.textContent = "GC Activity Data (FIT) - Will be downloaded";
-        //gcActvtTcx.className = "badge badge-primary";
-        //gcActvtTcx.textContent = "GC Activity Data (TCX) - Will be downloaded";
-    
-        gcfileInput.addEventListener('change', function(e) {
-            var gcfile = gcfileInput.files[0];
-            var reader = new FileReader();
-
-                reader.onload = function(e) {
-                var content = reader.result
-                var fields = content.split(",");
-                var gc_username = fields[0];
-                var gc_password = fields[1];
-
-                gcUN.value = gc_username;
-                var UNid = gcUN.id; // get the element's id to save it 
-                var UNval = gcUN.value; // get the value.
-                sessionStorage.setItem(UNid, UNval);// save to sessionStorage
-
-                gcPW.value = gc_password;
-                var PWid = gcPW.id; // get the element's id to save it 
-                var PWval = gcPW.value; // get the value.
-                sessionStorage.setItem(PWid, PWval);// save to sessionStorage
-            }
-    
-            reader.readAsText(gcfile);    
-    
-        });
-        
-        if (gcUN.value == "" || gcPW.value == ""){
-            gcCSVfileButtn.setAttribute('required','');
-        }       
-    }
-    //Enter GC credentials radio button checked
-    else if (radioBtn.checked == true && radioBtn == document.getElementById('enterGCcredRadio')){
-        gcUsernameTextbox.disabled = false;
-        gcPasswordTextbox.disabled = false;
-        gcCSVfileButtn.disabled = true;
-        gcCheckbox.checked = true;
-        btnSubmit.disabled = false;
-        AutoSynchCheckbox.checked = true;
-        gcActvtFit.className = "badge badge-primary";
-        gcActvtFit.textContent = "GC Activity Data (FIT) - Will be downloaded";
-        //gcActvtTcx.className = "badge badge-primary";
-        //gcActvtTcx.textContent = "GC Activity Data (TCX) - Will be downloaded";
-
-        gcUsernameTextbox.oninput = function(e) {
-            gc_username = gcUsernameTextbox.value;
-            gcUN.value = gc_username;
-            var UNid = gcUN.id; // get the element's id to save it 
-            var UNval = gcUN.value; // get the value.
-            sessionStorage.setItem(UNid, UNval);// save to sessionStorage
-        }
-
-        gcPasswordTextbox.oninput = function(e) {
-            gc_password = gcPasswordTextbox.value;
-            gcPW.value = gc_password;
-            var PWid = gcPW.id; // get the element's id to save it 
-            var PWval = gcPW.value; // get the value.
-            sessionStorage.setItem(PWid, PWval);// save to sessionStorage
-        }
-
-        if (gcUN.value == ""){
-            gcUsernameTextbox.setAttribute('required','');
-        }
-        if (gcPW.value == ""){
-            gcPasswordTextbox.setAttribute('required','');
-        }
-
-    }
-    //Get MFP Credentials from CSV radio button checked
-    else if (radioBtn.checked == true && radioBtn == document.getElementById('getMFPcredfromCSV')){
-        mfpUsernameTextbox.disabled = true;
-        mfpPasswordTextbox.disabled = true;
-        mfpCSVfileButtn.disabled = false;
-        var mfpfileInput = document.getElementById('CSVmfpCredentialsFile');
-        mfpCheckbox.checked = true;
-        //wellnessCheckbox.setAttribute('required','');
-        wellnessCheckbox.checked = true;
-        mfpNutritionBadge.className = "badge badge-primary";
-        mfpNutritionBadge.textContent = "MFP Nutrition Data - Will be downloaded";
-
-        mfpfileInput.addEventListener('change', function(e) {
-            var mfpfile = mfpfileInput.files[0];
-            var reader = new FileReader();
-
-                reader.onload = function(e) {
-                var content = reader.result
-                var fields = content.split(",");
-                var mfp_username = fields[0];
-                var mfp_password = fields[1];
-
-                mfpUN.value = mfp_username;
-                var mfpUNid = mfpUN.id; // get the element's id to save it 
-                var mfpUNval = mfpUN.value; // get the value.
-                sessionStorage.setItem(mfpUNid, mfpUNval);// save to sessionStorage
-
-                mfpPW.value = mfp_password;
-                var mfpPWid = mfpPW.id; // get the element's id to save it 
-                var mfpPWval = mfpPW.value; // get the value.
-                sessionStorage.setItem(mfpPWid, mfpPWval);// save to sessionStorage
-            }
-    
-            reader.readAsText(mfpfile);
-        });
-
-        if (mfpUN.value == "" || mfpPW.value == ""){
-            mfpCSVfileButtn.setAttribute('required','');
-        } 
-    }
-    //Enter MFP credentials radio button checked
-    else if (radioBtn.checked == true && radioBtn == document.getElementById('enterMFPcredRadio')){
-        mfpUsernameTextbox.disabled = false;
-        mfpPasswordTextbox.disabled = false;
-        mfpCSVfileButtn.disabled = true;
-        mfpCheckbox.checked = true;
-        //wellnessCheckbox.setAttribute('required','');
-        wellnessCheckbox.checked = true;
-        mfpNutritionBadge.className = "badge badge-primary";
-        mfpNutritionBadge.textContent = "MFP Nutrition Data - Will be downloaded";
-
-        mfpUsernameTextbox.oninput = function(e) {
-            mfp_username = mfpUsernameTextbox.value;
-            mfpUN.value = mfp_username;
-            var mfpUNid = mfpUN.id; // get the element's id to save it 
-            var mfpUNval = mfpUN.value; // get the value.
-            sessionStorage.setItem(mfpUNid, mfpUNval);// save to sessionStorage
-        }
-
-        mfpPasswordTextbox.oninput = function(e) {
-            mfp_password = mfpPasswordTextbox.value;
-            mfpPW.value = mfp_password;
-            var mfpPWid = mfpPW.id; // get the element's id to save it 
-            var mfpPWval = mfpPW.value; // get the value.
-            sessionStorage.setItem(mfpPWid, mfpPWval);// save to sessionStorage
-        }
-
-        if (mfpUN.value == ""){
-            mfpUsernameTextbox.setAttribute('required','');
-        }
-        if (mfpPW.value == ""){
-            mfpPasswordTextbox.setAttribute('required','');
-        }
-    
-    }
-
-    //Get Diasend Credentials from CSV radio button checked
-    else if (radioBtn.checked == true && radioBtn == document.getElementById('getDiasendCredfromCSV')){
-        diasendUsernameTextbox.disabled = true;
-        diasendPasswordTextbox.disabled = true;
-        diasendCSVfileButtn.disabled = false;
-        var diasendfileInput = document.getElementById('CSVdiasendCredentialsFile');
-        diasendCheckbox.checked = true;
-        diasendCGMbadge.className = "badge badge-primary";
-        diasendCGMbadge.textContent = "Diasend CGM Data - Will be downloaded";
-
-        diasendfileInput.addEventListener('change', function(e) {
-            var diasendfile = diasendfileInput.files[0];
-            var reader = new FileReader();
-
-                reader.onload = function(e) {
-                var content = reader.result
-                var fields = content.split(",");
-                var diasend_username = fields[0];
-                var diasend_password = fields[1];
-
-                diasendUN.value = diasend_username;
-                var diasendUNid = diasendUN.id; // get the element's id to save it 
-                var diasendUNval = diasendUN.value; // get the value.
-                sessionStorage.setItem(diasendUNid, diasendUNval);// save to sessionStorage
-
-                diasendPW.value = diasend_password;
-                var diasendPWid = diasendPW.id; // get the element's id to save it 
-                var diasendPWval = diasendPW.value; // get the value.
-                sessionStorage.setItem(diasendPWid, diasendPWval);// save to sessionStorage
-            }
-    
-            reader.readAsText(diasendfile);
-        });
-
-        if (diasendUN.value == "" || diasendPW.value == ""){
-            diasendCSVfileButtn.setAttribute('required','');
-        } 
-    }
-    //Enter Diasend credentials radio button checked
-    else if (radioBtn.checked == true && radioBtn == document.getElementById('enterDiasendCredRadio')){
-        diasendUsernameTextbox.disabled = false;
-        diasendPasswordTextbox.disabled = false;
-        diasendCSVfileButtn.disabled = true;
-        diasendCheckbox.checked = true;
-        diasendCGMbadge.className = "badge badge-primary";
-        diasendCGMbadge.textContent = "Diasend CGM Data - Will be downloaded";
-
-        diasendUsernameTextbox.oninput = function(e) {
-            diasend_username = diasendUsernameTextbox.value;
-            diasendUN.value = diasend_username;
-            var diasendUNid = diasendUN.id; // get the element's id to save it 
-            var diasendUNval = diasendUN.value; // get the value.
-            sessionStorage.setItem(diasendUNid, diasendUNval);// save to sessionStorage
-        }
-
-        diasendPasswordTextbox.oninput = function(e) {
-            diasend_password = diasendPasswordTextbox.value;
-            diasendPW.value = diasend_password;
-            var diasendPWid = diasendPW.id; // get the element's id to save it 
-            var diasendPWval = diasendPW.value; // get the value.
-            sessionStorage.setItem(diasendPWid, diasendPWval);// save to sessionStorage
-        }
-
-        if (diasendUN.value == ""){
-            diasendUsernameTextbox.setAttribute('required','');
-        }
-        if (diasendPW.value == ""){
-            diasendPasswordTextbox.setAttribute('required','');
-        }
-    
-    }
     //Choose destination server "Your Own" checked
     else if (radioBtn.checked == true && radioBtn == document.getElementById('remoteDbSvr')){
         dbHost.disabled = false;
@@ -485,97 +303,167 @@ function EnableDisableElmnt(radioBtn){
 
     //GC Login checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('GCCheckbox')){
+        gcLoginBorder.className = "border border-primary";
+        dataSources.push(radioBtn.id); 
+        
+        gcUsernameTextbox.disabled = false;
+        gcPasswordTextbox.disabled = false;
         gcActvtFit.className = "badge badge-primary";
         gcActvtFit.textContent = "GC Activity Data (FIT) - Will be downloaded";
-        //gcActvtTcx.className = "badge badge-primary";
-        //gcActvtTcx.textContent = "GC Activity Data (TCX) - Will be downloaded";
-        gcLoginBorder.className = "border border-primary";
+
+        gcUsernameTextbox.oninput = function(e) {
+            gc_username = gcUsernameTextbox.value;
+            gcUN.value = gc_username;
+            var UNid = gcUN.id; // get the element's id to save it 
+            var UNval = gcUN.value; // get the value.
+            sessionStorage.setItem(UNid, UNval);// save to sessionStorage
+        }
+
+        gcPasswordTextbox.oninput = function(e) {
+            gc_password = gcPasswordTextbox.value;
+            gcPW.value = gc_password;
+            var PWid = gcPW.id; // get the element's id to save it 
+            var PWval = gcPW.value; // get the value.
+            sessionStorage.setItem(PWid, PWval);// save to sessionStorage
+        }
+
+        if (gcUN.value == ""){
+            gcUsernameTextbox.setAttribute('required','');
+        }
+        if (gcPW.value == ""){
+            gcPasswordTextbox.setAttribute('required','');
+        }
     }
     //GC Login checkbox unchecked
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('GCCheckbox')){
         gcUsernameTextbox.disabled = true;
         gcPasswordTextbox.disabled = true;
-        gcCSVfileButtn.disabled = true;
-        btnSubmit.disabled = true
-        getGCcredfromCSV.checked = false;
-        enterGCcredRadio.checked = false;
-        AutoSynchCheckbox.checked = false;
         gcActvtFit.className = "badge badge-secondary";
         gcActvtFit.textContent = "GC Activity Data (FIT) - Will be skipped";
-        //gcActvtTcx.className = "badge badge-secondary";
-        //gcActvtTcx.textContent = "GC Activity Data (TCX) - Will be skipped";
         gcLoginBorder.className = "border"
         gcUsernameTextbox.removeAttribute('required');
         gcPasswordTextbox.removeAttribute('required');
-        gcCSVfileButtn.removeAttribute('required');
+
         if (document.getElementById('wellnessCheckbox').checked){
             gcLoginBorder.className = "border border-primary";
         }
         else {
             gcLoginBorder.className = "border";
         }
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
     //MFP Login checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('MFPCheckbox')){
+        mfpLoginBorder.className = "border border-primary";
+        dataSources.push(radioBtn.id);
+
+        mfpUsernameTextbox.disabled = false;
+        mfpPasswordTextbox.disabled = false;
         mfpNutritionBadge.className = "badge badge-primary";
         mfpNutritionBadge.textContent = "MFP Nutrition Data - Will be downloaded";
-        mfpLoginBorder.className = "border border-primary";
-        if (document.getElementById('GCCheckbox').checked == false){
-            document.getElementById('GCCheckbox').click();
-        }  
-        gcLoginBorder.className = "border border-primary";
+
+        mfpUsernameTextbox.oninput = function(e) {
+            mfp_username = mfpUsernameTextbox.value;
+            mfpUN.value = mfp_username;
+            var mfpUNid = mfpUN.id; // get the element's id to save it 
+            var mfpUNval = mfpUN.value; // get the value.
+            sessionStorage.setItem(mfpUNid, mfpUNval);// save to sessionStorage
+        }
+
+        mfpPasswordTextbox.oninput = function(e) {
+            mfp_password = mfpPasswordTextbox.value;
+            mfpPW.value = mfp_password;
+            var mfpPWid = mfpPW.id; // get the element's id to save it 
+            var mfpPWval = mfpPW.value; // get the value.
+            sessionStorage.setItem(mfpPWid, mfpPWval);// save to sessionStorage
+        }
+
+        if (mfpUN.value == ""){
+            mfpUsernameTextbox.setAttribute('required','');
+        }
+        if (mfpPW.value == ""){
+            mfpPasswordTextbox.setAttribute('required','');
+        }
     }    
     //MFP Login checkbox unchecked
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('MFPCheckbox')){
         mfpUsernameTextbox.disabled = true;
         mfpPasswordTextbox.disabled = true;
-        mfpCSVfileButtn.disabled = true;
-        getMFPcredfromCSV.checked = false;
-        enterMFPcredRadio.checked = false;
         mfpNutritionBadge.className = "badge badge-secondary";
         mfpNutritionBadge.textContent = "MFP Nutrition Data - Will be skipped";
         mfpLoginBorder.className = "border"
         mfpUsernameTextbox.removeAttribute('required');
         mfpPasswordTextbox.removeAttribute('required');
-        mfpCSVfileButtn.removeAttribute('required');
-        //wellnessCheckbox.removeAttribute('required');
-        
+
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
     //Diasend Login checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('diasendCheckbox')){
         diasendCGMbadge.className = "badge badge-primary";
         diasendCGMbadge.textContent = "Diasend CGM Data - Will be downloaded";
         diasendLoginBorder.className = "border border-primary";
-        if (document.getElementById('GCCheckbox').checked == false){
-            document.getElementById('GCCheckbox').click();
+        dataSources.push(radioBtn.id);
+
+        diasendUsernameTextbox.disabled = false;
+        diasendPasswordTextbox.disabled = false;
+
+        diasendUsernameTextbox.oninput = function(e) {
+            diasend_username = diasendUsernameTextbox.value;
+            diasendUN.value = diasend_username;
+            var diasendUNid = diasendUN.id; // get the element's id to save it 
+            var diasendUNval = diasendUN.value; // get the value.
+            sessionStorage.setItem(diasendUNid, diasendUNval);// save to sessionStorage
         }
-        gcLoginBorder.className = "border border-primary";
+
+        diasendPasswordTextbox.oninput = function(e) {
+            diasend_password = diasendPasswordTextbox.value;
+            diasendPW.value = diasend_password;
+            var diasendPWid = diasendPW.id; // get the element's id to save it 
+            var diasendPWval = diasendPW.value; // get the value.
+            sessionStorage.setItem(diasendPWid, diasendPWval);// save to sessionStorage
+        }
+
+        if (diasendUN.value == ""){
+            diasendUsernameTextbox.setAttribute('required','');
+        }
+        if (diasendPW.value == ""){
+            diasendPasswordTextbox.setAttribute('required','');
+        }
     }
+
     //Diasend Login checkbox unchecked
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('diasendCheckbox')){
         diasendUsernameTextbox.disabled = true;
         diasendPasswordTextbox.disabled = true;
-        diasendCSVfileButtn.disabled = true;
-        getDiasendCredfromCSV.checked = false;
-        enterDiasendCredRadio.checked = false;
         diasendCGMbadge.className = "badge badge-secondary";
         diasendCGMbadge.textContent = "Diasend CGM Data - Will be skipped";
         diasendLoginBorder.className = "border"
         diasendUsernameTextbox.removeAttribute('required');
         diasendPasswordTextbox.removeAttribute('required');
         diasendCSVfileButtn.removeAttribute('required');
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
     //Glimp CGM checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('glimpCheckbox')){
         glimpCGMbadge.className = "badge badge-primary";
         glimpCGMbadge.textContent = "Glimp/LibreView CGM Data - Will be downloaded";
         glimpLoginBorder.className = "border border-primary";
-        if (document.getElementById('GCCheckbox').checked == false){
-            document.getElementById('GCCheckbox').click();
-        }
         gcLoginBorder.className = "border border-primary";
         glimpTextArea.disabled = false;
         glimpTextArea.setAttribute('required','');
+        dataSources.push(radioBtn.id);
 
         glimpTextArea.oninput = function(e) {
             var glimpLinkid = glimpTextArea.id; // get the element's id to save it 
@@ -589,18 +477,21 @@ function EnableDisableElmnt(radioBtn){
         glimpCGMbadge.textContent = "Glimp/LibreView CGM Data - Will be skipped";
         glimpLoginBorder.className = "border"
         glimpTextArea.disabled = true;
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
     //Mind Monitor EEG checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('mmCheckbox')){
         mmEEGbadge.className = "badge badge-primary";
         mmEEGbadge.textContent = "Mind Monitor Data - Will be downloaded";
         mmLoginBorder.className = "border border-primary";
-        if (document.getElementById('GCCheckbox').checked == false){
-            document.getElementById('GCCheckbox').click();
-        }
         gcLoginBorder.className = "border border-primary";
         mmTextArea.disabled = false;
         mmTextArea.setAttribute('required','');
+        dataSources.push(radioBtn.id);
 
         mmTextArea.oninput = function(e) {
             var mmLinkid = mmTextArea.id; // get the element's id to save it
@@ -614,6 +505,11 @@ function EnableDisableElmnt(radioBtn){
         mmEEGbadge.textContent = "Mind Monitor Data - Will be skipped";
         mmLoginBorder.className = "border"
         mmTextArea.disabled = true;
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
     //Welness checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('wellnessCheckbox')){
@@ -623,11 +519,9 @@ function EnableDisableElmnt(radioBtn){
         gcWellJson.textContent = "GC Wellness Data (JSON) - Will be downloaded";
         gcDailySum.className = "badge badge-primary";
         gcDailySum.textContent = "GC Daily Summary (JSON) - Will be downloaded";
-        if (document.getElementById('GCCheckbox').checked == false){
-            document.getElementById('GCCheckbox').click();
-        }
         gcLoginBorder.className = "border border-primary"
         startDate.setAttribute('required','');
+        dataSources.push(radioBtn.id);
     }
     //Welness checkbox unchecked
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('wellnessCheckbox')){
@@ -644,16 +538,19 @@ function EnableDisableElmnt(radioBtn){
         else{
             gcLoginBorder.className = "border";
         }
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
     //Oura checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('ouraCheckbox')){
         ouraWell.className = "badge badge-primary";
         ouraWell.textContent = "Oura Wellness Data - Will be downloaded";
-        if (document.getElementById('GCCheckbox').checked == false){
-            document.getElementById('GCCheckbox').click();
-        }
         gcLoginBorder.className = "border border-primary"
         startDate.setAttribute('required','');
+        dataSources.push(radioBtn.id);
     }
     //Oura checkbox unchecked
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('ouraCheckbox')){
@@ -665,6 +562,11 @@ function EnableDisableElmnt(radioBtn){
         }
         else{
             gcLoginBorder.className = "border";
+        }
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
         }
     }
     //Delete checkbox checked
@@ -684,10 +586,46 @@ function EnableDisableElmnt(radioBtn){
         startDate.disabled = false;
         endDate.disabled = false;
         startDate.setAttribute('required','');
-        gcCheckbox.removeAttribute('required');
-        
+        gcCheckbox.removeAttribute('required');    
     }
+
+    //User Login ---------
+
+    athUsernameLogin = document.getElementById('athUsernameLogin');
+    athPasswordLogin = document.getElementById('athPasswordLogin');
+
+    athUsernameReg = document.getElementById('athUsernameReg');
+    athPasswordReg = document.getElementById('athPasswordReg');
+    athPasswordRegRep = document.getElementById('athPasswordRegRep');
+
+    //Disable/Enable Submit button, entry fields if not logged in
+    if (document.getElementById('userAccountLink').title == 'logged-in'){
+        athUsernameLogin.disabled = true;
+        athPasswordLogin.disabled = true;
+        athUsernameReg.disabled = true;
+        athPasswordReg.disabled = true;
+        athPasswordRegRep.disabled = true;
+        if (dataSources.length !== 0){
+            btnSubmit.disabled = false;
+            AutoSynchCheckbox.checked = true;
+
+        }
+        else {
+            btnSubmit.disabled = true;
+            AutoSynchCheckbox.checked = false;
+        }   
+    } 
+    if (document.getElementById('userAccountLink').title == 'not logged-in'){
+        athUsernameLogin.disabled = false;
+        athPasswordLogin.disabled = false;
+        athUsernameReg.disabled = false;
+        athPasswordReg.disabled = false;
+        athPasswordRegRep.disabled = false;
+        btnSubmit.disabled = true;
+        sessionStorage.clear()
+    } 
 }
+
 
 //SAVE FORM VALUES/CHECKBOXES
 //----------------------------
@@ -757,9 +695,6 @@ function loadSavedChecked(){
     var ouraCheckbox = JSON.parse(sessionStorage.getItem('ouraCheckbox'));
     var archiveDataCheckbox = JSON.parse(sessionStorage.getItem('archiveDataCheckbox'));
 
-    var GCcredRadio = sessionStorage.getItem('GCcredRadio');
-    var MFPcredRadio = sessionStorage.getItem('MFPcredRadio');
-    var diasendCredRadio = sessionStorage.getItem('diasendCredRadio');
     var deleteData = sessionStorage.getItem('deleteData');
     var archiveData = sessionStorage.getItem('archiveData');
     var dbSvr = sessionStorage.getItem('dbSvr');
@@ -799,24 +734,6 @@ function loadSavedChecked(){
         document.getElementById('archiveDataCheckbox').click();
     }
 
-    if (GCcredRadio == 'enterGCcredRadio') {
-        document.getElementById('enterGCcredRadio').click();
-    }
-    if (GCcredRadio == 'getGCcredfromCSV') {
-        document.getElementById('getGCcredfromCSV').click();
-    }
-    if (MFPcredRadio == 'enterMFPcredRadio') {
-        document.getElementById('enterMFPcredRadio').click();
-    }
-    if (MFPcredRadio == 'getMFPcredfromCSV') {
-        document.getElementById('getMFPcredfromCSV').click();
-    }
-    if (diasendCredRadio == 'enterDiasendCredRadio') {
-        document.getElementById('enterDiasendCredRadio').click();
-    }
-    if (diasendCredRadio == 'getDiasendCredfromCSV') {
-        document.getElementById('getDiasendCredfromCSV').click();
-    }
     if (deleteData == 'deleteAllData') {
         document.getElementById('deleteAllData').click();
     }
@@ -927,7 +844,7 @@ function removeHash(){
 
 $(document).ready(function() {
     //$("#btnSubmit").click(function(){
-    document.getElementById('GCCheckbox').click();
+    //document.getElementById('GCCheckbox').click();
     document.getElementById('localhostDbSvr').click();
     //Load popup modal on page load
     if (document.referrer == ''){
@@ -936,7 +853,7 @@ $(document).ready(function() {
     //Display status 								   					  
     $("#athlete-input-form").submit(function(){    
         setInterval(function() {
-            var user = document.getElementById('gcUN').value;
+            var user = document.getElementById('athUN').value;
             var extension = '_stdout.txt';
             var file = user+extension;
             $.ajax({url: "static/stdout/"+file, dataType: "text", success: function(result){

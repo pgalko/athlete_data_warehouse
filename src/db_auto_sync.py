@@ -91,7 +91,7 @@ def get_databases_list(encr_pass):
 def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
     sql_get_creds = """
     SELECT 
-        gc_email,gc_password,mfp_username,mfp_password,diasend_username,diasend_password,dropbox_access_token,glimp_export_link,libreview_export_link,mm_export_link,oura_refresh_token
+        gc_email,gc_password,mfp_username,mfp_password,diasend_username,diasend_password,dropbox_access_token,glimp_export_link,libreview_export_link,mm_export_link,oura_refresh_token,ath_un
     FROM
         athlete;
     """
@@ -110,6 +110,8 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
             try:
                 #Reset all user variables
                 conn = None
+                ath_un = None
+
                 gc_un = None
                 gc_encr_pw = None
                 gc_decr_pw = None
@@ -190,6 +192,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                 libreview_encr_export_link=result[8]
                 mm_encr_export_link=result[9]
                 oura_encr_token=result[10]
+                ath_un=result[11]
 
                 #Now decrypt (gc_encr_pw,mfp_encr_pw,dbx_encr_token and others)
                 if gc_encr_pw is not None:
@@ -210,7 +213,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                     oura_decr_token = decrypt(base64.b64decode(oura_encr_token), encr_pass)
 
                 ###Execute auto synch from "main_data_autosynch.py"###
-                auto_synch(db, db_host, superuser_un, superuser_pw, gc_un, gc_decr_pw, mfp_un, mfp_decr_pw, cgm_un, cgm_decr_pw, glimp_decr_export_link, libreview_decr_export_link, mm_decr_export_link, dbx_decr_token, oura_decr_token, encr_pass)
+                auto_synch(ath_un, db, db_host, superuser_un, superuser_pw, gc_un, gc_decr_pw, mfp_un, mfp_decr_pw, cgm_un, cgm_decr_pw, glimp_decr_export_link, libreview_decr_export_link, mm_decr_export_link, dbx_decr_token, oura_decr_token, encr_pass)
                 
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():

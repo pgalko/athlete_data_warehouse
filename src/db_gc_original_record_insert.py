@@ -15,11 +15,11 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,superuser_un,superuser_pw, encr_pass):
+def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,superuser_un,superuser_pw, encr_pass):
     start=time.time()
     file2import = (file_path)
     gc_activity_id = (activity_id)
-    username = (username)
+    ath_un = (ath_un)
     db_name = (db_name)
     activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,est_core_temp = [None]*38
     hrv_record_list = (None, None, None, None)
@@ -32,14 +32,14 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
  
     conn = None
     # connect to the PostgreSQL server
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
     # two-phase insert prepapre
-    conn.tpc_begin(conn.xid(42, 'transaction ID', username))
+    conn.tpc_begin(conn.xid(42, 'transaction ID', ath_un))
 
     # Get all data messages that are of type record
     for record in fitfile.get_messages('record'):
@@ -113,7 +113,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
             # create a cursor
             cur = conn.cursor()
             # execute a statement
-            with StdoutRedirection(username):
+            with StdoutRedirection(ath_un):
                 print(('Inserting track record from session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
             cur.execute(sql,(activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,
                             stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,
@@ -121,7 +121,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
 
             cur.close()       
         except  (Exception, psycopg2.DatabaseError) as error:
-            with ErrorStdoutRedirection(username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
 
     # Get all data messages that are of type hrv
@@ -144,13 +144,13 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
                             # create a cursor
                             cur = conn.cursor()
                             # execute a statement
-                            with StdoutRedirection(username):
+                            with StdoutRedirection(ath_un):
                                 print(('Inserting hrv record from session: ' + str(gc_activity_id)))
                             cur.execute(sql_hrv,(gc_activity_id,hrv_record))
                             # close the communication with the PostgreSQL 
                             cur.close()              
                         except Exception as e:
-                            with ErrorStdoutRedirection(username):
+                            with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     else:
                         continue
@@ -160,13 +160,13 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
         conn.tpc_prepare()
     except  (Exception, psycopg2.DatabaseError) as error:
         conn.tpc_rollback()
-        with ErrorStdoutRedirection(username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     else:
         try:
             conn.tpc_commit()
         except Exception as e:
-            with ErrorStdoutRedirection(username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     #PG: Add Pool Swim specific data
@@ -174,7 +174,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
         for record_data in record:
             sport = record_data.value
             if sport == 'Pool Swim':
-                with StdoutRedirection(username):
+                with StdoutRedirection(ath_un):
                     print(('Activity ' + str(gc_activity_id) + ' is a Pool Swim. Inserting additional data'))  
                 
                 for record in fitfile.get_messages('length'):
@@ -242,19 +242,19 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
                         # create a cursor
                         cur = conn.cursor()
                         # execute a statement
-                        with StdoutRedirection(username):
+                        with StdoutRedirection(ath_un):
                             print(('Inserting Pool swim data record from session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
                         cur.execute(sql_swim,(avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,timestamp,gc_activity_id))
                         conn.commit()
                         # close the communication with the PostgreSQL
                         cur.close()            
                     except Exception as e:
-                        with ErrorStdoutRedirection(username):
+                        with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     
-    with StdoutRedirection(username):
+    with StdoutRedirection(ath_un):
         print(('--- All record data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
-    with ProgressStdoutRedirection(username):
+    with ProgressStdoutRedirection(ath_un):
         print(('--- All record data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
     #Correct Errors. Change all values with SD > 2 to mean
     hrv_record_list_combined = np.array(hrv_record_list_combined)
@@ -284,7 +284,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
         # create a cursor
         cur = conn.cursor()
         # execute a statement
-        with StdoutRedirection(username):
+        with StdoutRedirection(ath_un):
             print(('Inserting hrv stats for session: ' + str(gc_activity_id)))
         cur.execute(sql_hrv_stats,(hrv_rmssd,hrv_sdrr,hrv_pnn50,hrv_pnn20,gc_activity_id))
         conn.commit()
@@ -292,7 +292,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
         cur.close()
             
     except Exception as e:
-        with ErrorStdoutRedirection(username):
+        with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     # close the communication with the PostgreSQL
@@ -300,7 +300,7 @@ def gc_original_record_insert(file_path,activity_id,username,db_host,db_name,sup
         conn.close()
 
     end = time.time()
-    with ProgressStdoutRedirection(username):
+    with ProgressStdoutRedirection(ath_un):
         print('\nExecution_time:')
-    with ProgressStdoutRedirection(username):
+    with ProgressStdoutRedirection(ath_un):
         print((end-start))

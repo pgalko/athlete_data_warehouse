@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Reset Password</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='js/tablefilter/dist/tablefilter/style/tablefilter.css') }}" rel="stylesheet">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='pulse.ico') }}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Athlete_Data_WebUI.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/tablefilter/dist/tablefilter/tablefilter.js') }}"></script>
+        <style type="text/css" media="screen">
+            body{
+                height: 100vh;
+            } 
+            .container{
+                height: 97%;
+            }
+        </style>
+    </head>
+    <body>
+        <!--Reset password form-->
+        <div class="container text-center d-flex align-items-center justify-content-center">
+            <div class="border">
+                <form method="post" id="new_pwd_form" name="new_pwd_form" style="max-width: 300px;margin-left: 85px; margin-bottom: 85px; margin-top: 85px;margin-right: 85px;">
+                    <div class="form-group">
+                        <span class="oi oi-key h3" style="margin-bottom: 55px;"></span>
+                        <label for="newPwd"><b>Please enter the new password:</b></label>
+                        <input type="password" class="form-control" id="newPwd" name="newPwd" placeholder="Enter new password">
+                    </div>
+                    <p><button type="submit" class="btn btn-primary">Reset Password</button>
+                    </p>
+                </form>
+            </div>
+        </div>
+        <a href="mailto:{{ admin_email }}" title="Contact Me" style="position:relative;float:right;margin-right:15px;"><span class="oi oi-envelope-closed"></span> Contact me</a>
+        <a href="https://github.com/pgalko/athlete_data_warehouse" title="GitHub" style="position:relative;float:right;margin-right:15px;"><span class="oi oi-code"></span> GitHub </a>
+    </body>

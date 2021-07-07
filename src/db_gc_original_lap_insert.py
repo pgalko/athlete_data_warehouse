@@ -5,15 +5,16 @@ from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,Progres
 import sys
 from processify import processify
 import os
+import datetime
 
 path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = path_params.get("pid_file_dir")
 
 @processify
-def gc_original_lap_insert(file_path,activity_id,username, db_host,db_name,superuser_un,superuser_pw,encr_pass):
+def gc_original_lap_insert(file_path,activity_id,ath_un, db_host,db_name,superuser_un,superuser_pw,encr_pass):
     file2import = (file_path)
     gc_activity_id = (activity_id)
-    username = (username)
+    ath_un = (ath_un)
     db_name = (db_name)
     avg_cadence,avg_combined_pedal_smoothness,avg_heart_rate,avg_left_pco,avg_left_pedal_smoothness,avg_left_torque_effectiveness,avg_power,avg_right_pco,avg_right_pedal_smoothness,avg_right_torque_effectiveness,avg_speed,end_position_lat,end_position_long,enhanced_avg_speed,enhanced_max_speed,event,event_group,event_type,intensity,lap_trigger,left_right_balance,max_cadence,max_heart_rate,max_power,max_speed,message_index,normalized_power,sport,stand_count,start_position_lat,start_position_long,start_time,time_standing,timestamp,total_ascent,total_calories,total_cycles,total_descent,total_distance,total_elapsed_time,total_fat_calories,total_timer_time,total_work = [None]*43
     avg_cadence_position = (None, None)
@@ -29,7 +30,7 @@ def gc_original_lap_insert(file_path,activity_id,username, db_host,db_name,super
 
     #Get PID of the current process and write it in the file
     pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + username + '_PID.txt'
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
     conn = None
@@ -165,9 +166,9 @@ def gc_original_lap_insert(file_path,activity_id,username, db_host,db_name,super
             # create a cursor
             cur = conn.cursor()
             # execute a statement
-            with StdoutRedirection(username):
+            with StdoutRedirection(ath_un):
                 print(('Inserting lap from session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
-            with ProgressStdoutRedirection(username):
+            with ProgressStdoutRedirection(ath_un):
                 print(('Inserting lap from session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
             cur.execute(sql,(avg_cadence,list(avg_cadence_position),avg_combined_pedal_smoothness,avg_heart_rate,avg_left_pco,avg_left_pedal_smoothness,list(avg_left_power_phase),
                                 list(avg_left_power_phase_peak),avg_left_torque_effectiveness,avg_power,list(avg_power_position),avg_right_pco,avg_right_pedal_smoothness,list(avg_right_power_phase),list(avg_right_power_phase_peak),
@@ -178,16 +179,16 @@ def gc_original_lap_insert(file_path,activity_id,username, db_host,db_name,super
             # close the communication with the PostgreSQL
             cur.close()
         except Exception as e:
-            with ErrorStdoutRedirection(username):
+            with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
      # close the communication with the PostgreSQL
     if conn is not None:
         conn.close()  
                 
-    with StdoutRedirection(username):
+    with StdoutRedirection(ath_un):
         print(('--- All lap data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
-    with ProgressStdoutRedirection(username):
+    with ProgressStdoutRedirection(ath_un):
         print(('--- All lap data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
 
 
