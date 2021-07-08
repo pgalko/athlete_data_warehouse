@@ -90,7 +90,7 @@ This tool requires user's login credentials for GarminConnect and optionally MFP
        Browse to http://127.0.0.1:5000 (if using local Flask server) and you should be able to start experimenting with different download options and settings.
        
        Upon first submit the user data DB and user role will be created. The DB will be accessible using the usual DB management tools like pgAdmin.   
-           The DB role and password for user's DB are derived from user's Garmin connect username and password.
-               If Garmin connect username = johndoe@gmail.com and password = GCpass123, the DB role will be created as johndoe with password GCpass123.
+           The DB role and password for user's DB are derived from user's logon username and password.
+               If username = johndoe@gmail.com and password = pass123, the DB role will be created as johndoe with password pass123.
             
  ```
