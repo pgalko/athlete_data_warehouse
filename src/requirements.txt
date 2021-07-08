@@ -29,3 +29,4 @@ meteostat==1.2.2
 requests==2.25.1
 requests_oauthlib==1.3.0
 cloudscraper==1.2.58
+pyjwt==2.1.0
