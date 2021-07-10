@@ -807,28 +807,11 @@ def create_app(encr_pass_input,debug=False):
         
     @app.route("/datamodel_preview")
     def datamodel_preview():
-        #Currently defaults to /static/images/Athlete_DB_Model_Visualisation_New.jpg Data Model image until I figure out the best way to highlight selected tables.
-        datamodel = None
-        if (request.args.get('gc')=='1') and (request.args.get('wel')=='1') and (request.args.get('mfp')=='1') and (request.args.get('dia')=='1'):
-            datamodel = "all_data_datamodel"
-        elif (request.args.get('gc')=='1') and (request.args.get('wel')=='1') and (request.args.get('dia')=='1'):
-            datamodel = "gc_wel_dia_datamodel"
-        elif (request.args.get('gc')=='1') and (request.args.get('dia')=='1'):
-            datamodel = "gc_dia_datamodel"
-        elif (request.args.get('gc')=='1') and (request.args.get('wel')=='1') and (request.args.get('mfp')=='1'):
-            datamodel = "gc_wel_mfp_datamodel"
-        elif (request.args.get('gc')=='1') and (request.args.get('wel')=='1'):
-            datamodel = "gc_wel_datamodel"
-        elif (request.args.get('gc')=='1'):
-            datamodel = "gc_datamodel"
-        else:
-            datamodel = "empty_datamodel"
-        #return render_template('datamodel_preview.html',datamodel=datamodel)
-        return render_template('datamodel_preview.html',datamodel="empty_datamodel")
+        return render_template('datamodel_preview.html')
 
     @app.route("/db_info")
     def db_info():
-        password_info = '\"Your Garmin Connect password\"'
+        password_info = '\"Your login password\"'
         metadata = None
         #Get hostname/IP address
         if request.args.get('dbhost')=='':# Local DB host
@@ -895,7 +878,7 @@ def create_app(encr_pass_input,debug=False):
             db_info = None
             db_username = None
             password_info = None
-            flash('  The DB name, DB role and DB permissions are generated based on your Garmin Connect username. Please fill in your GC credentials and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
+            flash('  The DB name, DB role and DB permissions are generated based on your username(email). Please fill in your GC credentials and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
             return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
 
     @app.route("/dropbox_auth_request")

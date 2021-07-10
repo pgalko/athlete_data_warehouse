@@ -794,40 +794,19 @@ function loadFromSessionStorage_NoDelete(){
 };
 
 function addAtribs(){
-    var gc = '0';
-    var wel = '0';
-    var mfp = '0';
-    var dia = '0';
     var user = '';
     var target = '_self';
-    if (document.getElementById('GCCheckbox').checked==true){
-        gc='1';
-        user = document.getElementById('gcUN').value;
-        pw = document.getElementById('gcPW').value;
-        dbHost = document.getElementById('dbHost').value;								   
-        if (user !== ''){
-            target = "_blank";
-        }        
-    }
-    if (document.getElementById('MFPCheckbox').checked==true){
-        mfp='1';
-    }
-    if (document.getElementById('wellnessCheckbox').checked==true){
-        wel='1';
-    }
-    if (document.getElementById('diasendCheckbox').checked==true){
-        dia='1';
+
+    user = document.getElementById('athUN').value;
+    dbHost = document.getElementById('dbHost').value;								   
+    if (user !== ''){
+        target = "_blank";
     }
 
-    var strLink = "/datamodel_preview?gc="+gc+"&wel="+wel+"&mfp="+mfp+"&dia="+dia;
     var dbInfoLink = "/db_info?user="+user+"&dbhost="+dbHost;
 
-    document.getElementById("datamodel_preview").setAttribute("href",strLink);
     document.getElementById("db_info").setAttribute("href",dbInfoLink);
-    document.getElementById("db_info").setAttribute("target",target);
-    document.getElementById("dashboard_1").setAttribute("formtarget",target);
-    document.getElementById("dash_un").value = user;
-    document.getElementById("dash_pw").value = pw;									 
+    document.getElementById("db_info").setAttribute("target",target);							 
 }
 
 function showModal(){
