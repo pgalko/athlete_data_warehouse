@@ -967,40 +967,4 @@ def create_app(encr_pass_input,debug=False):
                 user = request.args.get('user')
                 return render_template('process_running.html',user=user,referer=referer,good_referer=good_referer)   
 
-    @app.route("/dummy_1", methods=['POST']) #This is not used as it requires data in sample_db to work (element in index.html hidden).
-    def dummy1():
-        try:
-            post_user = urllib.parse.unquote(request.form.get('dash_un'))
-            post_pw = urllib.parse.unquote(request.form.get('dash_pw'))
-            gc_cred_valid = gc.check_gc_creds(post_user,post_pw)
-            if gc_cred_valid == False:
-                flash('  The Garmin Connect login credentials are not valid. Please try again','warning')
-                return redirect(url_for('index'))
-            else:
-                encrypted_un = base64.urlsafe_b64encode(encrypt(post_user, encr_pass))
-                encrypted_un = encrypted_un.decode('utf-8')
-                return redirect('/dashboard_1/'+encrypted_un+'/')
-        except Exception as e:
-            with ErrorStdoutRedirection(post_user):
-                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-            flash('  There was a problem generating dashboard. Either your database does not exist in the system yet or there was a problem accessing the data','warning')
-            return redirect(url_for('index'))
-
-    # read DB connection parameters from ini file
-    params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
-    
-    sample_db_host = params.get("sample_db_host")
-    sample_db_port = params.get("sample_db_port")
-    db_user = params.get("user")
-    db_pw = params.get("password")
-    db = params.get("sample_db")
-
-
-    # Check if the sample DB exists, and create it if it does not.
-    create_sample_db(encr_pass)
-
-    #Uncomment if you want to enable the sample visualisation (needs data in sample db to work)                                
-    #dash_app = create_dashboard1(app,encr_pass,db_user,db_pw,sample_db_host,sample_db_port,db)
-
-
     return app
