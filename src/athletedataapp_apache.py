@@ -804,8 +804,7 @@ def reset_verified(password_reset_token):
         #Save the new password in db
         ath_auth_reset(ath_un,new_password,encr_pass)
         flash('  Password reset successfull. You are now logged in with the new password','success')
-        return render_template("index.html",signin_valid=ath_un,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
-
+        return redirect(url_for('index'))
     return render_template('reset_verified.html',admin_email=admin_email)
 
     
