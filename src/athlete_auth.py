@@ -38,10 +38,10 @@ def ath_auth_register(ath_un,ath_pw,encr_pass):
         # connect to the PostgreSQL server
         params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
         postgres_db = params.get("database")
-        superuser_un = params.get("user")
-        superuser_pw = params.get("password")
+        postgres_un = params.get("user")
+        postgres_pw = params.get("password")
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=superuser_un, password=superuser_pw)
+        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
