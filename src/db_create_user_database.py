@@ -118,14 +118,17 @@ def check_host_record_exists(ath_un,db_name,db_host,encr_pass):
         
         cur.execute(sql_check_db_host_exists,(db_name,))
         result = cur.fetchone()
-
-        if result[0] is not None:#Previous record exists
-            stored_db_host = result[0]
-            if stored_db_host != db_host:#Previous record does not match
-                db_host_diff = True
-            else:
+        
+        if result:
+            if result[0] is not None:#Previous record exists
+                stored_db_host = result[0]
+                if stored_db_host != db_host:#Previous record does not match
+                    db_host_diff = True
+                else:
+                    db_host_diff = False
+            else:#No previous record exists
                 db_host_diff = False
-        else:#No previous record exists
+        else:
             db_host_diff = False
         
         # close the communication with the PostgreSQL
