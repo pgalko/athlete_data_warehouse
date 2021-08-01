@@ -11,6 +11,7 @@ from Crypto.Cipher import AES
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
 import sys
+from processify import processify
 
 
 
@@ -31,6 +32,7 @@ def encrypt(plaintext, password):
     ciphertext_with_salt = salt + ciphertext
     return ciphertext_with_salt 
 
+@processify
 def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date_dt,end_date_dt,save_pwd,encr_pass):
     
     oura_params = config(filename="encrypted_settings.ini", section="oura",encr_pass=encr_pass)
