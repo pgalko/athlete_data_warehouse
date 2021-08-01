@@ -14,8 +14,8 @@ from Crypto.Cipher import AES
 from database_ini_parser import config
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection,ConsolidatedProgressStdoutRedirection
 from db_files import data_file_path_insert,check_data_file_exists
+from processify import processify
 
-from db_strava_auth import check_strava_token_exists
 
 #----Crypto Variables----
 # salt size in bytes
@@ -34,6 +34,7 @@ def encrypt(plaintext, password):
     ciphertext_with_salt = salt + ciphertext
     return ciphertext_with_salt 
 
+@processify
 def api_rate_limits(response):
     #Retrieve API limits status from response headers
     response_headers = response.headers
@@ -78,6 +79,7 @@ def api_rate_limits(response):
 
     return  sleep_sec
 
+@processify
 def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,strava_refresh_token,start_date_dt,end_date_dt,save_pwd,encr_pass):
 
     strava_params = config(filename="encrypted_settings.ini", section="strava",encr_pass=encr_pass)
