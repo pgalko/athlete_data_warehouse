@@ -72,7 +72,7 @@ def insert_last_synch_timestamp(ath_un,encr_pass,db_name):
             conn_localhost.close
 
 @processify
-def user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd):
+def user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass,save_pwd):
         
     if save_pwd == True:
         #Encrypt dbx token
@@ -87,14 +87,22 @@ def user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth
             encrypted_oura_refresh_token = encrypted_oura_refresh_token.decode('utf-8')
         else:
             encrypted_oura_refresh_token = None
+        #Encrypt strava token
+        if strava_refresh_token is not None:
+            encrypted_strava_refresh_token = base64.b64encode(encrypt(strava_refresh_token, encr_pass))
+            encrypted_strava_refresh_token = encrypted_strava_refresh_token.decode('utf-8')
+        else:
+            encrypted_strava_refresh_token = None
     else:
         encrypted_dbx_auth_token = None
         encrypted_oura_refresh_token = None
+        encrypted_strava_refresh_token = None
     
     #Query params lists
     ath_user = (ath_un, )
     auth_token_tuple = (encrypted_dbx_auth_token, )
     oura_token_tuple = (encrypted_oura_refresh_token, )
+    strava_token_tuple = (encrypted_strava_refresh_token, )
     
     conn = None
 
@@ -158,6 +166,23 @@ def user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth
 
     """
 
+    sql_insert_strava_refresh_token = """
+    DO
+    $do$
+    BEGIN
+    IF
+
+    EXISTS (SELECT id FROM athlete WHERE ath_un = %s) THEN
+
+    UPDATE athlete SET strava_refresh_token = %s where ath_un= %s;
+
+    END IF;
+    
+    END
+    $do$
+
+    """
+
     try:
         
         # connect to the PostgreSQL server
@@ -182,6 +207,12 @@ def user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth
             with ProgressStdoutRedirection(ath_un):
                 print('Inserting Oura refresh token into postgreSQL:')
             cur.execute(sql_insert_oura_refresh_token,(ath_user,oura_token_tuple,ath_user))
+            conn.commit()
+
+        if strava_refresh_token is not None:
+            with ProgressStdoutRedirection(ath_un):
+                print('Inserting Strava refresh token into postgreSQL:')
+            cur.execute(sql_insert_strava_refresh_token,(ath_user,strava_token_tuple,ath_user))
             conn.commit()
 
         # close the communication with the PostgreSQL

@@ -9,6 +9,7 @@ import glimp_data_download_db_insert as glimp
 import mind_monitor_data_download_db_insert as mm
 import gc_data_download as gc
 import oura_data_download as oura
+import strava_data_download as strava
 import delete_data as clr
 from db_create_user_database import check_user_db_exists
 from db_user_insert import insert_last_synch_timestamp
@@ -20,7 +21,7 @@ path_params = config(filename="encrypted_settings.ini", section="path")
 PID_FILE_DIR = str(path_params.get("pid_file_dir"))
 DOWNLOAD_DIR = str(path_params.get("download_dir"))
 
-def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_username, gc_password, mfp_username, mfp_password, cgm_username, cgm_password, glimp_export_link, libreview_export_link, mm_export_link,display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token,oura_refresh_token,auto_synch,encr_pass):
+def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_username, gc_password, mfp_username, mfp_password, cgm_username, cgm_password, glimp_export_link, libreview_export_link, mm_export_link,display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token,oura_refresh_token, strava_refresh_token, auto_synch,encr_pass):
     if dbx_auth_token is not None:
         archive_to_dropbox = True
     else:
@@ -75,13 +76,20 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+    if strava_refresh_token is not None:   
+        try: 
+            strava.dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,strava_refresh_token,start_date,end_date,True,encr_pass) 
+        except Exception as e:
+            with ErrorStdoutRedirection(ath_un):
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+   
     try:
         get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
     except Exception as e:
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     
-def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,encr_pass):
+def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass):
     output = DOWNLOAD_DIR
     auto_synch = True
 
@@ -110,8 +118,8 @@ def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username
       
         #DATA DOWNLOAD ------------------------------
     
-        #PG:Call to execute "parse and insert GC and MFP data" functions
-        run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_username, gc_password, mfp_username, mfp_password,cgm_username,cgm_password,glimp_export_link,libreview_export_link,mm_export_link, display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token, oura_refresh_token, auto_synch, encr_pass)
+        #PG:Call to execute "data download" functions
+        run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_username, gc_password, mfp_username, mfp_password,cgm_username,cgm_password,glimp_export_link,libreview_export_link,mm_export_link, display_name, output, db_name, db_host, superuser_un, superuser_pw, dbx_auth_token, oura_refresh_token, strava_refresh_token, auto_synch, encr_pass)
                     
     except Exception as e:
         with ErrorStdoutRedirection(ath_un):

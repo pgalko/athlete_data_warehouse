@@ -152,6 +152,7 @@ function EnableDisableElmnt(radioBtn){
 
     var wellnessCheckbox = document.getElementById('wellnessCheckbox');
     var ouraCheckbox = document.getElementById('ouraCheckbox');
+    var stravaCheckbox = document.getElementById('stravaCheckbox');
     var housekeeping = document.getElementById('housekeeping');
     var AutoSynchCheckbox = document.getElementById('AutoSynchCheckbox');
 
@@ -178,6 +179,7 @@ function EnableDisableElmnt(radioBtn){
     //var gcActvtTcx = document.getElementById('gcActvtTcx');
     var gcWellFit = document.getElementById('gcWellFit');
     var ouraWell = document.getElementById('ouraWell');
+    var stravaActvt = document.getElementById('stravaActvt');
     var gcWellJson = document.getElementById('gcWellJson');
     var gcDailySum = document.getElementById('gcDailySum');
     var startDate = document.getElementById('startDate');
@@ -304,6 +306,7 @@ function EnableDisableElmnt(radioBtn){
     //GC Login checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('GCCheckbox')){
         gcLoginBorder.className = "border border-primary";
+        startDate.setAttribute('required','');
         dataSources.push(radioBtn.id); 
         
         gcUsernameTextbox.disabled = false;
@@ -341,14 +344,14 @@ function EnableDisableElmnt(radioBtn){
         gcActvtFit.className = "badge badge-secondary";
         gcActvtFit.textContent = "GC Activity Data (FIT) - Will be skipped";
         gcLoginBorder.className = "border"
-        gcUsernameTextbox.removeAttribute('required');
-        gcPasswordTextbox.removeAttribute('required');
 
         if (document.getElementById('wellnessCheckbox').checked){
             gcLoginBorder.className = "border border-primary";
         }
         else {
             gcLoginBorder.className = "border";
+            gcUsernameTextbox.removeAttribute('required');
+            gcPasswordTextbox.removeAttribute('required');
         }
         for( var i = 0; i < dataSources.length; i++){ 
             if ( dataSources[i] === radioBtn.id) { 
@@ -365,6 +368,7 @@ function EnableDisableElmnt(radioBtn){
         mfpPasswordTextbox.disabled = false;
         mfpNutritionBadge.className = "badge badge-primary";
         mfpNutritionBadge.textContent = "MFP Nutrition Data - Will be downloaded";
+        startDate.setAttribute('required','');
 
         mfpUsernameTextbox.oninput = function(e) {
             mfp_username = mfpUsernameTextbox.value;
@@ -410,6 +414,7 @@ function EnableDisableElmnt(radioBtn){
         diasendCGMbadge.className = "badge badge-primary";
         diasendCGMbadge.textContent = "Diasend CGM Data - Will be downloaded";
         diasendLoginBorder.className = "border border-primary";
+        startDate.setAttribute('required','');
         dataSources.push(radioBtn.id);
 
         diasendUsernameTextbox.disabled = false;
@@ -448,7 +453,6 @@ function EnableDisableElmnt(radioBtn){
         diasendLoginBorder.className = "border"
         diasendUsernameTextbox.removeAttribute('required');
         diasendPasswordTextbox.removeAttribute('required');
-        diasendCSVfileButtn.removeAttribute('required');
         for( var i = 0; i < dataSources.length; i++){ 
             if ( dataSources[i] === radioBtn.id) { 
                 dataSources.splice(i, 1); 
@@ -460,9 +464,9 @@ function EnableDisableElmnt(radioBtn){
         glimpCGMbadge.className = "badge badge-primary";
         glimpCGMbadge.textContent = "Glimp/LibreView CGM Data - Will be downloaded";
         glimpLoginBorder.className = "border border-primary";
-        gcLoginBorder.className = "border border-primary";
         glimpTextArea.disabled = false;
         glimpTextArea.setAttribute('required','');
+        startDate.setAttribute('required','');
         dataSources.push(radioBtn.id);
 
         glimpTextArea.oninput = function(e) {
@@ -488,10 +492,10 @@ function EnableDisableElmnt(radioBtn){
         mmEEGbadge.className = "badge badge-primary";
         mmEEGbadge.textContent = "Mind Monitor Data - Will be downloaded";
         mmLoginBorder.className = "border border-primary";
-        gcLoginBorder.className = "border border-primary";
         mmTextArea.disabled = false;
         mmTextArea.setAttribute('required','');
         dataSources.push(radioBtn.id);
+        startDate.setAttribute('required','');
 
         mmTextArea.oninput = function(e) {
             var mmLinkid = mmTextArea.id; // get the element's id to save it
@@ -521,7 +525,32 @@ function EnableDisableElmnt(radioBtn){
         gcDailySum.textContent = "GC Daily Summary (JSON) - Will be downloaded";
         gcLoginBorder.className = "border border-primary"
         startDate.setAttribute('required','');
+        gcUsernameTextbox.disabled = false;
+        gcPasswordTextbox.disabled = false;
         dataSources.push(radioBtn.id);
+
+        gcUsernameTextbox.oninput = function(e) {
+            gc_username = gcUsernameTextbox.value;
+            gcUN.value = gc_username;
+            var UNid = gcUN.id; // get the element's id to save it 
+            var UNval = gcUN.value; // get the value.
+            sessionStorage.setItem(UNid, UNval);// save to sessionStorage
+        }
+
+        gcPasswordTextbox.oninput = function(e) {
+            gc_password = gcPasswordTextbox.value;
+            gcPW.value = gc_password;
+            var PWid = gcPW.id; // get the element's id to save it 
+            var PWval = gcPW.value; // get the value.
+            sessionStorage.setItem(PWid, PWval);// save to sessionStorage
+        }
+
+        if (gcUN.value == ""){
+            gcUsernameTextbox.setAttribute('required','');
+        }
+        if (gcPW.value == ""){
+            gcPasswordTextbox.setAttribute('required','');
+        }
     }
     //Welness checkbox unchecked
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('wellnessCheckbox')){
@@ -531,13 +560,18 @@ function EnableDisableElmnt(radioBtn){
         gcWellJson.textContent = "GC Wellness Data (JSON) - Will be skipped";
         gcDailySum.className = "badge badge-secondary";
         gcDailySum.textContent = "GC Daily Summary (JSON) - Will be skipped";
-        startDate.removeAttribute('required');
+
         if (document.getElementById('GCCheckbox').checked){
             gcLoginBorder.className = "border border-primary";
         }
         else{
             gcLoginBorder.className = "border";
+            gcUsernameTextbox.disabled = true;
+            gcPasswordTextbox.disabled = true;
+            gcUsernameTextbox.removeAttribute('required');
+            gcPasswordTextbox.removeAttribute('required');
         }
+
         for( var i = 0; i < dataSources.length; i++){ 
             if ( dataSources[i] === radioBtn.id) { 
                 dataSources.splice(i, 1); 
@@ -548,7 +582,6 @@ function EnableDisableElmnt(radioBtn){
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('ouraCheckbox')){
         ouraWell.className = "badge badge-primary";
         ouraWell.textContent = "Oura Wellness Data - Will be downloaded";
-        gcLoginBorder.className = "border border-primary"
         startDate.setAttribute('required','');
         dataSources.push(radioBtn.id);
     }
@@ -556,13 +589,25 @@ function EnableDisableElmnt(radioBtn){
     else if (radioBtn.checked == false  && radioBtn == document.getElementById('ouraCheckbox')){
         ouraWell.className = "badge badge-secondary";
         ouraWell.textContent = "Oura Wellness Data - Will be skipped";
-        startDate.removeAttribute('required');
-        if (document.getElementById('GCCheckbox').checked){
-            gcLoginBorder.className = "border border-primary";
+  
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
         }
-        else{
-            gcLoginBorder.className = "border";
-        }
+    }
+    //Strava checkbox checked
+    else if (radioBtn.checked == true  && radioBtn == document.getElementById('stravaCheckbox')){
+        stravaActvt.className = "badge badge-primary";
+        stravaActvt.textContent = "Strava Activity Data - Will be downloaded";
+        startDate.setAttribute('required','');
+        dataSources.push(radioBtn.id);
+    }
+    //Strava checkbox unchecked
+    else if (radioBtn.checked == false  && radioBtn == document.getElementById('stravaCheckbox')){
+        stravaActvt.className = "badge badge-secondary";
+        stravaActvt.textContent = "Strava Activity Data - Will be skipped";
+
         for( var i = 0; i < dataSources.length; i++){ 
             if ( dataSources[i] === radioBtn.id) { 
                 dataSources.splice(i, 1); 
@@ -693,6 +738,7 @@ function loadSavedChecked(){
     var dataDeleteCheckbox = JSON.parse(sessionStorage.getItem('dataDeleteCheckbox'));
     var wellnessCheckbox = JSON.parse(sessionStorage.getItem('wellnessCheckbox'));
     var ouraCheckbox = JSON.parse(sessionStorage.getItem('ouraCheckbox'));
+    var stravaCheckbox = JSON.parse(sessionStorage.getItem('stravaCheckbox'));
     var archiveDataCheckbox = JSON.parse(sessionStorage.getItem('archiveDataCheckbox'));
 
     var deleteData = sessionStorage.getItem('deleteData');
@@ -729,6 +775,9 @@ function loadSavedChecked(){
     }
     if (ouraCheckbox == true) {
         document.getElementById('ouraCheckbox').click();
+    }
+    if (stravaCheckbox == true) {
+        document.getElementById('stravaCheckbox').click();
     }
     if (archiveDataCheckbox == true) {
         document.getElementById('archiveDataCheckbox').click();
@@ -961,6 +1010,20 @@ $(document).ready(function() {
                 if (result.indexOf('Error downloading Oura wellness data') > -1){
                     document.getElementById('ouraWell').textContent = "Oura Wellness Data - Error downloading data";
                     document.getElementById('ouraWell').className = "badge badge-danger";
+                }
+                //show status Strava activity badge
+                if (result.indexOf('Strava activity download started') > -1){
+                    document.getElementById('stravaActvt').textContent = "Strava Activity Data - Downloading...";
+                    document.getElementById('stravaActvt').className = "badge badge-info";
+                    document.getElementById('stravaActvt').classList.add("heart");
+                }
+                if (result.indexOf('Strava activity data downloaded successfully') > -1){
+                    document.getElementById('stravaActvt').textContent = "Strava Activity Data - Downloaded successfully";
+                    document.getElementById('stravaActvt').className = "badge badge-success";
+                }
+                if (result.indexOf('Error downloading Strava activity data') > -1){
+                    document.getElementById('stravaActvt').textContent = "Strava Activity Data - Error downloading data";
+                    document.getElementById('stravaActvt').className = "badge badge-danger";
                 }
                 //show status GC JSON wellness badge
                 if (result.indexOf('GC JSON wellness download started') > -1){

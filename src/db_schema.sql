@@ -41,6 +41,7 @@ CREATE TABLE public.athlete (
     libreview_export_link character varying(300),
     mm_export_link character varying(300),
     oura_refresh_token character varying(300)
+    strava_refresh_token character varying(300)
 );
 
 ALTER TABLE public.athlete OWNER TO postgres;
@@ -966,6 +967,105 @@ ALTER TABLE public.oura_sleep_detail_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE public.oura_sleep_detail_id_seq OWNED BY public.oura_sleep_detail.id;
 
+--
+--STRAVA ACTIVITY SUMMARY
+---
+CREATE TABLE public.strava_activity_summary(
+  id integer NOT NULL,
+  athlete_id    integer,
+  strava_athlete_id    bigint,
+  name  character varying, 
+  distance    real,
+  moving_time  integer,  
+  elapsed_time    integer,
+  total_elevation_gain    real,
+  type    character varying,
+  workout_type    integer,
+  strava_activity_id    bigint,
+  external_id    character varying,
+  upload_id    bigint,
+  start_date    character varying,
+  start_date_local    character varying,
+  timezone    character varying,
+  utc_offset   integer,
+  start_latitude    numeric,
+  start_longitude   numeric,
+  end_latitude    numeric,
+  end_longitude    numeric,
+  location_city    character varying,
+  location_state    character varying,
+  location_country    character varying,
+  map  character varying,
+  summary_polyline    character varying,   
+  trainer    boolean,
+  commute    boolean,
+  manual    boolean,
+  gear_id    character varying,
+  average_speed  real,  
+  max_speed    real,
+  average_cadence    real,
+  average_temp    real,
+  average_watts    real,
+  weighted_average_watts    real,
+  kilojoules    real,
+  device_watts    boolean,
+  average_heartrate   real,
+  max_heartrate    real,
+  max_watts    real,
+  elev_high    real,
+  elev_low    real,
+  suffer_score   real
+);
+
+ALTER TABLE public.strava_activity_summary OWNER TO postgres;
+
+CREATE SEQUENCE public.strava_activity_summary_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.strava_activity_summary_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.strava_activity_summary_id_seq OWNED BY public.strava_activity_summary.id;
+
+--
+--STRAVA ACTIVITY STREAMS
+--
+CREATE TABLE public.strava_activity_streams(
+  id integer NOT NULL,
+  activity_id    integer,
+  time_gmt    character varying,
+  distance    real,
+  latitude    numeric,
+  longitude    numeric,
+  altitude    real,
+  velocity_smooth    real,
+  heartrate    integer,
+  cadence    integer,
+  watts    integer,
+  temp    integer,
+  moving    boolean,
+  grade_smooth    real
+);
+
+ALTER TABLE public.strava_activity_streams OWNER TO postgres;
+
+CREATE SEQUENCE public.strava_activity_streams_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.strava_activity_streams_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.strava_activity_streams_id_seq OWNED BY public.strava_activity_streams.id;
+
+
 
 --
 --AUTO INCREMENTS
@@ -1017,6 +1117,11 @@ ALTER TABLE ONLY public.oura_activity_daily_summary ALTER COLUMN id SET DEFAULT 
 ALTER TABLE ONLY public.oura_activity_detail ALTER COLUMN id SET DEFAULT nextval('public.oura_activity_detail_id_seq'::regclass);
 
 ALTER TABLE ONLY public.oura_sleep_detail ALTER COLUMN id SET DEFAULT nextval('public.oura_sleep_detail_id_seq'::regclass);
+
+ALTER TABLE ONLY public.strava_activity_summary ALTER COLUMN id SET DEFAULT nextval('public.strava_activity_summary_id_seq'::regclass);
+
+ALTER TABLE ONLY public.strava_activity_streams ALTER COLUMN id SET DEFAULT nextval('public.strava_activity_streams_id_seq'::regclass);
+
 
 --
 --PRIMARY KEYS
@@ -1096,6 +1201,11 @@ ALTER TABLE ONLY public.oura_activity_detail
 ALTER TABLE ONLY public.oura_sleep_detail
     ADD CONSTRAINT oura_sleep_detail_pkey PRIMARY KEY (id);
 
+ALTER TABLE ONLY public.strava_activity_summary
+    ADD CONSTRAINT strava_activity_summary_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.strava_activity_streams
+    ADD CONSTRAINT strava_activity_streams_pkey PRIMARY KEY (id);
 
 --
 --UNIQUES
@@ -1163,6 +1273,11 @@ ALTER TABLE ONLY public.oura_activity_detail
 ALTER TABLE ONLY public.oura_sleep_detail	
 	ADD CONSTRAINT unique_oura_sleep_detail UNIQUE (timestamp_gmt);
 
+ALTER TABLE ONLY public.strava_activity_summary	
+	ADD CONSTRAINT unique_strava_activity_summary UNIQUE (start_date);
+
+ALTER TABLE ONLY public.strava_activity_streams	
+	ADD CONSTRAINT unique_strava_activity_streams UNIQUE (time_gmt);
 
 --
 --INDEXES
@@ -1272,6 +1387,9 @@ ALTER TABLE ONLY public.oura_activity_detail
 ALTER TABLE ONLY public.oura_sleep_detail
     ADD CONSTRAINT fk_oura_sleep_detail_sleep_summary_id FOREIGN KEY (oura_sleep_id) REFERENCES public.oura_sleep_daily_summary(id);
 
+ALTER TABLE ONLY public.strava_activity_summary
+    ADD CONSTRAINT fk_strava_activity_summary_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete(id);
 
-
+ALTER TABLE ONLY public.strava_activity_streams
+    ADD CONSTRAINT fk_strava_activity_streams_strava_activity_id FOREIGN KEY (activity_id) REFERENCES public.strava_activity_summary(id);
 

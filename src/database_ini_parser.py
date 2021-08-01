@@ -114,6 +114,23 @@ def config(filename, section, encr_pass=None):
                         db[param[0]] = ""
                 else:
                     db[param[0]] = param[1]
+        elif section == 'strava':
+            params = parser.items(section)
+            for param in params:
+                if param[0] == 'strava_client_id':
+                    try:
+                        decrypted_param = decrypt(base64.b64decode(param[1]), encr_pass)
+                        db[param[0]] = str(decrypted_param)
+                    except:
+                        db[param[0]] = ""
+                elif param[0] == 'strava_client_secret':
+                    try:
+                        decrypted_param = decrypt(base64.b64decode(param[1]), encr_pass)
+                        db[param[0]] = str(decrypted_param)
+                    except:
+                        db[param[0]] = ""
+                else:
+                    db[param[0]] = param[1]
         elif section == 'anticaptcha':
             params = parser.items(section)
             for param in params:

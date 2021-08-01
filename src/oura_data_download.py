@@ -140,8 +140,7 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
 
 
     #------------------- Retrieve Sleep data ---------------------------
-    
-    #TODO: retrieve sleep data
+
     sleep_data = requests.get('https://api.ouraring.com/v1/sleep?'
                               'start={}&end={}&access_token={}'
                               .format(start_date, end_date, access_token))
@@ -194,6 +193,11 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         temperature_trend_deviation = row.temperature_trend_deviation
         timezone = row.timezone
         total = row.total
+
+        with StdoutRedirection(ath_un):
+            print('Downloading Oura sleep data from: {}'.format(summary_date))
+        with ProgressStdoutRedirection(ath_un):
+            print('Downloading Oura sleep data from: {}'.format(summary_date))
 
         try:       
             cur = conn.cursor()
@@ -300,6 +304,11 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         to_target_miles = row.to_target_miles
         total = row.total
 
+        with StdoutRedirection(ath_un):
+            print('Downloading Oura activity data from: {}'.format(summary_date))
+        with ProgressStdoutRedirection(ath_un):
+            print('Downloading Oura activity data from: {}'.format(summary_date))
+
         try:       
             cur = conn.cursor()
             cur.execute(sql_insert_activity_summary,(ath_un,summary_date,datetime.datetime.strftime(day_start,"%Y-%m-%d %H:%M:%S"),datetime.datetime.strftime(day_end,"%Y-%m-%d %H:%M:%S"),
@@ -383,6 +392,11 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         score_sleep_balance = row.score_sleep_balance 
         score_temperature = row.score_temperature
         summary_date = row.summary_date
+
+        with StdoutRedirection(ath_un):
+            print('Downloading Oura readiness data from: {}'.format(summary_date))
+        with ProgressStdoutRedirection(ath_un):
+            print('Downloading Oura readiness data from: {}'.format(summary_date))
 
         try:       
             cur = conn.cursor()

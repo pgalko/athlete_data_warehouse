@@ -96,15 +96,15 @@
                 <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Logged in as: {{signin_valid}}</b></small>
             {% else %}
                 <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Not logged-in</b></small>
-            {% endif %}
-            <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7 " >This tool automates health and performance data download from Garmin Connect, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
-                It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
-                Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
-                <p>
-                Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
-                This is an experimental project of mine and all functionality is provided free of charge. The user has an ability to delete the database and all data at any time. More info in the FAQ section.
-                </p>            
-            </small>
+                {% endif %}
+                <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7 " >This tool automates health and performance data download from Garmin Connect, Strava, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
+                    It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
+                    Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
+                    <p>
+                    Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
+                    This is an experimental project of mine and all functionality is provided free of charge. The user has an ability to delete the database and all data at any time. More info in the FAQ section.
+                    </p>            
+                </small>
             <span><a class="btn btn-outline-light" id="datamodel_preview" href="/datamodel_preview" target="_blank" style="margin-left: 15px"><span class="oi oi-fork" aria-hidden="true"></span> View DB model</a></span> 
             <span><a class="btn btn-outline-light" id="db_info" href="/db_info?user=&dbhost=" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-script" aria-hidden="true"></span> View DB info</a></span>    
             <span><a class="btn btn-outline-light" id="browse_sample_data" href="http://pgweb.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse sample DB</a></span>
@@ -241,21 +241,31 @@
                     <!--Garmin Connect Activities tab-->
                     <div id="act_well_activities" style="display: block;">
                         <div>
-                            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect account. Alternatively provide path to a CSV file with these credentials (username,password). 
+                            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect account. If you select to download Strava data, you will be prompted to authorize this app to access your Strava account upon submiting this form. 
                             </small>
                         </div>
                         <p><div class="header" style="color:#0275d8">
-                            <b><span style="margin-right: 10px; margin-top:15px; margin-bottom: 5px;"></span>Activities <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a> : </b>
+                            <b><span style="margin-right: 10px; margin-top:15px; margin-bottom: 5px;"></span>Activities <a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-secondary">Garmin Connect</a>, <a href="https://www.strava.com/" class="badge badge-pill badge-secondary">Strava</a> : </b>
                         </div>
-                        <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                        <!--Garmin Connect Activities Checkbox-->
+                        <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 5px">
                             <input type="checkbox" class="form-check-input" id="GCCheckbox" name="GCCheckbox" value="GCCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
                             <label class="form-check-label" for="GCCheckbox">Check to login to Garmin Connect and download your activity data</label>
+                        </div>
+                        <!--Strava Checkbox-->
+                        <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;" >
+                            {% if strava_enabled == True %}
+                            <input type="checkbox" class="form-check-input" id="stravaCheckbox" name="stravaCheckbox" value="stravaCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                            {% else %}
+                            <input type="checkbox" class="form-check-input" id="stravaCheckbox" name="stravaCheckbox" value="stravaCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)" disabled>
+                            {% endif %}
+                            <label class="form-check-label" for="stravaCheckbox">Check to connect to Strava API and download your activity data </label> 
                         </div></p>
                     </div>
                     <!--Garmin Connect Wellness tab-->
                     <div id="act_well_wellness" style="display: none;">
                         <div>
-                            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect account. Alternatively provide path to a CSV file with these credentials (username,password). If you select to download Oura data, you will be prompted to authorize this app to access your Oura account upon submiting this form.
+                            <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Garmin Connect account. If you select to download Oura data, you will be prompted to authorize this app to access your Oura account upon submiting this form.
                             </small>
                         </div>
                         <p><div class="header" style="color:#0275d8">
@@ -687,11 +697,15 @@
             {% if oura_well_progress == 'Error downloading Oura wellness data'%} <span class="badge badge-danger"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Error downloading data</span>
                 {% elif oura_well_progress == 'Oura wellness data downloaded successfully'%} <span class="badge badge-success"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Downloaded successfully</span>
                 {%else%}<span class="badge badge-secondary"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Will be skipped</span>
-            {% endif %}
-            {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
-                {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
-                {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
-            {% endif %}
+                {% endif %}
+                {% if strava_activ_progress == 'Error downloading Strava activity data'%} <span class="badge badge-danger"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Error downloading data</span>
+                    {% elif strava_activ_progress == 'Strava activity data downloaded successfully'%} <span class="badge badge-success"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Downloaded successfully</span>
+                    {%else%}<span class="badge badge-secondary"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Will be skipped</span>
+                {% endif %}
+                {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
+                    {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
+                    {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
+                {% endif %}
             {% if gc_json_well_progress == 'Error downloading GC JSON wellness data'%} <span class="badge badge-danger"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Error downloading data</span>
                 {% elif gc_json_well_progress == 'GC JSON wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Downloaded successfully</span>
                 {%else%}<span class="badge badge-secondary"  id="gcWellJson"style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Will be skipped</span>
@@ -719,11 +733,12 @@
                         <p>Did you ever want to copy and store your activities, wellness, nutrition and blood sugar data all in one place ? Then this tool might be for you.
                         </p>
                         <p><b>So, what does it do ?</b>
-                            <br>This is an experimental tool that allows you to download all historical activities from Garmin Connect and daily wellness data like weight, continuous HR, HRV, body temperature, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. 
+                            <br>This is an experimental tool that allows you to download all historical activities from Garmin Connect or/and Strava, and daily wellness data like weight, continuous HR, HRV, body temperature, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. 
                         </p>
                         <p><b>What data from what sources ?</b>
                             <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Activity/Excersize data in FIT and TCX formats.
                             <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Wellness/Heatlth data in FIT and XML formats.
+                            <br><a href="https://www.strava.com/" class="badge badge-pill badge-primary">Strava</a> - Activity/Excersize data via API.
                             <br><a href="https://www.ouraring.com/" class="badge badge-pill badge-primary">Oura</a> - Historical Sleep, HRV data retrieved via API.
                             <br><a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-primary">MyFitnessPal</a> - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
                             <br><a href="https://diasend.com//en/" class="badge badge-pill badge-primary">Diasend</a> - Blood Glucose data from continuous blood glucose monitors in XLS format.
@@ -733,7 +748,7 @@
                             <br><a href="https://www.meteostat.net/" class="badge badge-pill badge-primary">Meteostat</a> - Historical weather and climate data retrieved via API.
                         </p>
                         <p><b>How is my data accessed and downloaded ?</b>
-                            <br>The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a combination of web-scraper using the supplied credentials to log in to the user's accounts(Garmin,MFP,Diasend) and an API client(Oura). Once logged in, it browses to download pages and iterates through available downloads, or accesses the user data via vendor's API. Finally it downloads the retrieved data to the server in the FIT,XML,JSON or CSV formats.
+                            <br>The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a combination of web-scraper using the supplied credentials to log in to the user's accounts(Garmin,MFP,Diasend) and an API client(Oura, Strava). Once logged in, it browses to download pages and iterates through available downloads, or accesses the user data via vendor's API. Finally it downloads the retrieved data to the server in the FIT,XML,JSON or CSV formats.
                         </p>
                         <p><b>Where and How is my data stored ?</b>
                             <br>The user data files are first downloaded and stored to the webserver's file system as flat files as described above. After each of the files is successfully downloaded and saved, the service parses and cleans the content which then gets formated and inserted in to the PostgreSQL database hosted either on this server or on the user's own DB server (the user will need to provide hostname/IP address, username, password). If user chooses to store his data on this DB server he will have his own database that he has got full and unrestricted access to. Once the user submits the download request providing valid credentials he will be able to retrieve the database access details via <i>"View DB info..."</i> link on the download page. 
@@ -748,7 +763,7 @@
                             Once the access to user's dropbox has been granted by the user, the service will create a folder called "Athlete Data App" in the "Apps" folder within the users dropbox root directory. This service will only have access to its own folder "/Apps/Athlete Data App" in your Dropbox file structure. All other files and folders will remain unaccessible to it!
                         </p>
                         <p><b>How do I revoke access and delete all downloaded data ?</b>
-                            <br>This service provides an ability for each user to revoke all access to his GarminConnect,MFP,Diasend and Oura accounts from this service and/or delete all already downloaded data. This option can be accessed from the download page by simply providing a valid logon credentials and choosing the "Delete All data and Exit without re-downloading" option from the "Housekeeping" section. Upon submitting the request, all user data including any encrypted usernames and passwords stored in the DB will be deleted, and autosynch if previously enabled will be canceled. This will not affect the data archived to users's Dropbox and if desired the user will need to delete those manually. If the user only want to use this service as a "once off" perhaps for data archiving purposes, he can download all his data with "archive all data to Dropbox" option enabled and then delete all data from the db/web-server.
+                            <br>This service provides an ability for each user to revoke all access to his GarminConnect, StravaMFP, Diasend and Oura accounts from this service and/or delete all already downloaded data. This option can be accessed from the download page by simply providing a valid logon credentials and choosing the "Delete All data and Exit without re-downloading" option from the "Housekeeping" section. Upon submitting the request, all user data including any encrypted usernames and passwords stored in the DB will be deleted, and autosynch if previously enabled will be canceled. This will not affect the data archived to users's Dropbox and if desired the user will need to delete those manually. If the user only want to use this service as a "once off" perhaps for data archiving purposes, he can download all his data with "archive all data to Dropbox" option enabled and then delete all data from the db/web-server.
                         </p>
                         <p><b>What if I change my Garmin Connect,MFP or Diasend password and have autosynch enabled ?</b>
                             <br>After changing the GarminConnect, MFP or Diasend password user will simply need to provide the new password in the login section of the app and submit the download. The stored autosynch credentials for the affected service will be updated automaticaly.

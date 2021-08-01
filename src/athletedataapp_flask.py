@@ -18,12 +18,14 @@ from db_create_user_database import create_user_db,restore_db_schema,check_user_
 from db_user_insert import update_autosynch_prefrnc,user_tokens_insert,insert_last_synch_timestamp,gc_user_insert,check_user_exists
 from db_dropbox import check_user_token_exists
 from db_oura_auth import check_oura_token_exists
+from db_strava_auth import check_strava_token_exists
 from diasend_data_download_db_insert import diasend_data_export_insert
 from glimp_data_download_db_insert import glimp_data_insert
 from mind_monitor_data_download_db_insert import mm_data_insert
 from weather import get_weather
 from send_email import send_email
 from oura_data_download import dwnld_insert_oura_data
+from strava_data_download import dwnld_insert_strava_data
 import psutil
 import urllib.request, urllib.error, urllib.parse
 from database_ini_parser import config
@@ -78,6 +80,17 @@ def create_app(encr_pass_input,debug=False):
     else:
         oura_enabled = True
 
+    strava_params = config(filename="encrypted_settings.ini", section="strava",encr_pass=encr_pass)
+    STRAVA_CLIENT_ID = str(strava_params.get("strava_client_id"))
+    STRAVA_CLIENT_SECRET = str(strava_params.get("strava_client_secret"))
+    STRAVA_AUTH_URL = str(strava_params.get("strava_auth_url"))
+    STRAVA_TOKEN_URL = str(strava_params.get("strava_token_url"))
+    STRAVA_REDIRECT_URI = str(strava_params.get("strava_redirect_uri"))
+    if STRAVA_CLIENT_ID == "":
+        strava_enabled = False
+    else:
+        strava_enabled = True
+
     anticaptcha_params = config(filename="encrypted_settings.ini", section="anticaptcha",encr_pass=encr_pass)
     anticaptcha_api_key = str(anticaptcha_params.get("api_key"))
     if anticaptcha_api_key == "":
@@ -129,6 +142,7 @@ def create_app(encr_pass_input,debug=False):
         mm_progress = None
         gc_login_progress = None
         gc_fit_activ_progress = None
+        strava_activ_progress = None
         gc_tcx_activ_progress = None
         gc_fit_well_progress = None
         oura_well_progress = None
@@ -139,6 +153,7 @@ def create_app(encr_pass_input,debug=False):
         archive_radio = None
         dbx_auth_token = session.get('dbx_auth_token',None)
         oura_refresh_token = session.get('oura_refresh_token',None)
+        strava_refresh_token = session.get('strava_refresh_token',None)
         signin_valid = session.get('signin_valid',None)
         ath_pw = session.get('ath_pw',None)
         ath_un = signin_valid
@@ -150,7 +165,7 @@ def create_app(encr_pass_input,debug=False):
         if request.method == 'POST':
 
             #----GC Login variables----
-            if request.form.get('GCCheckbox') is not None:
+            if request.form.get('GCCheckbox') is not None or request.form.get('wellnessCheckbox') is not None:
                 gc_username = str(request.form.get('gcUN'))
                 gc_password = str(request.form.get('gcPW'))
 
@@ -169,7 +184,7 @@ def create_app(encr_pass_input,debug=False):
                 connection = check_db_server_connectivity(ath_un,db_host,superuser_un,superuser_pw)
                 if connection != 'SUCCESS':
                     flash('  Could cot connect to the DB Host.The host returned an error:  '+connection,'danger')
-                    return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                    return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
             else:
                 #If user does not wish to download to his db, credentials to be retrieved from .ini.
                 params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
@@ -182,13 +197,13 @@ def create_app(encr_pass_input,debug=False):
             host_record_exists = check_host_record_exists(ath_un,db_name,db_host,encr_pass)
             if host_record_exists == True:
                 flash('  You can only download to one db host. Please correct the db_hostname and try again','warning')
-                return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
             #----Check if the provided GC credentials are valid-----
             #gc_cred_valid = gc.check_gc_creds(gc_username,gc_password)
             #if gc_cred_valid == False:
                 #flash('  The Garmin Connect login credentials are not valid. Please try again','warning')
-                #return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                #return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
             #----- Set Auto_Synch variables--------
 
@@ -269,6 +284,19 @@ def create_app(encr_pass_input,debug=False):
                             return redirect(url_for('oura_auth_request'))
                     else:
                         return redirect(url_for('oura_auth_request'))
+
+            #----Check for and Retrieve Strava token----
+            if request.form.get('stravaCheckbox') is not None:
+                if strava_refresh_token is None:     
+                    if db_exists == True:
+                        strava_token_exists, strava_token_from_db = check_strava_token_exists(ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+                        if strava_token_exists == True: # token exists in database and it is not None
+                            strava_refresh_token = strava_token_from_db
+                            print('Refresh Token: {}'.format(strava_refresh_token))
+                        else:
+                            return redirect(url_for('strava_auth_request'))
+                    else:
+                        return redirect(url_for('strava_auth_request'))
 
             # CLEANUP BEFORE DOWNLOAD -----------------   
                     
@@ -355,7 +383,7 @@ def create_app(encr_pass_input,debug=False):
                                 time.sleep(1)
                                 with ProgressStdoutRedirection(ath_un):
                                     print(del_progress)
-                                return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                                return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
                             except:
                                 del_progress = 'Error deleting data'
                                 progress_error = True
@@ -364,7 +392,7 @@ def create_app(encr_pass_input,debug=False):
                                 time.sleep(1)
                                 with ErrorStdoutRedirection(ath_un):
                                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
-                                return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                                return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
                         
 
                 #----Check and set start_date and end_date variables and proceed with download----
@@ -390,25 +418,26 @@ def create_app(encr_pass_input,debug=False):
                         print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                     #PG:If start date not provided render index and flash warning   
                     flash('  Please provide a valid start date and try again!','danger')
-                    return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                    return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
                 # DATA DOWNLOAD -------------------------------------- 
-                                        
+                                       
                 if ath_un is not None:    
                     if db_exists == True:
                         # PG: Insert user details into postgreSQL
-                        user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
+                        user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass,save_pwd)
                         insert_last_synch_timestamp(ath_un,encr_pass,db_name)
                         update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch----
                     else:
                         create_user_db(ath_un,ath_pw,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,save_pwd,encr_pass)
                         restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw)
-                        user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,encr_pass,save_pwd)
+                        user_tokens_insert(ath_un,db_host,db_name,superuser_un,superuser_pw,dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass,save_pwd)
                         insert_last_synch_timestamp(ath_un,encr_pass,db_name)
                         update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,auto_synch_checkbox,encr_pass)  #----Set Auto_Synch switch----
                     session['oura_refresh_token'] = None
-   
-                    #----------------------------------  Activity  ---------------------------------------   
+                    session['strava_refresh_token'] = None
+
+                    #---------------------------------- GC Login ---------------------------------------   
 
                     if gc_username is not None:
                         #PG:Call to execute "GC login" script
@@ -431,8 +460,10 @@ def create_app(encr_pass_input,debug=False):
                             with StdoutRedirection(ath_un):
                                 print(gc_login_progress)
                             flash('  There was a problem logging in to Garmin Connect. Please try again later','warning')
-                            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+                            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
+                        #---------------------------------- GC Activities ---------------------------------------
+                        
                         #PG:Call to execute "Parse and insert FIT activities" script
                         if request.form.get('GCCheckbox') is not None:
                             try:
@@ -654,6 +685,34 @@ def create_app(encr_pass_input,debug=False):
                     except Exception as e:
                         with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
+                    
+                    
+                    #----------------------- Activities Strava (Beacause of API limits, can be slow with larger downloads)----------------------
+                    
+                    #PG:Call to execute "Parse and insert Strava activity data" script 
+                    if request.form.get('stravaCheckbox') is not None:
+                        try:
+                            strava_activ_progress = 'Strava activity download started'
+                            with StdoutRedirection(ath_un):
+                                print(strava_activ_progress)
+                            time.sleep(1)        
+                            dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,strava_refresh_token,start_date,end_date_today,save_pwd,encr_pass)
+                            strava_activ_progress = 'Strava activity data downloaded successfully'
+                            with StdoutRedirection(ath_un):
+                                print(strava_activ_progress)
+                            time.sleep(1)
+                            with ProgressStdoutRedirection(ath_un):
+                                print(strava_activ_progress) 
+                        except Exception as e:
+                            with ErrorStdoutRedirection(ath_un):
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                            strava_activ_progress = 'Error downloading Strava activity data'
+                            progress_error = True
+                            with StdoutRedirection(ath_un):
+                                print(strava_activ_progress)
+                            time.sleep(1)
+                            with ErrorStdoutRedirection(ath_un):
+                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + strava_activ_progress))
 
                     #------Archive DB to Dropbox-------
                     try:
@@ -697,11 +756,13 @@ def create_app(encr_pass_input,debug=False):
                 with ProgressStdoutRedirection(ath_un):
                     print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + ath_un + '  Finished Data Download ' + error_log_entry +' -------------' ))
 
-                return render_template("index.html",signin_valid=signin_valid,del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,glimp_progress = glimp_progress, mm_progress = mm_progress, gc_login_progress = gc_login_progress,
-                                    gc_fit_activ_progress = gc_fit_activ_progress,gc_tcx_activ_progress = gc_tcx_activ_progress,gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
-                                    gc_json_dailysum_progress = gc_json_dailysum_progress, oura_well_progress = oura_well_progress, progress_error = progress_error, continue_btn = continue_btn,admin_email=admin_email,
-                                    integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
-
+                return render_template("index.html",signin_valid=signin_valid,del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,
+                                        glimp_progress = glimp_progress, mm_progress = mm_progress, gc_login_progress = gc_login_progress,gc_fit_activ_progress = gc_fit_activ_progress,
+                                        gc_tcx_activ_progress = gc_tcx_activ_progress,gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
+                                        gc_json_dailysum_progress = gc_json_dailysum_progress, oura_well_progress = oura_well_progress, strava_activ_progress=strava_activ_progress,
+                                        progress_error = progress_error, continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,
+                                        diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled
+                                        )
             except Exception as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -713,7 +774,7 @@ def create_app(encr_pass_input,debug=False):
 
         else: # Request method is GET
             continue_btn = request.args.get('continue_btn')
-            return render_template("index.html",signin_valid=signin_valid,continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",signin_valid=signin_valid,continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
     
     @app.route("/ath_register", methods = ['GET', 'POST'])
     def ath_register():
@@ -725,10 +786,10 @@ def create_app(encr_pass_input,debug=False):
             session['signin_valid'] = signin_valid
             session['ath_pw'] = ath_pw
             flash('  Account created successfuly. You are now logged-in','success')
-            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
         else:
             flash('  An account with this email address already exists','danger')
-            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
     
     @app.route("/ath_login", methods = ['GET', 'POST'])
     def ath_login():
@@ -740,10 +801,10 @@ def create_app(encr_pass_input,debug=False):
             session['signin_valid'] = signin_valid
             session['ath_pw'] = ath_pw
             flash('  Login successfull.','success')
-            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
         else:
             flash('  Login failed, please try again.','danger')
-            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
     
     @app.route("/ath_logout", methods = ['GET', 'POST'])
     def ath_logout():
@@ -878,7 +939,7 @@ def create_app(encr_pass_input,debug=False):
             db_username = None
             password_info = None
             flash('  The DB name, DB role and DB permissions are generated based on your username(email). Please fill in your GC credentials and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
-            return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled)
+            return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
     @app.route("/dropbox_auth_request")
     def dropbox_auth_request():
@@ -912,7 +973,7 @@ def create_app(encr_pass_input,debug=False):
             return redirect(authorization_url, 301)
         except Exception as e:
             pass
-            
+
     @app.route('/oura_confirm')# Must match Redirect URI specified in https://cloud.ouraring.com/oauth/applications.
     def oura_confirm():
         oura_session = OAuth2Session(OURA_CLIENT_ID, state=session['oura_oauth_state'])
@@ -931,6 +992,37 @@ def create_app(encr_pass_input,debug=False):
         except Exception as e:
             session['oura_refresh_token'] = None
             flash('  There was a problem authenticating with Oura.','warning')
+            return redirect(url_for('index'))
+
+    @app.route('/strava_auth_request')
+    def strava_auth_request():
+        try:
+            strava_session = OAuth2Session(STRAVA_CLIENT_ID,redirect_uri=STRAVA_REDIRECT_URI,scope='activity:read_all')
+            authorization_url, state = strava_session.authorization_url(STRAVA_AUTH_URL)
+            session['strava_oauth_state'] = state
+            return redirect(authorization_url, 301)
+        except Exception as e:
+            pass
+
+    @app.route('/strava_confirm')
+    def strava_confirm():
+        strava_session = OAuth2Session(STRAVA_CLIENT_ID, state=session['strava_oauth_state'])
+        try:
+            response = strava_session.fetch_token(
+                                STRAVA_TOKEN_URL,
+                                client_secret=STRAVA_CLIENT_SECRET,
+                                include_client_id=True,
+                                authorization_response=request.url)
+            
+            strava_refresh_token = response['refresh_token']
+
+            session['strava_refresh_token'] = strava_refresh_token
+            continue_btn = 'delete'
+            flash('  You have successfuly authenticated with Strava. Click "Continue" to proceed with download.','success')
+            return redirect(url_for('index',continue_btn = continue_btn))
+        except Exception as e:
+            session['strava_refresh_token'] = None
+            flash('  There was a problem authenticating with Strava.','warning')
             return redirect(url_for('index'))
 
     @app.route("/process_running", methods = ['GET','POST'])

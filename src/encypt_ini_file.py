@@ -1,7 +1,7 @@
 #
-# This script uses settings.ini as a base, encrypts all sensitive information in it and generates encrypted_settings.ini file which is then uses by the application.
+# This script uses settings.ini as a base, encrypts all sensitive information in it and generates encrypted_settings.ini file which is then used by the application.
 # The original settings.ini is automaticaly deleted when the application starts, or it can be deleted manualy after this script sucesfully executes. 
-# Tis script is executed automaticaly when the app (web_app_loader_flask.py or web_app_loader_apache.py) is started for the first time, 
+# This script is executed automaticaly when the app (web_app_loader_flask.py or web_app_loader_apache.py) is started for the first time, 
 # or it can be executed prior, by running this script manualy. It will need to be executed with the same password argument as will be used later for the app.
 # If it needs to be re-run (eg passphrase change etc) and the settings.ini has been deleted, simply rename encrypted_settings.ini back to settings.ini, replace all encrypted sections with the plain text, 
 # and restart the application or run manualy providing the correct passphrase.
@@ -10,6 +10,7 @@
 #                      [postgresql]: password
 #                      [dropbox]: app_secret, app_key
 #                      [oura]: client_id, client_secret
+#                      [strava]: client_id, client_secret
 #                      [anticaptcha]: api_key
 #
 # At a very least you will need to provide [app]: secret_key,[postgresql]: password for the application to be able to function, the rest is optional.
@@ -83,6 +84,16 @@ def create_encr_ini_file(encr_pass_input,plaintext_ini,encrypted_ini):
     encrypted_oura_client_secret = base64.b64encode(encrypt(oura_client_secret_to_encrypt,encr_pass_input))
     encrypted_oura_client_secret = encrypted_oura_client_secret.decode('utf-8')
     parser.set('oura','oura_client_secret', encrypted_oura_client_secret)
+
+    strava_client_id_to_encrypt = parser.get('strava','strava_client_id')
+    encrypted_strava_client_id = base64.b64encode(encrypt(strava_client_id_to_encrypt,encr_pass_input))
+    encrypted_strava_client_id = encrypted_strava_client_id.decode('utf-8')
+    parser.set('strava','strava_client_id', encrypted_strava_client_id)
+
+    strava_client_secret_to_encrypt = parser.get('strava','strava_client_secret')
+    encrypted_strava_client_secret = base64.b64encode(encrypt(strava_client_secret_to_encrypt,encr_pass_input))
+    encrypted_strava_client_secret = encrypted_strava_client_secret.decode('utf-8')
+    parser.set('strava','strava_client_secret', encrypted_strava_client_secret)
 
     anticaptcha_api_key_to_encrypt = parser.get('anticaptcha','api_key')
     encrypted_anticaptcha_api_key = base64.b64encode(encrypt(anticaptcha_api_key_to_encrypt,encr_pass_input))
