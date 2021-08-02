@@ -405,7 +405,16 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                 continue
             
             #Do something with the response/data
+
             activity_streams = json.loads(streams.text)
+            #Check if there is data in activity_streams
+            if 'message' in activity_streams:
+                if "Resource Not Found" in activity_streams['message']:
+                    with ErrorStdoutRedirection(ath_un):
+                        print(str(datetime.now()) + ' No streams retrieved for {}. Moving onto next activity.'.format(strava_activity_id))
+                    continue
+            else:
+                pass
             activity_streams_df = pd.DataFrame(columns=df_columns)
 
             for stream in activity_streams:
