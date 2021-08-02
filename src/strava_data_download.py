@@ -69,11 +69,11 @@ def api_rate_limits(response):
         if int(min15_usage) < int(min15_limit):
             sleep_sec = 0
         else:
-            with ConsolidatedProgressStdoutRedirection:
+            with ConsolidatedProgressStdoutRedirection():
                 print((str(datetime.now()) +' The Strava API 15 min download limit has been reached. Will pause for {} seconds.'.format(min15_difference)))
             sleep_sec = int(min15_difference)+2
     else:
-        with ConsolidatedProgressStdoutRedirection:
+        with ConsolidatedProgressStdoutRedirection():
             print((str(datetime.now()) + ' The Strava API daily download limit has been reached. Will pause for {} seconds.'.format(midnight_difference)))
         sleep_sec = int(midnight_difference)+2
 
