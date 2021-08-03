@@ -14,7 +14,6 @@ import sys
 from processify import processify
 
 
-
 #----Crypto Variables----
 # salt size in bytes
 SALT_SIZE = 16
@@ -22,6 +21,9 @@ SALT_SIZE = 16
 NUMBER_OF_ITERATIONS = 2000 # PG:Consider increasing number of iterations
 # the size multiple required for AES
 AES_MULTIPLE = 16
+
+path_params = config(filename="encrypted_settings.ini", section="path")
+PID_FILE_DIR = path_params.get("pid_file_dir")
 
 def encrypt(plaintext, password):
     salt = Crypto.Random.get_random_bytes(SALT_SIZE)
@@ -34,6 +36,11 @@ def encrypt(plaintext, password):
 
 @processify
 def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura_refresh_token,start_date_dt,end_date_dt,save_pwd,encr_pass):
+
+    #Get PID of the current process and write it in the file
+    pid = str(os.getpid())
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
+    open(pidfile, 'w').write(pid)
     
     oura_params = config(filename="encrypted_settings.ini", section="oura",encr_pass=encr_pass)
     OURA_CLIENT_ID = str(oura_params.get("oura_client_id"))

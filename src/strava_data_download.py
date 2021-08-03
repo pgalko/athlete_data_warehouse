@@ -1,4 +1,4 @@
-
+import os
 import sys
 import requests
 import psycopg2
@@ -24,6 +24,9 @@ SALT_SIZE = 16
 NUMBER_OF_ITERATIONS = 2000 # PG:Consider increasing number of iterations
 # the size multiple required for AES
 AES_MULTIPLE = 16
+
+path_params = config(filename="encrypted_settings.ini", section="path")
+PID_FILE_DIR = path_params.get("pid_file_dir")
 
 def encrypt(plaintext, password):
     salt = Crypto.Random.get_random_bytes(SALT_SIZE)
@@ -81,6 +84,11 @@ def api_rate_limits(response):
 
 @processify
 def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,strava_refresh_token,start_date_dt,end_date_dt,save_pwd,encr_pass):
+ 
+    #Get PID of the current process and write it in the file
+    pid = str(os.getpid())
+    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
+    open(pidfile, 'w').write(pid)
 
     strava_params = config(filename="encrypted_settings.ini", section="strava",encr_pass=encr_pass)
     STRAVA_CLIENT_ID = str(strava_params.get("strava_client_id"))
@@ -164,7 +172,7 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
             pass
         else:
             time.sleep(sleep_sec)
-            continue
+            pass
         
         # if no results then exit loop
         if (not r.json()):
@@ -402,7 +410,7 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                 pass
             else:
                 time.sleep(sleep_sec)
-                continue
+                pass
             
             #Do something with the response/data
 
