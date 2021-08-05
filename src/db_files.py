@@ -15,11 +15,6 @@ def data_file_path_insert(file_path,ath_un,db_host,db_name,superuser_un,superuse
     athlete_id = (ath_un)
     db_name = (db_name)
 
-    #Get PID of the current process and write it in the file
-    pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
-    open(pidfile, 'w').write(pid)
-
     conn = None
 
     sql = """
@@ -62,12 +57,6 @@ def check_data_file_exists(data_file_path,ath_un,db_host,db_name,superuser_un,su
     ath_un = (ath_un)
     data_file_path = (data_file_path)
     db_name = db_name
-
-    #Get PID of the current process and write it in the file
-    pid = str(os.getpid())
-    pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
-    open(pidfile, 'w').write(pid)
-
 
     sql_check_file_exists = """
     SELECT data_file_path FROM files WHERE athlete_id = (select id from athlete where ath_un=%s) and data_file_path =%s;

@@ -164,10 +164,23 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
     activities_url = "https://www.strava.com/api/v3/activities"
 
     while True:   
-        # get page of activities from Strava
-        r = requests.get('{}?before={}&after={}&page={}&per_page=200'.format(activities_url,epoch_end_date,epoch_start_date,str(page)),headers=header)
-        
-        sleep_sec = api_rate_limits(r)
+        # Retry 3 times if request fails
+        tries = 3
+        for i in range(tries):
+            try:
+                # get page of 200 activities from Strava
+                r = requests.get('{}?before={}&after={}&page={}&per_page=200'.format(activities_url,epoch_end_date,epoch_start_date,str(page)),headers=header)
+                sleep_sec = api_rate_limits(r)
+            except Exception as e:
+                if i < tries - 1:
+                    time.sleep(10)
+                    continue
+                else:
+                    with ErrorStdoutRedirection(ath_un):
+                        print((str(datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                    raise
+            break
+
         if sleep_sec == 0:
             pass
         else:
@@ -403,9 +416,23 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
             types = 'time,distance,latlng,altitude,velocity_smooth,heartrate,cadence,watts,temp,moving,grade_smooth'
             df_columns = {'activity_id','time_gmt','distance','latitude','longitude','altitude','velocity_smooth','heartrate','cadence','watts','temp','moving','grade_smooth'}
             df_columns = sorted(df_columns)
-            streams = requests.get("https://www.strava.com/api/v3/activities/{}/streams?keys={}".format(strava_activity_id,types),headers=header)
 
-            sleep_sec = api_rate_limits(streams)
+            # Retry 3 times if request fails
+            tries = 3
+            for i in range(tries):
+                try:
+                    streams = requests.get("https://www.strava.com/api/v3/activities/{}/streams?keys={}".format(strava_activity_id,types),headers=header)
+                    sleep_sec = api_rate_limits(streams)
+                except Exception as e:
+                    if i < tries - 1:
+                        time.sleep(10)
+                        continue
+                    else:
+                        with ErrorStdoutRedirection(ath_un):
+                            print((str(datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                        raise
+                break
+            
             if sleep_sec == 0:
                 pass
             else:
@@ -421,8 +448,14 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                     with ErrorStdoutRedirection(ath_un):
                         print(str(datetime.now()) + ' No streams retrieved for {}. Moving onto next activity.'.format(strava_activity_id))
                     continue
+                if "Rate Limit Exceeded" in activity_streams['message']:
+                    with ErrorStdoutRedirection(ath_un):
+                        print(str(datetime.now()) + ' Download Rate limit exceeded. This attempt did not get caught by api_rate_limits() function!')
+                    #Usualy due to failed request on a very last attempt before limit, and subsequent succesfull retry.Too messy, move onto next activity and see what happens. 
+                    continue
             else:
                 pass
+
             activity_streams_df = pd.DataFrame(columns=df_columns)
 
             for stream in activity_streams:
