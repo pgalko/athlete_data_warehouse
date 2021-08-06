@@ -1032,7 +1032,7 @@ def strava_confirm():
 @app.route("/process_running", methods = ['GET','POST'])
 def process_running():
     if request.method == 'POST':
-        post_user = urllib.parse.unquote(request.form.get('gcUN'))
+        post_user = urllib.parse.unquote(request.form.get('ath_un'))
         pidfile = PID_FILE_DIR + post_user + '_PID.txt'
         if os.path.isfile(pidfile):
             #read PID from file

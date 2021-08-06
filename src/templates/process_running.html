@@ -29,10 +29,10 @@
         
             $(document).ready(function() {   
                 setInterval(function() {
-                    //var user = document.getElementById('gcUN').value;
-                    var gcUN = document.getElementById('gcUN');
+                    //var user = document.getElementById('ath_un').value;
+                    var ath_un = document.getElementById('ath_un');
                     var user = getQueryVariable("user");
-                    gcUN.value = user;
+                    ath_un.value = user;
                     var extension = '_stdout.txt';
                     var file = user+extension;
                     $.ajax({url: "static/stdout/"+file, dataType: "text", success: function(result){
@@ -81,7 +81,7 @@
     <form method="POST"  action= "/process_running" enctype="multipart/form-data" id='process_running-form'>
         
         <div>
-            <input type="hidden" name="gcUN" id="gcUN">     
+            <input type="hidden" name="ath_un" id="ath_un">     
         </div>
 
         <!--Progress Msg Box section-->        
