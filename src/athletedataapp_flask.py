@@ -229,7 +229,7 @@ def create_app(encr_pass_input,debug=False):
                 #check whether the PID from file is still running
                 if psutil.pid_exists(int(pid_from_file)):
                     with ProgressStdoutRedirection(ath_un):
-                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + "  %s already exists, the previous execution of the task is still running... Web App exiting!" % pidfile))
+                        print(str(datetime.datetime.now()) + "  %s already exists, the previous execution of the task is still running... Web App exiting!" % pidfile)
                     continue_btn = 'none'
                     user=ath_un
                     flash('  The previous execution of the task for: ' +user+ ' is still running... You can check the status below.','danger')

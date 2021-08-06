@@ -95,25 +95,6 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
     STRAVA_CLIENT_SECRET = str(strava_params.get("strava_client_secret"))
     STRAVA_TOKEN_URL = str(strava_params.get("strava_token_url"))
 
-    #Refresh the access token
-    payload = dict(grant_type='refresh_token', refresh_token=strava_refresh_token,client_id=STRAVA_CLIENT_ID,client_secret=STRAVA_CLIENT_SECRET)
-    refresh = requests.post(STRAVA_TOKEN_URL, data=payload)
-    response = refresh.json()
-    oauth_token = response['access_token']
-    refresh_token = response['refresh_token']
-
-    if save_pwd == True:
-        encrypted_refresh_token = base64.b64encode(encrypt(refresh_token, encr_pass))
-        encrypted_refresh_token = encrypted_refresh_token.decode('utf-8')
-    else:
-        encrypted_refresh_token = None
-
-    header = {'Authorization':'Bearer {}'.format(oauth_token)}
-    epoch_start_date = start_date_dt.timestamp()
-    epoch_end_date = end_date_dt.timestamp()
-
-    conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
- 
     sql_insert_strava_refresh_token = """
 
         DO
@@ -149,15 +130,39 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
 
         ON CONFLICT (time_gmt) DO NOTHING;
     """
+    
+    conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
 
-    try:       
-        cur = conn.cursor()
-        cur.execute(sql_insert_strava_refresh_token,(ath_un,encrypted_refresh_token,ath_un))
-        conn.commit()       
-        cur.close()
-    except Exception as e:
-        with ErrorStdoutRedirection(ath_un):
-            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+    def refresh_oauth_tokens():   
+        #Refresh the access token
+        payload = dict(grant_type='refresh_token', refresh_token=strava_refresh_token,client_id=STRAVA_CLIENT_ID,client_secret=STRAVA_CLIENT_SECRET)
+        refresh = requests.post(STRAVA_TOKEN_URL, data=payload)
+        response = refresh.json()
+        oauth_token = response['access_token']
+        refresh_token = response['refresh_token']
+        expires_at = response['expires_at']
+
+        if save_pwd == True:
+            encrypted_refresh_token = base64.b64encode(encrypt(refresh_token, encr_pass))
+            encrypted_refresh_token = encrypted_refresh_token.decode('utf-8')
+        else:
+            encrypted_refresh_token = None
+
+        try:       
+            cur = conn.cursor()
+            cur.execute(sql_insert_strava_refresh_token,(ath_un,encrypted_refresh_token,ath_un))
+            conn.commit()       
+            cur.close()
+        except Exception as e:
+            with ErrorStdoutRedirection(ath_un):
+                print((str(datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+        
+        return oauth_token,expires_at
+    
+    oauth_token,expires_at = refresh_oauth_tokens()
+    header = {'Authorization':'Bearer {}'.format(oauth_token)}
+    epoch_start_date = start_date_dt.timestamp()
+    epoch_end_date = end_date_dt.timestamp()
 
     #Loop through all activities
     page = 1
@@ -168,6 +173,12 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
         tries = 3
         for i in range(tries):
             try:
+                #Check if the oauth token is stil valid, and refresh if not.
+                if int(datetime.now().timestamp()) > expires_at:
+                    oauth_token,expires_at = refresh_oauth_tokens()
+                    header = {'Authorization':'Bearer {}'.format(oauth_token)}
+                    with ProgressStdoutRedirection(ath_un):
+                        print(str(datetime.now()) + 'The Strava oauth token expired and has been refreshed')
                 # get page of 200 activities from Strava
                 r = requests.get('{}?before={}&after={}&page={}&per_page=200'.format(activities_url,epoch_end_date,epoch_start_date,str(page)),headers=header)
                 sleep_sec = api_rate_limits(r)
@@ -186,7 +197,7 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
         else:
             time.sleep(sleep_sec)
             pass
-        
+
         # if no results then exit loop
         if (not r.json()):
             if conn is not None:
@@ -421,6 +432,12 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
             tries = 3
             for i in range(tries):
                 try:
+                    #Check if the oauth token is stil valid, and refresh if not.
+                    if int(datetime.now().timestamp()) > expires_at:
+                        oauth_token,expires_at = refresh_oauth_tokens()
+                        header = {'Authorization':'Bearer {}'.format(oauth_token)}
+                        with ProgressStdoutRedirection(ath_un):
+                            print(str(datetime.now()) + 'The Strava oauth token expired and has been refreshed')
                     streams = requests.get("https://www.strava.com/api/v3/activities/{}/streams?keys={}".format(strava_activity_id,types),headers=header)
                     sleep_sec = api_rate_limits(streams)
                 except Exception as e:
@@ -438,6 +455,8 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
             else:
                 time.sleep(sleep_sec)
                 pass
+            
+            #TODO: if sleep_sec > 6hrs request a new access_token
             
             #Do something with the response/data
 
