@@ -96,15 +96,15 @@
                 <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Logged in as: {{signin_valid}}</b></small>
             {% else %}
                 <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7"><b>Not logged-in</b></small>
-                {% endif %}
-                <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7 " >This tool automates health and performance data download from Garmin Connect, Strava, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
-                    It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
-                    Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
-                    <p>
-                    Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
-                    This is an experimental project of mine and all functionality is provided free of charge. The user has an ability to delete the database and all data at any time. More info in the FAQ section.
-                    </p>            
-                </small>
+            {% endif %}
+            <small class="form-text" style="margin-left: 15px; margin-top:5px;color:#f7f7f7 " >This tool automates health and performance data download from Garmin Connect, Strava, Oura, MyFitnessPal, Diasend, Glimp app, LibreView, Muse/Mind Monitor app, Meteostat weather service. 
+                It can be used to download the following types of data from the aforementioned sources: TRAINING, EXCERSIZE, NUTRITION, MEDICATION/SUPPLEMENTS, HR, HRV, SLEEP, STRESS, RECOVERY, MOOD, BODY COMPOSITION, BLOOD GLUCOSE, EEG/MEDITATION, WEATHER and other.
+                Once downloaded it then parses and cleans up the data and inserts it into a PostgreSQL database for analysis. 
+                <p>
+                Upon the completion of the data download and DB insert the user has full access to his/hers postgreSQL database using any of the available methods. 
+                This is an experimental project of mine and all functionality is provided free of charge. The user has an ability to delete the database and all data at any time. More info in the FAQ section.
+                </p>            
+            </small>
             <span><a class="btn btn-outline-light" id="datamodel_preview" href="/datamodel_preview" target="_blank" style="margin-left: 15px"><span class="oi oi-fork" aria-hidden="true"></span> View DB model</a></span> 
             <span><a class="btn btn-outline-light" id="db_info" href="/db_info?user=&dbhost=" style="margin-left: 15px" onclick="addAtribs()"><span class="oi oi-script" aria-hidden="true"></span> View DB info</a></span>    
             <span><a class="btn btn-outline-light" id="browse_sample_data" href="http://pgweb.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse sample DB</a></span>
@@ -639,10 +639,11 @@
         </div>
     
         <div>
-            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" >This option is <b>enabled</b> by default upon providing valid Garmin Connect UN and PWD. Please uncheck if you do not wish to synchronise your data automaticaly. 
-                If enabled, the server encrypts and stores your Garmin Connect, MFP and Diasend passwords in the DB and use them to periodicaly check with Garmin connect and MFP whether there are any new data present. If there are, they will be downloaded and stored in the DB (This happens behind the scenes and does not require any user intervention).
-             <p>The data that will be downloaded are: FIT activities, FIT and XML Welness data, Body composition, Daily summaries, Nutrition, CGM and EEG data. If you provided a permision to connect to your Dropbox, the downloaded data will be also synchronised with your dropbox.</p>
-             </small>
+            <small class="form-text text-muted" style="margin-left: 35px; margin-top:5px; max-width: 800px" >This option is <b>enabled</b> by default upon selecting a data source. Please uncheck before you proceed with the download if you do not wish to synchronise your data automaticaly. 
+                If enabled, the server encrypts and stores your login credentials, data links and any API tokens for the selected datasources, and use them to periodicaly to log in and check whether there are any new data present.
+                If there are, they will be downloaded and stored in the DB (This happens behind the scenes and does not require any user intervention).
+                If you provided a permision to connect to your Dropbox, the downloaded data will be also synchronised with your dropbox.
+            </small>
         </div>
     
         <div class="container" style="margin-left: 35px; margin-top:5px">
@@ -697,15 +698,15 @@
             {% if oura_well_progress == 'Error downloading Oura wellness data'%} <span class="badge badge-danger"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Error downloading data</span>
                 {% elif oura_well_progress == 'Oura wellness data downloaded successfully'%} <span class="badge badge-success"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Downloaded successfully</span>
                 {%else%}<span class="badge badge-secondary"  id="ouraWell" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Oura Wellness Data - Will be skipped</span>
-                {% endif %}
-                {% if strava_activ_progress == 'Error downloading Strava activity data'%} <span class="badge badge-danger"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Error downloading data</span>
-                    {% elif strava_activ_progress == 'Strava activity data downloaded successfully'%} <span class="badge badge-success"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Downloaded successfully</span>
-                    {%else%}<span class="badge badge-secondary"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Will be skipped</span>
-                {% endif %}
-                {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
-                    {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
-                    {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
-                {% endif %}
+            {% endif %}
+            {% if strava_activ_progress == 'Error downloading Strava activity data'%} <span class="badge badge-danger"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Error downloading data</span>
+                {% elif strava_activ_progress == 'Strava activity data downloaded successfully'%} <span class="badge badge-success"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="stravaActvt" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Strava Activity Data - Will be skipped</span>
+            {% endif %}
+            {% if gc_fit_well_progress == 'Error downloading GC FIT wellness data'%} <span class="badge badge-danger"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Error downloading data</span>
+                {% elif gc_fit_well_progress == 'GC FIT wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="gcWellFit" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (FIT) - Will be skipped</span>
+            {% endif %}
             {% if gc_json_well_progress == 'Error downloading GC JSON wellness data'%} <span class="badge badge-danger"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Error downloading data</span>
                 {% elif gc_json_well_progress == 'GC JSON wellness data downloaded successfully'%} <span class="badge badge-success"  id="gcWellJson" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Downloaded successfully</span>
                 {%else%}<span class="badge badge-secondary"  id="gcWellJson"style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Wellness Data (JSON) - Will be skipped</span>
