@@ -40,7 +40,7 @@ CREATE TABLE public.athlete (
     glimp_export_link character varying(300),
     libreview_export_link character varying(300),
     mm_export_link character varying(300),
-    oura_refresh_token character varying(300)
+    oura_refresh_token character varying(300),
     strava_refresh_token character varying(300)
 );
 
