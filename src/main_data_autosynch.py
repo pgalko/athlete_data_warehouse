@@ -14,6 +14,7 @@ import delete_data as clr
 from db_create_user_database import check_user_db_exists
 from db_user_insert import insert_last_synch_timestamp
 from weather import get_weather
+from cstm_data_download_db_insert import retrieve_cstm_tables_params
 from Athlete_Data_Utills import StdoutRedirection,ErrorStdoutRedirection,ProgressStdoutRedirection
 from database_ini_parser import config
 
@@ -39,7 +40,6 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
         gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
         gc.dwnld_insert_json_dailysummary(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
 
-    #PG:Call to execute "parse and insert MFP data" script 
     if mfp_username is not None:   
         try:
             mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,encr_pass,True,True,db_host,superuser_un,superuser_pw)
@@ -82,7 +82,11 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-   
+    try:
+        retrieve_cstm_tables_params(ath_un,db_host,db_name,superuser_un,superuser_pw)
+    except Exception as e:
+        with ErrorStdoutRedirection(ath_un):
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     try:
         get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
     except Exception as e:

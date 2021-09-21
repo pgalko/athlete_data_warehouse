@@ -575,6 +575,39 @@ def mm_user_insert(mm_export_link,ath_un,db_host,db_name,superuser_un,superuser_
             conn.close()
 
 @processify
+def cstm_user_insert(ath_un,usr_params_str,usr_params_int,table_name,db_host,db_name,superuser_un,superuser_pw):
+    conn = None 
+    cstm_dbx_link = usr_params_str[0]
+    download_folder = usr_params_str[1]
+    ui_table_name = usr_params_str[2]
+    date_format = usr_params_str[3]
+    time_standard = usr_params_str[4]
+    datetime_clmn = usr_params_str[5]
+    unique = usr_params_int
+
+    ins_query_str = "ARRAY['{}','{}','{}','{}','{}','{}']".format(cstm_dbx_link,download_folder,ui_table_name,date_format,time_standard,datetime_clmn)
+
+    sql_create_clmn = "ALTER TABLE athlete ADD COLUMN IF NOT EXISTS str_up_{0} VARCHAR[], ADD COLUMN IF NOT EXISTS int_up_{0} INT[] ;".format(table_name)
+    sql_insert_usr_str_params = "DO $do$ BEGIN IF EXISTS (SELECT id FROM athlete WHERE ath_un = '{}') THEN UPDATE athlete SET str_up_{} = {} where ath_un= '{}';END IF;END $do$".format(ath_un,table_name,ins_query_str,ath_un)
+    sql_insert_usr_int_params = "DO $do$ BEGIN IF EXISTS (SELECT id FROM athlete WHERE ath_un = '{}') THEN UPDATE athlete SET int_up_{} = ARRAY{} where ath_un= '{}';END IF;END $do$".format(ath_un,table_name,unique,ath_un)
+
+    try:   
+        conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
+        cur = conn.cursor()
+        with ProgressStdoutRedirection(ath_un):
+            print('Inserting cstm table user params in to postgresDB :')
+        cur.execute(sql_create_clmn)
+        cur.execute(sql_insert_usr_str_params)
+        cur.execute(sql_insert_usr_int_params)
+        conn.commit()
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
+    finally:
+        if conn is not None:
+            conn.close()
+
+@processify
 def update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,encrypted_superuser_pw,enable_auto_synch,encr_pass):
 
     ath_user = (ath_un,)

@@ -22,6 +22,7 @@ from db_strava_auth import check_strava_token_exists
 from diasend_data_download_db_insert import diasend_data_export_insert
 from glimp_data_download_db_insert import glimp_data_insert
 from mind_monitor_data_download_db_insert import mm_data_insert
+from cstm_data_download_db_insert import cstm_data_insert
 from weather import get_weather
 from send_email import send_email
 from oura_data_download import dwnld_insert_oura_data
@@ -135,6 +136,14 @@ def index():
     diasend_password = None
     glimp_export_link = None
     mm_export_link = None
+    cstm_str_params = []
+    cstm_int_params = []
+    cstm_export_link = None
+    cstm_tab_name = None
+    cstm_dt_column = None
+    cstm_timezone = None
+    cstm_date_format = None
+    cstm_unique_columns = None
     output =None
     start_date = None
     end_date = None
@@ -144,6 +153,7 @@ def index():
     diasend_progress = None
     glimp_progress = None
     mm_progress = None
+    cstm_progress = None
     gc_login_progress = None
     gc_fit_activ_progress = None
     strava_activ_progress = None
@@ -260,6 +270,20 @@ def index():
         if request.form.get('mmCheckbox') is not None:
             mm_export_link = str(request.form.get('mmExportLink'))
         
+        #-----Cstm STR and INT params-----
+        if request.form.get('cstmCheckbox') is not None:
+            cstm_export_link = request.form.get('cstmExportLink')
+            cstm_tab_name = request.form.get('cstmTabName')
+            cstm_dt_column = request.form.get('cstmDTColumn')
+            if cstm_dt_column == 'None':
+                cstm_dt_column = None
+            cstm_timezone = request.form.get('cstmTimeZone')
+            cstm_date_format = request.form.get('cstmDateFormat')
+            cstm_unique_columns = request.form.getlist('cstmUniqueColumns')
+            cstm_output = os.path.join(output,ath_un)
+            cstm_str_params.extend([cstm_export_link,cstm_output,cstm_tab_name,cstm_date_format,cstm_timezone,cstm_dt_column])
+            cstm_int_params.extend([int(i) for i in cstm_unique_columns])
+
         #----Check for and Retrieve Dropbox token----   
         if request.form.get('archiveDataCheckbox') is not None:
             archive_radio = request.form.get('archiveData')
@@ -682,6 +706,27 @@ def index():
                             print(mm_progress)
                         time.sleep(1)
 
+                #------------------ CSTM Data from csv --------------------------
+                #PG:Call to execute "parse and insert CSTM csv data" script
+                if cstm_export_link is not None:
+                    try:
+                        cstm_progress = 'Custom data download started'
+                        with StdoutRedirection(ath_un):
+                            print(cstm_progress)
+                        time.sleep(1)
+                        cstm_data_insert(ath_un,cstm_str_params,cstm_int_params,db_host,superuser_un,superuser_pw)
+                        cstm_progress = 'Custom data downloaded successfully'
+                        with StdoutRedirection(ath_un):
+                            print(cstm_progress)
+                        time.sleep(1)
+                    except Exception as e:
+                        with ErrorStdoutRedirection(ath_un):
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+                        cstm_progress = 'Error downloading custom data'
+                        with StdoutRedirection(ath_un):
+                            print(cstm_progress)
+                        time.sleep(1)
+
                 #--------------- Weather --------------
                 #PG:Call to execute "retrieve and insert weather/meteostat data" script
                 try:
@@ -761,7 +806,7 @@ def index():
                 print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + ath_un + '  Finished Data Download ' + error_log_entry +' -------------' ))
 
             return render_template("index.html",signin_valid=signin_valid,del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,
-                                    glimp_progress = glimp_progress, mm_progress = mm_progress, gc_login_progress = gc_login_progress,gc_fit_activ_progress = gc_fit_activ_progress,
+                                    glimp_progress = glimp_progress, mm_progress = mm_progress, cstm_progress = cstm_progress, gc_login_progress = gc_login_progress,gc_fit_activ_progress = gc_fit_activ_progress,
                                     gc_tcx_activ_progress = gc_tcx_activ_progress,gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
                                     gc_json_dailysum_progress = gc_json_dailysum_progress, oura_well_progress = oura_well_progress, strava_activ_progress=strava_activ_progress,
                                     progress_error = progress_error, continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,

@@ -119,10 +119,8 @@ function EnableDisableElmnt(radioBtn){
     //Variables-----------------
     var gcUsernameTextbox = document.getElementById('gcUsernameInput');
     var gcPasswordTextbox = document.getElementById('gcPasswordInput');
-    var gcCSVfileButtn = document.getElementById('CSVgcCredentialsFile');
     var mfpUsernameTextbox = document.getElementById('mfpUsernameInput');
     var mfpPasswordTextbox = document.getElementById('mfpPasswordInput');
-    var mfpCSVfileButtn = document.getElementById('CSVmfpCredentialsFile');
     var gcLoginBorder = document.getElementById('gcLoginBorder');
     var mfpLoginBorder = document.getElementById('mfpLoginBorder');
     var diasendLoginBorder = document.getElementById('diasendLoginBorder');
@@ -133,7 +131,6 @@ function EnableDisableElmnt(radioBtn){
 
     var diasendUsernameTextbox = document.getElementById('diasendUsernameInput');
     var diasendPasswordTextbox = document.getElementById('diasendPasswordInput');
-    var diasendCSVfileButtn = document.getElementById('CSVdiasendCredentialsFile');
 
     var gcUN = document.getElementById('gcUN');
     var gcPW = document.getElementById('gcPW');
@@ -147,12 +144,7 @@ function EnableDisableElmnt(radioBtn){
 
 
     var gcCheckbox = document.getElementById('GCCheckbox');
-    var mfpCheckbox = document.getElementById('MFPCheckbox');
-    var diasendCheckbox = document.getElementById('diasendCheckbox');
 
-    var wellnessCheckbox = document.getElementById('wellnessCheckbox');
-    var ouraCheckbox = document.getElementById('ouraCheckbox');
-    var stravaCheckbox = document.getElementById('stravaCheckbox');
     var housekeeping = document.getElementById('housekeeping');
     var AutoSynchCheckbox = document.getElementById('AutoSynchCheckbox');
 
@@ -165,11 +157,9 @@ function EnableDisableElmnt(radioBtn){
     var archiveDataCheckbox = document.getElementById('archiveDataCheckbox')
     var archiveAllData = document.getElementById('archiveAllData');
     var archiveDBdata = document.getElementById('archiveDBdata');
-    var archiveFiles = document.getElementById('archiveFiles');
 
     var glimpTextArea = document.getElementById('GlimpExportLink');	
     var mmTextArea = document.getElementById('mmExportLink');
-
 
     var mfpNutritionBadge = document.getElementById('mfpNutritionBadge');
     var diasendCGMbadge = document.getElementById('diasendCGMbadge');
@@ -184,6 +174,15 @@ function EnableDisableElmnt(radioBtn){
     var gcDailySum = document.getElementById('gcDailySum');
     var startDate = document.getElementById('startDate');
     var endDate = document.getElementById('endDate');
+
+    var cstmBadge = document.getElementById('cstmCSV');
+    var cstmLoginBorder = document.getElementById('cstmLoginBorder')
+    var cstmExportLink = document.getElementById('cstmExportLink')
+    var cstmTabName = document.getElementById('cstmTabName')
+    var cstmDTColumn = document.getElementById('cstmDTColumn')
+    var cstmTimeZone = document.getElementById('cstmTimeZone')
+    var cstmDateFormat = document.getElementById('cstmDateFormat')
+    var cstmUniqueColumns = document.getElementById('cstmUniqueColumns')
 
     var dbHost = document.getElementById('dbHost');
     var dbUser = document.getElementById('dbUser');
@@ -515,6 +514,94 @@ function EnableDisableElmnt(radioBtn){
             }
         }
     }
+    //Custom Data from CSV checkbox checked
+    else if (radioBtn.checked == true  && radioBtn == document.getElementById('cstmCheckbox')){
+        cstmBadge.className = "badge badge-primary";
+        cstmBadge.textContent = "Custom Data from CSV - Will be downloaded";
+        cstmLoginBorder.className = "border border-primary";
+
+        cstmExportLink.disabled = false;
+        cstmExportLink.setAttribute('required','');
+        cstmTabName.disabled = false;
+        cstmTabName.setAttribute('required','');
+        cstmDTColumn.disabled = false;
+        //cstmTimeZone.disabled = false;
+        //cstmDateFormat.disabled = false;
+        cstmUniqueColumns.disabled = false;
+        cstmUniqueColumns.setAttribute('required','');
+
+        dataSources.push(radioBtn.id);
+
+        cstmExportLink.oninput = function(e) {
+            var cstmExportLinkid = cstmExportLink.id; // get the element's id to save it
+            var cstmExportLinkval = cstmExportLink.value; // get the value.
+            sessionStorage.setItem(cstmExportLinkid, cstmExportLinkval);// save to sessionStorage
+        }
+        cstmTabName.oninput = function(e) {
+            var cstmTabNameid = cstmTabName.id; // get the element's id to save it
+            var cstmTabNameval = cstmTabName.value; // get the value.
+            sessionStorage.setItem(cstmTabNameid, cstmTabNameval);// save to sessionStorage
+        }
+        cstmDTColumn.oninput = function(e) {
+            var cstmDTColumnid = cstmDTColumn.id; // get the element's id to save it
+            var cstmDTColumnval = cstmDTColumn.value; // get the value.
+            sessionStorage.setItem(cstmDTColumnid, cstmDTColumnval);// save to sessionStorage
+            if(document.getElementById('cstmDTColumn').value == "None") {
+                cstmTimeZone.disabled = true;
+                cstmDateFormat.disabled = true;
+                cstmTimeZone.removeAttribute('required');
+                cstmDateFormat.removeAttribute('required');
+           }
+           else {
+                cstmTimeZone.disabled = false;
+                cstmDateFormat.disabled = false;
+                cstmTimeZone.setAttribute('required','');
+                cstmDateFormat.setAttribute('required','');
+           }
+        }
+        cstmTimeZone.oninput = function(e) {
+            var cstmTimeZoneid = cstmTimeZone.id; // get the element's id to save it
+            var cstmTimeZoneval = cstmTimeZone.value; // get the value.
+            sessionStorage.setItem(cstmTimeZoneid, cstmTimeZoneval);// save to sessionStorage
+        }
+        cstmDateFormat.oninput = function(e) {
+            var cstmDateFormatid = cstmDateFormat.id; // get the element's id to save it
+            var cstmDateFormatval = cstmDateFormat.value; // get the value.
+            sessionStorage.setItem(cstmDateFormatid, cstmDateFormatval);// save to sessionStorage
+        }
+        cstmUniqueColumns.oninput = function(e) {
+            var cstmUniqueColumnsid = cstmUniqueColumns.id; // get the element's id to save it
+            var cstmUniqueColumnsval = [];
+            for (var option of document.getElementById('cstmUniqueColumns').options) // get the values.
+            {
+                if (option.selected) {
+                    cstmUniqueColumnsval.push(option.value);
+                }
+            }
+            sessionStorage.setItem(cstmUniqueColumnsid, JSON.stringify(cstmUniqueColumnsval));// save to sessionStorage as a string
+        }
+    }
+    //Custom Data from CSV checkbox unchecked
+    else if (radioBtn.checked == false  && radioBtn == document.getElementById('cstmCheckbox')){
+        cstmBadge.className = "badge badge-secondary";
+        cstmBadge.textContent = "Custom Data from CSV - Will be skipped";
+        cstmLoginBorder.className = "border";
+        cstmExportLink.disabled = true;
+        cstmExportLink.removeAttribute('required');
+        cstmTabName.disabled = true;
+        cstmTabName.removeAttribute('required');
+        cstmDTColumn.disabled = true;
+        cstmTimeZone.disabled = true;
+        cstmDateFormat.disabled = true;
+        cstmUniqueColumns.disabled = true;
+        cstmUniqueColumns.removeAttribute('required');
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
+    }
+
     //Welness checkbox checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('wellnessCheckbox')){
         gcWellFit.className = "badge badge-primary";
@@ -721,13 +808,18 @@ function loadSavedValues(){
     document.getElementById("diasendPW").value = returnSavedValue("diasendPW");
     document.getElementById("GlimpExportLink").value = returnSavedValue("GlimpExportLink");
     document.getElementById("mmExportLink").value = returnSavedValue("mmExportLink");
+    document.getElementById("cstmExportLink").value = returnSavedValue("cstmExportLink");
+    document.getElementById("cstmTabName").value = returnSavedValue("cstmTabName");
+    document.getElementById("cstmDTColumn").value = returnSavedValue("cstmDTColumn");
+    document.getElementById("cstmTimeZone").value = returnSavedValue("cstmTimeZone");
+    document.getElementById("cstmDateFormat").value = returnSavedValue("cstmDateFormat");
+    document.getElementById("cstmUniqueColumns").value = JSON.parse(returnSavedValue("cstmUniqueColumns"));
     document.getElementById("startDate").value = returnSavedValue("startDate");
     document.getElementById("endDate").value = returnSavedValue("endDate");
 }
             
 //load all form checkboxes function
 function loadSavedChecked(){
- 
     var AutoSynchCheckbox = JSON.parse(sessionStorage.getItem('AutoSynchCheckbox'));
     var gcCheckbox = JSON.parse(sessionStorage.getItem('GCCheckbox'));
     var mfpCheckbox = JSON.parse(sessionStorage.getItem('MFPCheckbox'));
@@ -740,6 +832,7 @@ function loadSavedChecked(){
     var ouraCheckbox = JSON.parse(sessionStorage.getItem('ouraCheckbox'));
     var stravaCheckbox = JSON.parse(sessionStorage.getItem('stravaCheckbox'));
     var archiveDataCheckbox = JSON.parse(sessionStorage.getItem('archiveDataCheckbox'));
+    var cstmCheckbox = JSON.parse(sessionStorage.getItem('cstmCheckbox'));
 
     var deleteData = sessionStorage.getItem('deleteData');
     var archiveData = sessionStorage.getItem('archiveData');
@@ -778,6 +871,9 @@ function loadSavedChecked(){
     }
     if (stravaCheckbox == true) {
         document.getElementById('stravaCheckbox').click();
+    }
+    if (cstmCheckbox == true) {
+        document.getElementById('cstmCheckbox').click();
     }
     if (archiveDataCheckbox == true) {
         document.getElementById('archiveDataCheckbox').click();

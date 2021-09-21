@@ -215,7 +215,7 @@
         </div>
 
         <div>
-            <small class="form-text text-muted" style="margin-left: 35px; margin-bottom:15px; margin-top:5px; max-width: 800px" >Select the below checkboxes depending on what data and from what source you would like to download. The GarminConnect activities checkbox is required and selected by default, the rest of the datasources and datatypes are optional.</small>
+            <small class="form-text text-muted" style="margin-left: 35px; margin-bottom:15px; margin-top:5px; max-width: 800px" >Select the below sections and the coresponding checkboxes, depending on what data and from what source you would like to download.</small>
         </div>
         
         <div class="bs-example" style="margin-left: 35px">
@@ -234,6 +234,9 @@
                 </li>
                 <li class="nav-item">
                     <a href="#eeg_tab" class="nav-link" data-toggle="tab"><b>EEG/Meditation</b></a>
+                </li>
+                <li class="nav-item">
+                    <a href="#cstm_tab" class="nav-link" data-toggle="tab"><b>Custom Data</b></a>
                 </li>
             </ul>
             <div class="tab-content">
@@ -313,7 +316,7 @@
 
                 <!--MYFitnessPalTab-->
                 <div class="tab-pane fade" id="nutrition_tab">
-                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your MyFitnessPal account. Alternatively provide path to a CSV file with these credentials (username,password).
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your MyFitnessPal account..
                     </small>
                     <p><div class="header" style="color:#0275d8">
                         <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Nutrition <a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-secondary">MyFitnessPal</a> : </b>
@@ -350,7 +353,7 @@
                 
                 <!--Blood Glucose Tab checkbox-->
                 <div class="tab-pane fade" id="blood_glucose_tab">
-                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Diasend account. Alternatively provide path to a CSV file with these credentials (username,password). If you have selected the option to download Glimp or LibreView BG data, you will have to first share the "Glimp" or "LibreView" archive folder located in your Dropbox and input the generated link in the below section.
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Enter the logon credentials for your Diasend account. If you have selected the option to download Glimp or LibreView BG data, you will have to first share the "Glimp" or "LibreView" archive folder located in your Dropbox and paste the generated link to the below section.
                     </small>
                     <p><div class="header" style="color:#0275d8">
                         <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Blood Glucose <a href="https://diasend.com//en/" class="badge badge-pill badge-secondary">Diasend</a>, <a href="https://www.deebee.it/?p=1411" class="badge badge-pill badge-secondary">Glimp</a>, <a href="https://www.libreview.com/" class="badge badge-pill badge-secondary">LIbreView</a> : </b>
@@ -406,7 +409,7 @@
 
                 <!--MM EEG checkbox-->
                 <div class="tab-pane fade" id="eeg_tab">
-                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" > If you have selected the option to download Mind Monitor EEG data colected from muse device, you will have to first share the Mind Monitor archive folder located in your Dropbox and input the generated link in the below section.
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" > If you have selected the option to download Mind Monitor EEG data colected from muse device, you will have to first share the Mind Monitor archive folder located in your Dropbox and paste the generated link to the below section.
                     </small>
                     <p><div class="header" style="color:#0275d8">
                         <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>EEG/Meditation <a href="https://mind-monitor.com/" class="badge badge-pill badge-secondary">Mind Monitor/Muse</a> : </b>
@@ -427,6 +430,166 @@
                         </div> 
                     </div>
                 </div>
+                
+                <!--Custom Data from CSV checkbox-->
+                <div class="tab-pane fade" id="cstm_tab">
+                    <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" > In this section you will be able to select a <b>"csv"</b> file or a group of files that have been stored on Dropbox, shared, and accessible via link. The "csv" file/files will be parsed, formated and the data will be inserted into a custom table created on the fly. If a folder that contains a group of csv files is selected, the csv files need to be from the same origin, and in the same format (matching columns,time formats,delimiters etc.)
+                    </small>
+                    <p><div class="header" style="color:#0275d8">
+                        <b><span style="margin-right: 10px; margin-top:5px; margin-bottom: 5px;"></span>Custom Data <a href="https://dropbox.com/" class="badge badge-pill badge-secondary">Dropbox</a> : </b>
+                    </div>
+                    <div class="form-group form-check" style="margin-left: 30px;margin-right: 10px; margin-top:5px; margin-bottom: 15px;">
+                        <input type="checkbox" class="form-check-input" id="cstmCheckbox" name="cstmCheckbox" value="cstmCheckbox" onchange="EnableDisableElmnt(this)" onclick="saveChecked(this)">
+                        <label class="form-check-label" for="cstmCheckbox">Check to download data from a custom "csv" (Doesn't require Dropbox login) </label>
+                    </div></p>
+                    <!--User params entry (dbx link to csv,table name,date format,time standard,datetime column,unique columns)-->
+                    <div class="container" style="margin-left: 20px">
+                        <div class="row justify-content-start">
+                            <span class="border" id="cstmLoginBorder" style="margin-left: 5px; margin-bottom: 10px">
+                                <!--Link to a folder containing custom csv files-->
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;">
+                                    <label for="cstmExportLink"><b>Link to the Dropbox file/folder containing your "csv" files (You will need to share it and generate the link first):</b></label>   
+                                    <textarea id="cstmExportLink" name="cstmExportLink" class="form-control" rows="1" title="Before you can use this option you will first need to save your csv files to Dropbox and then share it. Right click on the file/folder that you want to make available to this tool, select the 'Share' option and copy the download link. Paste the copied link into the text input box" placeholder="Paste the link to the Dropbox file/folder here..." disabled></textarea>        
+                                </div>
+                                <!--Table name text input-->
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;max-width: 400px">
+                                    <label for="cstmTabName"><b>Table Name:</b></label>   
+                                    <textarea id="cstmTabName" name="cstmTabName" class="form-control" rows="1" title="Please do not use any special characters or spaces in the table name. The table name that you enter will be checked and if needed formated to comply with PosgreSQL guidelines (all special characters removed or replacaded), prepended with cstm_ (eg.Sample Table -> cstm_sample_table) and used to create a new db table to store the data from your CSV" placeholder="Enter the table name here..." disabled></textarea>        
+                                </div>
+                                <!--Select DateTime column-->
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;max-width: 300px">
+                                    <label for="cstmDTColumn"><b>DateTime Column:</b></label>
+                                    <select class="form-control form-control" id="cstmDTColumn" name="cstmDTColumn" title="Please select the column in your csv file that the timestamp records are stored in. If there are no DateTime data stored in the csv, select None." disabled>
+                                        <option value="None" selected title="Select None if the dataset does not contain any DateTime data.">None</option>
+                                        <option value="0">Column 1</option>
+                                        <option value="1">Column 2</option>
+                                        <option value="2">Column 3</option>
+                                        <option value="3">Column 4</option>
+                                        <option value="4">Column 5</option>
+                                        <option value="5">Column 6</option>
+                                        <option value="6">Column 7</option>
+                                        <option value="7">Column 8</option>
+                                        <option value="8">Column 9</option>
+                                        <option value="9">Column 10</option>
+                                    </select>
+                                </div>
+                                <!--Select DateTime zone-->
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;max-width: 300px">
+                                    <label for="cstmTimeZone"><b>Timezone:</b></label>
+                                    <select class="form-control form-control" id="cstmTimeZone" name="cstmTimeZone" title = "Please select the timezone that your timestamp records have been recorded in." disabled>   
+                                        <option value="Etc/GMT+12">(GMT-12:00) International Date Line West</option>
+                                        <option value="Pacific/Midway">(GMT-11:00) Midway Island, Samoa</option>
+                                        <option value="Pacific/Honolulu">(GMT-10:00) Hawaii</option>
+                                        <option value="US/Alaska">(GMT-09:00) Alaska</option>
+                                        <option value="America/Los_Angeles">(GMT-08:00) Pacific Time (US & Canada)</option>
+                                        <option value="America/Tijuana">(GMT-08:00) Tijuana, Baja California</option>
+                                        <option value="US/Arizona">(GMT-07:00) Arizona</option>
+                                        <option value="America/Chihuahua">(GMT-07:00) Chihuahua, La Paz, Mazatlan</option>
+                                        <option value="US/Mountain">(GMT-07:00) Mountain Time (US & Canada)</option>
+                                        <option value="America/Managua">(GMT-06:00) Central America</option>
+                                        <option value="US/Central">(GMT-06:00) Central Time (US & Canada)</option>
+                                        <option value="America/Mexico_City">(GMT-06:00) Guadalajara, Mexico City, Monterrey</option>
+                                        <option value="Canada/Saskatchewan">(GMT-06:00) Saskatchewan</option>
+                                        <option value="America/Bogota">(GMT-05:00) Bogota, Lima, Quito, Rio Branco</option>
+                                        <option value="US/Eastern">(GMT-05:00) Eastern Time (US & Canada)</option>
+                                        <option value="US/East-Indiana">(GMT-05:00) Indiana (East)</option>
+                                        <option value="Canada/Atlantic">(GMT-04:00) Atlantic Time (Canada)</option>
+                                        <option value="America/Caracas">(GMT-04:00) Caracas, La Paz</option>
+                                        <option value="America/Manaus">(GMT-04:00) Manaus</option>
+                                        <option value="America/Santiago">(GMT-04:00) Santiago</option>
+                                        <option value="Canada/Newfoundland">(GMT-03:30) Newfoundland</option>
+                                        <option value="America/Sao_Paulo">(GMT-03:00) Brasilia</option>
+                                        <option value="America/Argentina/Buenos_Aires">(GMT-03:00) Buenos Aires, Georgetown</option>
+                                        <option value="America/Godthab">(GMT-03:00) Greenland</option>
+                                        <option value="America/Montevideo">(GMT-03:00) Montevideo</option>
+                                        <option value="America/Noronha">(GMT-02:00) Mid-Atlantic</option>
+                                        <option value="Atlantic/Cape_Verde">(GMT-01:00) Cape Verde Is.</option>
+                                        <option value="Atlantic/Azores">(GMT-01:00) Azores</option>
+                                        <option value="Africa/Casablanca">(GMT+00:00) Casablanca, Monrovia, Reykjavik</option>
+                                        <option value="Etc/Greenwich" selected="selected">(GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</option>
+                                        <option value="Europe/Amsterdam">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>
+                                        <option value="Europe/Belgrade">(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>
+                                        <option value="Europe/Brussels">(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</option>
+                                        <option value="Europe/Sarajevo">(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb</option>
+                                        <option value="Africa/Lagos">(GMT+01:00) West Central Africa</option>
+                                        <option value="Asia/Amman">(GMT+02:00) Amman</option>
+                                        <option value="Europe/Athens">(GMT+02:00) Athens, Bucharest, Istanbul</option>
+                                        <option value="Asia/Beirut">(GMT+02:00) Beirut</option>
+                                        <option value="Africa/Cairo">(GMT+02:00) Cairo</option>
+                                        <option value="Africa/Harare">(GMT+02:00) Harare, Pretoria</option>
+                                        <option value="Europe/Helsinki">(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius</option>
+                                        <option value="Asia/Jerusalem">(GMT+02:00) Jerusalem</option>
+                                        <option value="Europe/Minsk">(GMT+02:00) Minsk</option>
+                                        <option value="Africa/Windhoek">(GMT+02:00) Windhoek</option>
+                                        <option value="Asia/Kuwait">(GMT+03:00) Kuwait, Riyadh, Baghdad</option>
+                                        <option value="Europe/Moscow">(GMT+03:00) Moscow, St. Petersburg, Volgograd</option>
+                                        <option value="Africa/Nairobi">(GMT+03:00) Nairobi</option>
+                                        <option value="Asia/Tbilisi">(GMT+03:00) Tbilisi</option>
+                                        <option value="Asia/Tehran">(GMT+03:30) Tehran</option>
+                                        <option value="Asia/Muscat">(GMT+04:00) Abu Dhabi, Muscat</option>
+                                        <option value="Asia/Baku">(GMT+04:00) Baku</option>
+                                        <option value="Asia/Yerevan">(GMT+04:00) Yerevan</option>
+                                        <option value="Asia/Kabul">(GMT+04:30) Kabul</option>
+                                        <option value="Asia/Yekaterinburg">(GMT+05:00) Yekaterinburg</option>
+                                        <option value="Asia/Karachi">(GMT+05:00) Islamabad, Karachi, Tashkent</option>
+                                        <option value="Asia/Calcutta">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>
+                                        <option value="Asia/Calcutta">(GMT+05:30) Sri Jayawardenapura</option>
+                                        <option value="Asia/Katmandu">(GMT+05:45) Kathmandu</option>
+                                        <option value="Asia/Almaty">(GMT+06:00) Almaty, Novosibirsk</option>
+                                        <option value="Asia/Dhaka">(GMT+06:00) Astana, Dhaka</option>
+                                        <option value="Asia/Rangoon">(GMT+06:30) Yangon (Rangoon)</option>
+                                        <option value="Asia/Bangkok">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>
+                                        <option value="Asia/Krasnoyarsk">(GMT+07:00) Krasnoyarsk</option>
+                                        <option value="Asia/Hong_Kong">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>
+                                        <option value="Asia/Kuala_Lumpur">(GMT+08:00) Kuala Lumpur, Singapore</option>
+                                        <option value="Asia/Irkutsk">(GMT+08:00) Irkutsk, Ulaan Bataar</option>
+                                        <option value="Australia/Perth">(GMT+08:00) Perth</option>
+                                        <option value="Asia/Taipei">(GMT+08:00) Taipei</option>
+                                        <option value="Asia/Tokyo">(GMT+09:00) Osaka, Sapporo, Tokyo</option>
+                                        <option value="Asia/Seoul">(GMT+09:00) Seoul</option>
+                                        <option value="Asia/Yakutsk">(GMT+09:00) Yakutsk</option>
+                                        <option value="Australia/Adelaide">(GMT+09:30) Adelaide</option>
+                                        <option value="Australia/Darwin">(GMT+09:30) Darwin</option>
+                                        <option value="Australia/Brisbane">(GMT+10:00) Brisbane</option>
+                                        <option value="Australia/Canberra">(GMT+10:00) Canberra, Melbourne, Sydney</option>
+                                        <option value="Australia/Hobart">(GMT+10:00) Hobart</option>
+                                        <option value="Pacific/Guam">(GMT+10:00) Guam, Port Moresby</option>
+                                        <option value="Asia/Vladivostok">(GMT+10:00) Vladivostok</option>
+                                        <option value="Asia/Magadan">(GMT+11:00) Magadan, Solomon Is., New Caledonia</option>
+                                        <option value="Pacific/Auckland">(GMT+12:00) Auckland, Wellington</option>
+                                        <option value="Pacific/Fiji">(GMT+12:00) Fiji, Kamchatka, Marshall Is.</option>
+                                        <option value="Pacific/Tongatapu">(GMT+13:00) Nuku'alofa</option>
+                                    </select>
+                                </div>
+                                <!--Select date format-->
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;max-width: 300px">
+                                    <label for="cstmDateFormat"><b>Date Format:</b></label>
+                                    <select class="form-control form-control" id="cstmDateFormat" name="cstmDateFormat" title="Please pick the date format that matches the timestamp records in your csv. Generaly there are two main date formats. US and EU(rest of the world) format. In US format the month is written first, then day then year (2/15/2020). EU format starts with day, followed by the month and the year (15/2/2020)." disabled>
+                                        <option value="eu">EU (default)</option>
+                                        <option value="us">US</option>
+                                    </select>
+                                </div>
+                                <!--Unique Columns-->
+                                <div class="form-group" style="margin-left: 10px;margin-right: 10px; margin-top:10px;margin-bottom: 10px;max-width: 300px">
+                                    <label for="cstmUniqueColumns"><b>Unique Columns:</b></label>
+                                    <select class="form-control form-control" id="cstmUniqueColumns" name="cstmUniqueColumns" title="Please select a column or a group of columns to include in the UNIQUE constraint. This is to to ensure that values stored in a column or a group of columns are unique across the whole table such as timestamps, and prevent multiple inserts of the already inserted data.(Hold CTRL key to select multiple values)." multiple="multiple" disabled>
+                                        <option value="0">Column 1 (Select one or multiple)</option>
+                                        <option value="1">Column 2</option>
+                                        <option value="2">Column 3</option>
+                                        <option value="3">Column 4</option>
+                                        <option value="4">Column 5</option>
+                                        <option value="5">Column 6</option>
+                                        <option value="6">Column 7</option>
+                                        <option value="7">Column 8</option>
+                                        <option value="8">Column 9</option>
+                                        <option value="9">Column 10</option>
+                                    </select>
+                                </div>
+                            </span>
+                        </div> 
+                    </div>
+                </div>
+
             </div>
         </div> 
 
@@ -714,7 +877,11 @@
             {% if gc_json_dailysum_progress == 'Error downloading GC JSON daily summary'%} <span class="badge badge-danger"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Error downloading data</span>
                 {% elif gc_json_dailysum_progress == 'GC JSON daily summary data downloaded successfully'%} <span class="badge badge-success"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Downloaded successfully</span>
                 {%else%}<span class="badge badge-secondary"  id="gcDailySum" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">GC Daily Summary (JSON) - Will be skipped</span>
-            {% endif %}           
+            {% endif %} 
+            {% if cstm_progress == 'Error downloading custom data'%} <span class="badge badge-danger"  id="cstmCSV" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Custom Data from CSV - Error downloading data</span>
+                {% elif cstm_progress == 'Custom data downloaded successfully'%} <span class="badge badge-success"  id="cstmCSV" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Custom Data from CSV - Downloaded successfully</span>
+                {%else%}<span class="badge badge-secondary"  id="cstmCSV" style="margin-left: 15px;margin-right: 5px; margin-top:15px;margin-bottom: 5px;">Custom Data from CSV - Will be skipped</span>
+            {% endif %}          
         </div>
 
 
@@ -731,25 +898,26 @@
                         </button> -->
                     </div>
                     <div class="modal-body">
-                        <p>Did you ever want to copy and store your activities, wellness, nutrition and blood sugar data all in one place ? Then this tool might be for you.
+                        <p>If you ever wanted to copy and store all your health and fitness data in one place, than this tool can possibly help.
                         </p>
-                        <p><b>So, what does it do ?</b>
-                            <br>This is an experimental tool that allows you to download all historical activities from Garmin Connect or/and Strava, and daily wellness data like weight, continuous HR, HRV, body temperature, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. 
+                        <p><b>What does it do ?</b>
+                            <br>This utility allows user to download and consolidate health and fitness data from various sources/trackers. The downloaded data is formated, and stored in a set of coresponding tables in PostgreSQL database. If required, it can periodically poll the data sources and download any new data. It uses various methods to access the user data, ranging from vendor API, scraping, manual export etc. 
                         </p>
                         <p><b>What data from what sources ?</b>
-                            <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Activity/Excersize data in FIT and TCX formats.
-                            <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Wellness/Heatlth data in FIT and XML formats.
+                            <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Activity/Exercise data in FIT and TCX formats.
+                            <br><a href="https://connect.garmin.com/en-US/signin?service=https://connect.garmin.com/modern/" class="badge badge-pill badge-primary">Garmin Connect</a> - Wellness/Health data in FIT and XML formats.
                             <br><a href="https://www.strava.com/" class="badge badge-pill badge-primary">Strava</a> - Activity/Excersize data via API.
                             <br><a href="https://www.ouraring.com/" class="badge badge-pill badge-primary">Oura</a> - Historical Sleep, HRV data retrieved via API.
                             <br><a href="https://www.myfitnesspal.com/" class="badge badge-pill badge-primary">MyFitnessPal</a> - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
                             <br><a href="https://diasend.com//en/" class="badge badge-pill badge-primary">Diasend</a> - Blood Glucose data from continuous blood glucose monitors in XLS format.
                             <br><a href="https://www.deebee.it/?p=1411" class="badge badge-pill badge-primary">Glimp</a> - Blood Glucose data collected via Glimp android app and stored in Dropbox.
                             <br><a href="https://www.libreview.com/" class="badge badge-pill badge-primary">LibreView</a> - Blood Glucose data manualy exported from LibreView website and stored in Dropbox.
-                            <br><a href="https://mind-monitor.com/" class="badge badge-pill badge-primary">Mind Monitor</a> - EEG data from Muse devices collected via Mind Monitor ios/android app and stored in Dropbox.
-                            <br><a href="https://www.meteostat.net/" class="badge badge-pill badge-primary">Meteostat</a> - Historical weather and climate data retrieved via API.
+                            <br><a href="https://mind-monitor.com/" class="badge badge-pill badge-primary">Mind Monitor</a> - EEG data from Muse devices collected via Mind Monitor ios/android app and stored on Dropbox.
+                            <br><a href="https://www.meteostat.net/" class="badge badge-pill badge-primary">Meteostat</a> - Historical weather and climate data for your location retrieved via API.
+                            <br><a href="https://www.dropbox.com/"class="badge badge-pill badge-primary">Custom Data</a> - Custom data from a csv file/files stored on Dropbox and shared.
                         </p>
                         <p><b>How is my data accessed and downloaded ?</b>
-                            <br>The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a combination of web-scraper using the supplied credentials to log in to the user's accounts(Garmin,MFP,Diasend) and an API client(Oura, Strava). Once logged in, it browses to download pages and iterates through available downloads, or accesses the user data via vendor's API. Finally it downloads the retrieved data to the server in the FIT,XML,JSON or CSV formats.
+                            <br>The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials if the selected source requires login. Next, the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at least the start date) before the download can proceed. If the option to download Glimp, LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG or custom data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a combination of web-scraper using the supplied credentials to log in to the user's accounts(Garmin,MFP,Diasend) and an API client(Oura, Strava). Once logged in, it browses to download pages and iterates through available downloads, or accesses the user data via vendor's API. Finally it downloads the retrieved data to the server in the FIT,XML,JSON or CSV formats for furthre processing.
                         </p>
                         <p><b>Where and How is my data stored ?</b>
                             <br>The user data files are first downloaded and stored to the webserver's file system as flat files as described above. After each of the files is successfully downloaded and saved, the service parses and cleans the content which then gets formated and inserted in to the PostgreSQL database hosted either on this server or on the user's own DB server (the user will need to provide hostname/IP address, username, password). If user chooses to store his data on this DB server he will have his own database that he has got full and unrestricted access to. Once the user submits the download request providing valid credentials he will be able to retrieve the database access details via <i>"View DB info..."</i> link on the download page. 
@@ -764,7 +932,7 @@
                             Once the access to user's dropbox has been granted by the user, the service will create a folder called "Athlete Data App" in the "Apps" folder within the users dropbox root directory. This service will only have access to its own folder "/Apps/Athlete Data App" in your Dropbox file structure. All other files and folders will remain unaccessible to it!
                         </p>
                         <p><b>How do I revoke access and delete all downloaded data ?</b>
-                            <br>This service provides an ability for each user to revoke all access to his GarminConnect, StravaMFP, Diasend and Oura accounts from this service and/or delete all already downloaded data. This option can be accessed from the download page by simply providing a valid logon credentials and choosing the "Delete All data and Exit without re-downloading" option from the "Housekeeping" section. Upon submitting the request, all user data including any encrypted usernames and passwords stored in the DB will be deleted, and autosynch if previously enabled will be canceled. This will not affect the data archived to users's Dropbox and if desired the user will need to delete those manually. If the user only want to use this service as a "once off" perhaps for data archiving purposes, he can download all his data with "archive all data to Dropbox" option enabled and then delete all data from the db/web-server.
+                            <br>This service provides an ability for each user to revoke all access to his GarminConnect, Strava, MFP, Diasend and Oura accounts from this service and/or delete all already downloaded data. This option can be accessed from the download page by simply providing a valid logon credentials and choosing the "Delete All data and Exit without re-downloading" option from the "Housekeeping" section. Upon submitting the request, all user data including any encrypted usernames and passwords stored in the DB will be deleted, and autosynch if previously enabled will be canceled. This will not affect the data archived to users's Dropbox and if desired the user will need to delete those manually. If the user only want to use this service as a "once off" perhaps for data archiving purposes, he can download all his data with "archive all data to Dropbox" option enabled and then delete all data from the db/web-server.
                         </p>
                         <p><b>What if I change my Garmin Connect,MFP or Diasend password and have autosynch enabled ?</b>
                             <br>After changing the GarminConnect, MFP or Diasend password user will simply need to provide the new password in the login section of the app and submit the download. The stored autosynch credentials for the affected service will be updated automaticaly.
