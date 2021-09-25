@@ -117,10 +117,10 @@ def glimp_data_insert(output,start_date,end_date,ath_un,encr_pass,glimp_dbx_link
 
     sql = """
 
-        INSERT INTO diasend_cgm(athlete_id,timestamp,glucose_nmol_l,glucose_nmol_l_15min_avrg,data_source,timestamp_gmt)
+        INSERT INTO diasend_cgm(athlete_id,timestamp,glucose_nmol_l,glucose_nmol_l_15min_avrg,ketone_nmol_l,data_source,timestamp_gmt)
 
         VALUES
-        ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s)
+        ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s)
 
         ON CONFLICT (athlete_id,timestamp,data_source) DO NOTHING;
         
@@ -136,6 +136,7 @@ def glimp_data_insert(output,start_date,end_date,ath_un,encr_pass,glimp_dbx_link
         for row in dataset.itertuples():
             glucose_nmol = None
             glucose_nmol_avrg = None
+            ketone_nmol = None
             utc_time_str = None
             if data_source == 'glimp_android':
                 record_type = row._9 #Current(5) or 15min average(3)
@@ -149,6 +150,7 @@ def glimp_data_insert(output,start_date,end_date,ath_un,encr_pass,glimp_dbx_link
                 local_time_str = datetime.datetime.strftime((local_time_dt), "%Y-%m-%d %H:%M:%S")
                 utc_time_str = datetime.datetime.utcfromtimestamp(epoch_time).strftime('%Y-%m-%d %H:%M:%S')
             else:
+                ketone_nmol = row._7
                 glucose_nmol = row._6
                 glucose_nmol_avrg = row._5
                 local_time = row._3
@@ -187,7 +189,7 @@ def glimp_data_insert(output,start_date,end_date,ath_un,encr_pass,glimp_dbx_link
                 # create a cursor
                 cur = conn.cursor()
                 # execute a statement
-                cur.execute(sql,(ath_un,local_time_str,glucose_nmol,glucose_nmol_avrg,data_source,utc_time_str))
+                cur.execute(sql,(ath_un,local_time_str,glucose_nmol,glucose_nmol_avrg,ketone_nmol,data_source,utc_time_str))
                 conn.commit()
                 # close the communication with the PostgreSQL
                 cur.close()
@@ -221,10 +223,10 @@ def glimp_data_insert(output,start_date,end_date,ath_un,encr_pass,glimp_dbx_link
             libreview_user_insert(encrypted_link,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
             data_source = 'libre_view'
             dataset = pd.read_csv(os.path.join(download_folder,item), sep=",",skiprows=1)
-            dataset = dataset.iloc[:, :6]# Keep first 6 columns and drop everything else
+            dataset = dataset.iloc[:, [0,1,2,3,4,5,15]]# Keep first 6 columns and column 16 and drop everything else
             dataset['Device Timestamp'] = pd.to_datetime(dataset['Device Timestamp'],format="%d-%m-%Y %H:%M")
             dataset = dataset.sort_values(by='Device Timestamp',ascending=False)
-            dataset = dataset.dropna(subset = ['Historic Glucose mmol/L', 'Scan Glucose mmol/L'],thresh=1)#Drop row if NaN in both columns
+            dataset = dataset.dropna(subset = ['Historic Glucose mmol/L', 'Scan Glucose mmol/L','Ketone mmol/L'],thresh=1)#Drop row if NaN in all three columns
             dataset = dataset.replace({np.nan: None})#Replace NaN values with None
             parse_dataset(dataset,conn,start_date_dt,end_date_dt,data_source)
             if preserve_files == "false":

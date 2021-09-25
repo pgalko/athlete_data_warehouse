@@ -68,7 +68,8 @@ CREATE TABLE public.diasend_cgm (
     glucose_nmol_l real,
     data_source character varying(30),
     glucose_nmol_l_15min_avrg real,
-    timestamp_gmt character varying
+    timestamp_gmt character varying,
+    ketone_nmol_l real,
 );
 
 ALTER TABLE public.diasend_cgm OWNER TO postgres;
@@ -1130,7 +1131,7 @@ ALTER TABLE ONLY public.athlete
     ADD CONSTRAINT athlete_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.diasend_cgm
-    ADD CONSTRAINT diasent_cgm_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT diasend_cgm_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.files
     ADD CONSTRAINT files_pkey PRIMARY KEY (id);
