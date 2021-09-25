@@ -1,9 +1,9 @@
 # athlete_data_warehouse
 
 ## What does it do ?
-This is an experimental tool that allows you to download all historical activities from Garmin Connect or/and Strava, and daily wellness data like weight, continuous HR, HRV, body temperature, stress, sleep etc from Garmin Connect and Oura. Nutrition data from MyFittnessPal, blood glucose data from Diasend, Glimp or LibreView and EEG/meditation data from muse headband via Mind Monitor app and historical weather observations from Meteostat service. In addition to this, it can automaticaly synchronise with the above services daily and download and save any new data. Data is downloaded in either FIT,XML,JSON or CSV files that then get parsed,cleaned,formated and inserted in to the users's PostgreSQL database for future analysis by the user. And optionaly archived in the original export format to Dropbox. A live and fully functional service can be explored here: https://athletedata.net.
+This utility allows user to download and consolidate health and fitness data from various sources/trackers. The downloaded data is formated, and stored in a set of coresponding tables in PostgreSQL database. If required, it can periodically poll the data sources and download any new data. It uses various methods to access the user data, ranging from vendor API, scraping, manual export etc. A live and fully functional service can be explored here: https://athletedata.net.
 
-## Who is it for:
+## Who is it for ?
 There is a few alternative usage scenarios.
 1. It can be setup and used privately by individuals who want to consolidate their excersize and health records in one place for analysis, research or privacy reasons (could be setup on Windows ,Mac OS ar UNIX workstation or a local or cloud based server).
 2. It can be published from a web server (Apache/Mod-WSGI/Flask/PostgreSQL) and provided to independent users as a data collection and warehousing service (see an example here: https://athletedata.net).
@@ -13,16 +13,17 @@ There is a few alternative usage scenarios.
 * **Garmin Connect** - Activity/Exercise data in FIT and TCX formats.
 * **Garmin Connect** - Wellness/Health data in FIT and XML formats.
 * **Strava** - Activity/Excersize data via API.
-* **OuraRing** - Sleep, HRV, Body Temperature data retrieved via API
+* **OuraRing** - Sleep, HRV, Body Temperature data retrieved via API.
 * **MyFitnessPal** - Daily nutrition data (Calories,Food items,Units,Macro nutrients).
 * **Diasend** - Blood Glucose data from continuous blood glucose monitors in XLS format.
 * **Glimp** - Blood Glucose data collected via Glimp android app and stored in Dropbox.
 * **LibreView** - Blood Glucose data manually exported from LibreView website and stored in Dropbox.
 * **Mind Monitor** - EEG data from Muse devices collected via Mind Monitor ios/android app and stored in Dropbox.
-* **Meteostat** - Current and historical weather observations
+* **Meteostat** - Current and historical weather observations retrieved via API.
+* **Custom Data** - Custom data from a csv file/files stored in Dropbox and shared.
 
 ## How is the user data accessed and downloaded ?
-The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials for the selected data sources. Next the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at lest the start date) before the download can proceed. If the option to download Glimp or LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG data. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a combination of web-scraper using the supplied credentials to log in to the user's accounts(Garmin,MFP,Diasend) and an API client(Oura, Strava). Once logged in, it browses to download pages and iterates through available downloads, or accesses the user data via vendor's API. Finally it downloads the retrieved data to the server in the FIT,XML,JSON or CSV formats.
+The tool's front end runs on an Apache web-server using Flask and Python in the background (Can optionally be run using Flask inbuilt web server). The process starts with user selecting the data sources and the types of data that he would like to download. He will then provide login credentials if the selected source requires login. Next, the user chooses from available options like destination DB server, date ranges, archiving of the original files, clearing of previously downloaded data, enabling periodic autosynch etc. The user will be required to specify the date ranges (or at least the start date) before the download can proceed. If the option to download Glimp, LibreView BG data is selected, the user will have to first share the Glimp or LibreView archive folder located in his Dropbox and input the generated link to the Glimp/LibreView download section. Similar procedure applies if user wants to download Mind Monitor EEG or a custom data from csv. Finally user would submit the completed request to the download service and wait for the download to complete. The download service is a combination of web-scraper using the supplied credentials to log in to the user's accounts(Garmin,MFP,Diasend) and an API client(Oura, Strava, Meteostat). Once logged in, it browses to download pages and iterates through available downloads, or accesses the user data via vendor's API. Finally it downloads the retrieved data to the server in the FIT,XML,JSON or CSV formats for further processing.
 
 *Select Datasouces:*
 ![](images/DataSourcesGUI_new.PNG)
