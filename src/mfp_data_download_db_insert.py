@@ -86,15 +86,14 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
         date_in_range = single_date.strftime("%Y-%m-%d")
         data_exist_for_date = 'Nutrition_Data_For_'+date_in_range
 
-        #PG: Check whether the data for this date have been inserted into to DB during one of the previous runs 
-        if auto_synch == False:         
-            data_exists = check_data_file_exists(data_exist_for_date,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-            if data_exists == True:
-                with StdoutRedirection(ath_un):
-                    print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
-                with ProgressStdoutRedirection(ath_un):
-                    print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
-                continue
+        #PG: Check whether the data for this date have been inserted into to DB during one of the previous runs         
+        data_exists = check_data_file_exists(data_exist_for_date,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+        if data_exists == True:
+            with StdoutRedirection(ath_un):
+                print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
+            with ProgressStdoutRedirection(ath_un):
+                print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
+            continue
 
         with StdoutRedirection(ath_un):
             print(('Downloading nutrition data: '+date_in_range))
