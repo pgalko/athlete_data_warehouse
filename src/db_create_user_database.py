@@ -313,10 +313,18 @@ def restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw):
     pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
-    
     #PG: Read SQL query to restore db schema from file
     sql_file = open('db_schema.sql', 'r')
     sql_restore_db_schema = s = " ".join(sql_file.readlines())
+    
+    #PG: Read SQL query to create 1min data view from file
+    sql_file_view_streams = open('db_create_view_streams.sql', 'r')
+    sql_create_view_streams = s = " ".join(sql_file_view_streams.readlines())
+
+    #PG: Read SQL query to create 1day data view from file
+    sql_file_view_summary = open('db_create_view_summary.sql', 'r')
+    sql_create_view_summary = s = " ".join(sql_file_view_summary.readlines())
+
     
     sql_grant_userpriv = "GRANT ALL PRIVILEGES ON DATABASE \""+ db_name +"\" to \""+db_username+"\";"
     sql_grant_table_permissions = "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \""+db_username+"\";"    
@@ -342,9 +350,14 @@ def restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw):
         cur.execute(sql_grant_table_permissions)
         cur.execute(sql_revoke_public)
         cur.execute(sql_revoke_public_1)
+        cur.execute(sql_create_view_streams)
+        cur.execute(sql_create_view_summary)
 
         # close the communication with the PostgreSQL
         cur.close()
+        sql_file.close()
+        sql_file_view_streams.close()
+        sql_create_view_summary.close()
     except (Exception, psycopg2.DatabaseError) as error:
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))

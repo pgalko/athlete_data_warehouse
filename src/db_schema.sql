@@ -69,7 +69,7 @@ CREATE TABLE public.diasend_cgm (
     data_source character varying(30),
     glucose_nmol_l_15min_avrg real,
     timestamp_gmt character varying,
-    ketone_nmol_l real,
+    ketone_nmol_l real
 );
 
 ALTER TABLE public.diasend_cgm OWNER TO postgres;
@@ -1067,6 +1067,29 @@ ALTER TABLE public.strava_activity_streams_id_seq OWNER TO postgres;
 ALTER SEQUENCE public.strava_activity_streams_id_seq OWNED BY public.strava_activity_streams.id;
 
 
+--
+--TIME INTERVALS MIN
+--
+CREATE TABLE public.time_interval_min(
+  id integer NOT NULL,
+  timestamp_gmt character varying,
+  athlete_id integer 
+);
+
+ALTER TABLE public.time_interval_min OWNER TO postgres;
+
+CREATE SEQUENCE public.time_interval_min_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+	
+ALTER TABLE public.time_interval_min_id_seq OWNER TO postgres;
+
+ALTER SEQUENCE public.time_interval_min_id_seq OWNED BY public.time_interval_min.id;
+
 
 --
 --AUTO INCREMENTS
@@ -1123,6 +1146,7 @@ ALTER TABLE ONLY public.strava_activity_summary ALTER COLUMN id SET DEFAULT next
 
 ALTER TABLE ONLY public.strava_activity_streams ALTER COLUMN id SET DEFAULT nextval('public.strava_activity_streams_id_seq'::regclass);
 
+ALTER TABLE ONLY public.time_interval_min ALTER COLUMN id SET DEFAULT nextval('public.time_interval_min_id_seq'::regclass);
 
 --
 --PRIMARY KEYS
@@ -1208,6 +1232,9 @@ ALTER TABLE ONLY public.strava_activity_summary
 ALTER TABLE ONLY public.strava_activity_streams
     ADD CONSTRAINT strava_activity_streams_pkey PRIMARY KEY (id);
 
+ALTER TABLE ONLY public.time_interval_min
+    ADD CONSTRAINT time_interval_min_pkey PRIMARY KEY (id);
+
 --
 --UNIQUES
 --
@@ -1280,6 +1307,9 @@ ALTER TABLE ONLY public.strava_activity_summary
 ALTER TABLE ONLY public.strava_activity_streams	
 	ADD CONSTRAINT unique_strava_activity_streams UNIQUE (time_gmt);
 
+ALTER TABLE ONLY public.time_interval_min
+    ADD CONSTRAINT unique_time_interval_min_timestamp UNIQUE (timestamp_gmt);
+
 --
 --INDEXES
 --
@@ -1295,7 +1325,7 @@ CREATE INDEX fki_fk_original_lap_gc_activity_id ON public.garmin_connect_origina
 
 CREATE INDEX fki_fk_original_record_lap_id ON public.garmin_connect_original_record USING btree (lap_id);
 
-CREATE INDEX fki_fk_original_session_athleyte_id ON public.garmin_connect_original_session USING btree (athlete_id);
+CREATE INDEX fki_fk_original_session_athlete_id ON public.garmin_connect_original_session USING btree (athlete_id);
 
 CREATE INDEX fki_fk_wellness__athlete_id ON public.garmin_connect_wellness USING btree (athlete_id);
 
@@ -1394,3 +1424,43 @@ ALTER TABLE ONLY public.strava_activity_summary
 ALTER TABLE ONLY public.strava_activity_streams
     ADD CONSTRAINT fk_strava_activity_streams_strava_activity_id FOREIGN KEY (activity_id) REFERENCES public.strava_activity_summary(id);
 
+ALTER TABLE ONLY public.time_interval_min
+    ADD CONSTRAINT fk_time_interval_min_athlete_id_ FOREIGN KEY (athlete_id) REFERENCES public.athlete (id);
+
+---
+--FUNCTIONS
+---
+-- A FUNCTION and AGGREGATE to calculate Exponential Moving Averages (used to plot Performance Management Chart from summary view data)
+CREATE OR REPLACE FUNCTION public.ema_func(
+	state numeric,
+	inval numeric,
+	alpha numeric)
+    RETURNS numeric
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+begin
+  return case
+     when state is null then inval
+     --original
+	 --else state * (1-alpha) + inval * alpha
+	 --coggans
+	 else state + (inval-state)*alpha
+  end;
+end
+-- alpha = 1/42 or 1/7
+--Original formula
+-- CTLyesterday * (1-alpha) + TSS today * alpha
+--Andrew Coggan's formula
+-- CTLtoday = CTLyesterday + (TSStoday - CTLyesterday)*(alpha)
+$BODY$;
+
+ALTER FUNCTION public.ema_func(numeric, numeric, numeric)
+    OWNER TO postgres;
+
+CREATE AGGREGATE public.ema(numeric, numeric) (
+  SFUNC=public.ema_func,
+  STYPE=numeric
+);

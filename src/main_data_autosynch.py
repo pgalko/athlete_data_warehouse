@@ -3,6 +3,7 @@ import datetime
 import os
 import psutil
 from os import remove
+from time_interval_streams_data import update_intervals_range
 import mfp_data_download_db_insert as mfp
 import diasend_data_download_db_insert as cgm
 import glimp_data_download_db_insert as glimp
@@ -92,7 +93,12 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
     except Exception as e:
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                    
+    try:
+        update_intervals_range(ath_un,db_host,db_name,superuser_un,superuser_pw)
+    except Exception as e:
+        with ErrorStdoutRedirection(ath_un):
+            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
+              
 def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass):
     output = DOWNLOAD_DIR
     auto_synch = True

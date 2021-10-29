@@ -288,7 +288,8 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                 utc_offset = None
             if "start_latlng" in activity:
                 start_latlng = activity['start_latlng']
-                if start_latlng is not None:
+                #if start_latlng is not None: #Changed 2021/10/29
+                if start_latlng:
                     start_latitude = start_latlng[0]
                     start_longitude  = start_latlng[1]
                 else:
@@ -299,7 +300,8 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                 start_longitude  = None
             if "end_latlng" in activity:
                 end_latlng = activity['end_latlng']
-                if end_latlng is not None:
+                #if end_latlng is not None: #Changed 2021/10/29
+                if end_latlng:
                     end_latitude = end_latlng[0]
                     end_longitude  = end_latlng[1]
                 else:

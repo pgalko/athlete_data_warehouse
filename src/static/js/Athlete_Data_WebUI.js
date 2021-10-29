@@ -813,7 +813,12 @@ function loadSavedValues(){
     document.getElementById("cstmDTColumn").value = returnSavedValue("cstmDTColumn");
     document.getElementById("cstmTimeZone").value = returnSavedValue("cstmTimeZone");
     document.getElementById("cstmDateFormat").value = returnSavedValue("cstmDateFormat");
-    document.getElementById("cstmUniqueColumns").value = JSON.parse(returnSavedValue("cstmUniqueColumns"));
+    //Load JSON object (array) from session storage and iterate to retrieve values 
+    var element = document.getElementById("cstmUniqueColumns");
+    var values = JSON.parse(sessionStorage.getItem('cstmUniqueColumns'));
+    for (var i = 0; i < element.options.length; i++) {
+        element.options[i].selected = values.indexOf(element.options[i].value) >= 0;
+    }
     document.getElementById("startDate").value = returnSavedValue("startDate");
     document.getElementById("endDate").value = returnSavedValue("endDate");
 }

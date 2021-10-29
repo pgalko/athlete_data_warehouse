@@ -24,6 +24,7 @@ from glimp_data_download_db_insert import glimp_data_insert
 from mind_monitor_data_download_db_insert import mm_data_insert
 from cstm_data_download_db_insert import cstm_data_insert
 from weather import get_weather
+from time_interval_streams_data import update_intervals_range
 from send_email import send_email
 from oura_data_download import dwnld_insert_oura_data
 from strava_data_download import dwnld_insert_strava_data
@@ -487,8 +488,8 @@ def index():
                         progress_error = True
                         with StdoutRedirection(ath_un):
                             print(gc_login_progress)
-                        flash('  There was a problem logging in to Garmin Connect. Please try again later','warning')
-                        return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+                        flash('  There was a problem logging in to Garmin Connect. The script will now continue, but will skip the Garmin data. Please try again later','warning')
+                        #return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
                     #---------------------------------- GC Activities ---------------------------------------
 
@@ -762,6 +763,16 @@ def index():
                         time.sleep(1)
                         with ErrorStdoutRedirection(ath_un):
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + strava_activ_progress))
+
+                #---------------------- Generate Time intervals, and populate "time_interval_min" table -------------------------
+
+                #PG:Call to execute "update intervals range" script
+                try:
+                    flash('  The data download has completed. Setting up and updating the db views. This process might take a while.','info')
+                    update_intervals_range(ath_un,db_host,db_name,superuser_un,superuser_pw)
+                except Exception as e:
+                    with ErrorStdoutRedirection(ath_un):
+                        print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
 
                 #------Archive DB to Dropbox-------
                 try:
