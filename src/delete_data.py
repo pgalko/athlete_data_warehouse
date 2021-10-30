@@ -41,50 +41,8 @@ def delete_all_db_data(ath_un,mfp_username,db_host,db_name,superuser_un,superuse
     open(pidfile, 'w').write(pid)
 
     sql = """
-         TRUNCATE mfp_nutrition,timezones,gmt_local_time_difference,mind_monitor_eeg,diasend_cgm,garmin_connect_hrv_tracking,gc_original_wellness_sleep_tracking,gc_original_wellness_stress_tracking,gc_original_wellness_hr_tracking,gc_original_wellness_activity_tracking,
-         gc_original_wellness_act_type_summary,garmin_connect_wellness,garmin_connect_daily_summary,garmin_connect_body_composition,garmin_connect_original_record,garmin_connect_original_lap,
-         garmin_connect_original_session,files,athlete RESTART IDENTITY;
+         SELECT truncate_schema('public');
          """ 
-
-    sql_shared_db = """
-         delete from mfp_nutrition where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from mind_monitor_eeg where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from diasend_cgm where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from gc_original_wellness_stress_tracking where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_hrv_tracking where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from gc_original_wellness_hr_tracking where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from gc_original_wellness_activity_tracking where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from gc_original_wellness_act_type_summary where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_wellness where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_daily_summary where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_body_composition where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_original_record TP
-         using garmin_connect_original_lap LP, garmin_connect_original_session AC
-         where (TP.lap_id = LP.id) and (LP.gc_activity_id=AC.gc_activity_id) and AC.athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_original_lap LP
-         using garmin_connect_original_session AC
-         where (LP.gc_activity_id=AC.gc_activity_id) and AC.athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from garmin_connect_original_session where athlete_id = (select id from athlete where ath_un=%s or mfp_username = %s);
-
-         delete from files where athlete_id = (select id from athlete where ath_un=%s);
-
-         delete from athlete where ath_un=%s or mfp_username = %s;
-
-         
-         """
     try:
          
         # connect to the PostgreSQL server
