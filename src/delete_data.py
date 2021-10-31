@@ -59,9 +59,8 @@ def delete_all_db_data(ath_un,mfp_username,db_host,db_name,superuser_un,superuse
                     
         # close the communication with the PostgreSQL
         cur.close()
-
-                    
-    except  (Exception, psycopg2.DatabaseError) as error:
+               
+    except  Exception as error:
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
     finally:

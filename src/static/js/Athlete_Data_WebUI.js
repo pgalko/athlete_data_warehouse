@@ -274,6 +274,20 @@ function EnableDisableElmnt(radioBtn){
         endDate.value = ""
         startDate.removeAttribute('required');
         dataDeleteCheckbox.checked = true;
+        dataSources.push(radioBtn.id);
+    }
+
+    //Delete All and Exit unchecked
+    else if (radioBtn.checked == false  && radioBtn == document.getElementById('deleteAlldataExit')){
+        startDate.disabled = false;
+        endDate.disabled = false;
+        dataDeleteCheckbox.checked = false;
+
+        for( var i = 0; i < dataSources.length; i++){ 
+            if ( dataSources[i] === radioBtn.id) { 
+                dataSources.splice(i, 1); 
+            }
+        }
     }
 
     //Delete DB Data checked
@@ -292,7 +306,7 @@ function EnableDisableElmnt(radioBtn){
         dataDeleteCheckbox.checked = true;
     }
 
-    //Delete files checked
+    //Delete all checked
     else if (radioBtn.checked == true  && radioBtn == document.getElementById('deleteAllData')){
         startDate.disabled = false;
         endDate.disabled = false;
@@ -705,7 +719,6 @@ function EnableDisableElmnt(radioBtn){
     else if (radioBtn.checked == true && radioBtn == document.getElementById('dataDeleteCheckbox')){
         housekeeping.className = "badge badge-primary";
         housekeeping.textContent = "Selected data - Will be deleted";
-        gcCheckbox.setAttribute('required','');
     }
     //Delete checkbox unchecked
     else if (radioBtn.checked == false && radioBtn == document.getElementById('dataDeleteCheckbox')){
@@ -717,8 +730,7 @@ function EnableDisableElmnt(radioBtn){
         deleteAlldataExit.checked = false;
         startDate.disabled = false;
         endDate.disabled = false;
-        startDate.setAttribute('required','');
-        gcCheckbox.removeAttribute('required');    
+        startDate.setAttribute('required','');   
     }
 
     //User Login ---------
@@ -816,8 +828,10 @@ function loadSavedValues(){
     //Load JSON object (array) from session storage and iterate to retrieve values 
     var element = document.getElementById("cstmUniqueColumns");
     var values = JSON.parse(sessionStorage.getItem('cstmUniqueColumns'));
-    for (var i = 0; i < element.options.length; i++) {
-        element.options[i].selected = values.indexOf(element.options[i].value) >= 0;
+    if (values){
+        for (var i = 0; i < element.options.length; i++) {
+            element.options[i].selected = values.indexOf(element.options[i].value) >= 0;
+        }
     }
     document.getElementById("startDate").value = returnSavedValue("startDate");
     document.getElementById("endDate").value = returnSavedValue("endDate");

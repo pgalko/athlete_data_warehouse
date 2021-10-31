@@ -49,11 +49,14 @@ def check_strava_token_exists(ath_un,db_host,db_name,superuser_un,superuser_pw,e
         try:
             cur.execute(sql_check_strava_token_exists,(ath_un,))
             result = cur.fetchone()
-            if result[0] is not None:  
-                token_exists = True
-                strava_token = result[0]
-                #Decrypt strava token
-                decrypted_strava_token = decrypt(base64.b64decode(strava_token), encr_pass)
+            if result:
+                if result[0] is not None:  
+                    token_exists = True
+                    strava_token = result[0]
+                    #Decrypt strava token
+                    decrypted_strava_token = decrypt(base64.b64decode(strava_token), encr_pass)
+                else:
+                    token_exists = False   
             else:
                 token_exists = False
             conn.commit()
