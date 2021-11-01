@@ -130,6 +130,15 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
 
         ON CONFLICT (time_gmt) DO NOTHING;
     """
+
+    sql_insert_utc_offset = """
+        INSERT INTO gmt_local_time_difference (athlete_id,local_date,local_midnight_timestamp,gmt_midnight_timestamp,gmt_local_difference)
+
+        VALUES
+            ((select id from athlete where ath_un=%s),%s,%s,%s,%s)
+
+        ON CONFLICT (local_date) DO NOTHING;
+        """
     
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
 
@@ -408,6 +417,7 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
             with ProgressStdoutRedirection(ath_un):
                  print('Downloading Strava activity {} from: {}'.format(strava_activity_id,start_date_local))
 
+
             #Insert activity summary data to DB
             try:       
                 cur = conn.cursor()
@@ -421,6 +431,18 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                 cur.close()
                 # Update the files table 
                 data_file_path_insert(data_exist_for_activity,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
+
+                #Insert utc offset into gmt_local_time_difference table if the record not already present from gc
+                gmt_local_difference = timedelta(seconds=utc_offset)
+                local_date = start_date_local_dt.date()
+                local_midnight = start_date_local_dt.replace(hour=00, minute=00, second=00)
+                gmt_midnight = local_midnight-gmt_local_difference
+
+                cur = conn.cursor()
+                cur.execute(sql_insert_utc_offset,(ath_un,local_date,local_midnight,gmt_midnight,gmt_local_difference))
+                conn.commit()       
+                cur.close()
+    
             except Exception as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
