@@ -138,6 +138,15 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         
     """
 
+    sql_insert_utc_offset = """
+        INSERT INTO gmt_local_time_difference (athlete_id,local_date,local_midnight_timestamp,gmt_midnight_timestamp,gmt_local_difference)
+
+        VALUES
+            ((select id from athlete where ath_un=%s),%s,%s,%s,%s)
+
+        ON CONFLICT (local_date) DO NOTHING;
+    """
+
     try:       
         cur = conn.cursor()
         cur.execute(sql_insert_oura_refresh_token,(ath_un,encrypted_refresh_token,ath_un))
@@ -313,6 +322,7 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         to_target_miles = row.to_target_miles
         total = row.total
 
+
         with StdoutRedirection(ath_un):
             print('Downloading Oura activity data from: {}'.format(summary_date))
         with ProgressStdoutRedirection(ath_un):
@@ -325,6 +335,17 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
                         non_wear,rest,inactive,inactivity_alerts,low,medium,high,steps,cal_total,cal_active,met_min_inactive,met_min_low,met_min_medium,met_min_high,average_met,
                         rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km)
                         )
+            conn.commit()       
+            cur.close()
+
+            #Insert utc offset into gmt_local_time_difference table if the record not already present from gc
+            gmt_local_difference = datetime.timedelta(minutes=timezone)
+            local_midnight = datetime.datetime.strptime(summary_date, '%Y-%m-%d')
+            gmt_midnight = local_midnight-gmt_local_difference
+            local_date = local_midnight.date()
+
+            cur = conn.cursor()
+            cur.execute(sql_insert_utc_offset,(ath_un,local_date,local_midnight,gmt_midnight,gmt_local_difference))
             conn.commit()       
             cur.close()
         
