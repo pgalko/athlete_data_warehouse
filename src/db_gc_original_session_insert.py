@@ -206,7 +206,7 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
                 start_time_gmt_dt = gmt_time_dt - activity_duration_dt 
                 start_time_gmt_str = datetime.datetime.strftime((start_time_gmt_dt), "%Y-%m-%d %H:%M:%S")
                 
-                #Get local time from timestamp(gmt)
+                #Get local time from activity start time(gmt)
                 local_dt = start_time_gmt_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
                 local_dt_norm = local_tz.normalize(local_dt)
                 local_time_str = datetime.datetime.strftime((local_dt_norm), "%Y-%m-%d %H:%M:%S")
@@ -241,6 +241,15 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
 
             ON CONFLICT (timestamp_gmt,long_degr,lat_degr) DO NOTHING;
             """
+
+        sql_insert_utc_offset = """
+            INSERT INTO gmt_local_time_difference (athlete_id,local_date,local_midnight_timestamp,gmt_midnight_timestamp,gmt_local_difference)
+
+            VALUES
+                ((select id from athlete where ath_un=%s),%s,%s,%s,%s)
+
+            ON CONFLICT (local_date) DO NOTHING;
+            """
         try:
             #Insert session data into garmin_connect_original_session table
             cur = conn.cursor()
@@ -272,7 +281,20 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
                 cur.execute(sql_timezone,(gc_activity_id,local_time_str,start_time_gmt_str,timezone,start_position_long_degr,start_position_lat_degr,avg_altitude,timestamp))
                 conn.commit()
                 # close the communication with the PostgreSQL
-                cur.close()       
+                cur.close()
+
+            #Insert utc offset into gmt_local_time_difference table if the record not already present
+            #get utc offset
+            utc_offset = local_dt_norm.replace(tzinfo=None)-start_time_gmt_dt
+            #get local date
+            local_date = local_dt_norm.date()
+            #get local midnight
+            local_midnight = local_dt_norm.replace(hour=00, minute=00, second=00)
+            gmt_midnight = local_midnight-utc_offset
+            cur = conn.cursor()
+            cur.execute(sql_insert_utc_offset,(ath_un,local_date,local_midnight,gmt_midnight,utc_offset))
+            conn.commit()       
+            cur.close()       
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
