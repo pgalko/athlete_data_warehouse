@@ -656,6 +656,7 @@ CREATE TABLE public.timezones
 (
     id integer NOT NULL,
     gc_activity_id bigint,
+    strava_activity_id bigint,
     timestamp_local character varying,
     timestamp_gmt character varying,
     timezone character varying,
@@ -1275,7 +1276,7 @@ ALTER TABLE ONLY public.mind_monitor_eeg
     ADD CONSTRAINT unique_mind_monitor_eeg UNIQUE ("timestamp", athlete_id);
 
 ALTER TABLE ONLY public.timezones
-    ADD CONSTRAINT unique_timezones UNIQUE (gc_activity_id, timestamp_gmt);
+    ADD CONSTRAINT unique_timezones UNIQUE (timestamp_gmt, long_degr, lat_degr);
 
 ALTER TABLE ONLY public.gmt_local_time_difference
     ADD CONSTRAINT unique_gmt_local_time_difference_local_date UNIQUE (local_date);
@@ -1387,6 +1388,8 @@ ALTER TABLE ONLY public.garmin_connect_wellness
 
 ALTER TABLE ONLY public.timezones
     ADD CONSTRAINT fk_timezones_activity_id FOREIGN KEY (gc_activity_id) REFERENCES public.garmin_connect_original_session (gc_activity_id);
+ALTER TABLE ONLY public.timezones
+    ADD CONSTRAINT fk_timezones_strava_activity_id FOREIGN KEY (strava_activity_id) REFERENCES public.strava_activity_summary (id);
 
 ALTER TABLE ONLY public.gmt_local_time_difference
     ADD CONSTRAINT fk_gmt_local_time_difference_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete(id);

@@ -724,14 +724,6 @@ def create_app(encr_pass_input,debug=False):
                                 print(cstm_progress)
                             time.sleep(1)
 
-                    #--------------- Weather --------------
-                    #PG:Call to execute "retrieve and insert weather/meteostat data" script
-                    try:
-                        get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
-                    except Exception as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
-                    
                     
                     #----------------------- Activities Strava (Beacause of API limits, can be slow with larger downloads)----------------------
                     
@@ -759,7 +751,16 @@ def create_app(encr_pass_input,debug=False):
                             time.sleep(1)
                             with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + strava_activ_progress))
+
+                    #--------------- Weather --------------
+                    #PG:Call to execute "retrieve and insert weather/meteostat data" script
+                    try:
+                        get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
+                    except Exception as e:
+                        with ErrorStdoutRedirection(ath_un):
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
                     
+
                     #---------------------- Generate Time intervals, and populate "time_interval_min" table -------------------------
 
                     #PG:Call to execute "update intervals range" script

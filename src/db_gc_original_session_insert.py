@@ -167,7 +167,7 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
                 threshold_power = record_data.value
             if record_data.name == 'time_standing':
                 time_standing = record_data.value
-            if record_data.name == 'timestamp':
+            if record_data.name == 'timestamp':#Activity end time
                 timestamp = record_data.value
             if record_data.name == 'total_ascent':
                 total_ascent = record_data.value
@@ -203,11 +203,11 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
                 gmt_time_dt = datetime.datetime.strptime((str(timestamp)), "%Y-%m-%d %H:%M:%S")
                 #Calculate activity_end time 
                 activity_duration_dt =  datetime.timedelta(0,int(total_elapsed_time))
-                end_time_gmt_dt = gmt_time_dt + activity_duration_dt 
-                end_time_gmt_str = datetime.datetime.strftime((end_time_gmt_dt), "%Y-%m-%d %H:%M:%S")
+                start_time_gmt_dt = gmt_time_dt - activity_duration_dt 
+                start_time_gmt_str = datetime.datetime.strftime((start_time_gmt_dt), "%Y-%m-%d %H:%M:%S")
                 
                 #Get local time from timestamp(gmt)
-                local_dt = gmt_time_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
+                local_dt = start_time_gmt_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
                 local_dt_norm = local_tz.normalize(local_dt)
                 local_time_str = datetime.datetime.strftime((local_dt_norm), "%Y-%m-%d %H:%M:%S")
 
@@ -234,12 +234,12 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
             """
                 
         sql_timezone = """
-            INSERT INTO timezones(gc_activity_id,timestamp_local,timestamp_gmt,timezone,long_degr,lat_degr,alt_avrg,end_time_gmt)
+            INSERT INTO timezones(gc_activity_id,strava_activity_id,timestamp_local,timestamp_gmt,timezone,long_degr,lat_degr,alt_avrg,end_time_gmt)
             
             VALUES
-            (%s,%s,%s,%s,%s,%s,%s,%s)
+            (%s,null,%s,%s,%s,%s,%s,%s,%s)
 
-            ON CONFLICT (gc_activity_id,timestamp_gmt) DO NOTHING;
+            ON CONFLICT (timestamp_gmt,long_degr,lat_degr) DO NOTHING;
             """
         try:
             #Insert session data into garmin_connect_original_session table
@@ -269,7 +269,7 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
                     print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
                 with ProgressStdoutRedirection(ath_un):
                     print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_time_str)))
-                cur.execute(sql_timezone,(gc_activity_id,local_time_str,timestamp,timezone,start_position_long_degr,start_position_lat_degr,avg_altitude,end_time_gmt_str))
+                cur.execute(sql_timezone,(gc_activity_id,local_time_str,start_time_gmt_str,timezone,start_position_long_degr,start_position_lat_degr,avg_altitude,timestamp))
                 conn.commit()
                 # close the communication with the PostgreSQL
                 cur.close()       

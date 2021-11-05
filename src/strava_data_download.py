@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import requests
 import psycopg2
 import pandas as pd
@@ -138,6 +139,15 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
             ((select id from athlete where ath_un=%s),%s,%s,%s,%s)
 
         ON CONFLICT (local_date) DO NOTHING;
+        """
+
+    sql_timezone = """
+        INSERT INTO timezones(gc_activity_id,strava_activity_id,timestamp_local,timestamp_gmt,timezone,long_degr,lat_degr,alt_avrg,end_time_gmt)
+        
+        VALUES
+        (null,(select id from strava_activity_summary where strava_activity_id=%s),%s,%s,%s,%s,%s,%s,%s)
+
+        ON CONFLICT (timestamp_gmt,long_degr,lat_degr) DO NOTHING;
         """
     
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
@@ -442,12 +452,30 @@ def dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,st
                 cur.execute(sql_insert_utc_offset,(ath_un,local_date,local_midnight,gmt_midnight,gmt_local_difference))
                 conn.commit()       
                 cur.close()
+
+                #Insert timezone info into timezones table if the record not already present from gc
+                if start_latitude is not None:
+                    #Calculate avereage altitude for a better weather data accuracy
+                    avg_altitude = int((elev_high+elev_low)/2)
+                    #Drop (GMT+hh:mm) from timezone string
+                    timezone = re.sub("[(].*[) ]", "", timezone)
+                    #Calculate end_time_gmt_str
+                    end_time_gmt_dt = start_date_dt+timedelta(seconds=elapsed_time)
+                    end_time_gmt_str = datetime.strftime((end_time_gmt_dt), "%Y-%m-%d %H:%M:%S")
+                    cur = conn.cursor()
+                    with StdoutRedirection(ath_un):
+                        print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_date)))
+                    with ProgressStdoutRedirection(ath_un):
+                        print(('Inserting timezone info: ' + str(timezone) + ' and local tz timestamp:' + str(local_date)))
+                    cur.execute(sql_timezone,(strava_activity_id,start_date_local,start_date,timezone,start_longitude,start_latitude,avg_altitude,end_time_gmt_str))
+                    conn.commit()
+                    cur.close()
     
             except Exception as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
             
-            #Get all available streams for the activity 
+            #Get all available streams for the activity
             types = 'time,distance,latlng,altitude,velocity_smooth,heartrate,cadence,watts,temp,moving,grade_smooth'
             df_columns = {'activity_id','time_gmt','distance','latitude','longitude','altitude','velocity_smooth','heartrate','cadence','watts','temp','moving','grade_smooth'}
             df_columns = sorted(df_columns)
