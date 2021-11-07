@@ -285,7 +285,8 @@ def gc_original_session_insert(file_path,activity_id,ath_un, db_host,db_name,sup
 
             #Insert utc offset into gmt_local_time_difference table if the record not already present
             #get utc offset
-            utc_offset = local_dt_norm.replace(tzinfo=None)-start_time_gmt_dt
+            local_dt_norm = local_dt_norm.replace(tzinfo=None)
+            utc_offset = local_dt_norm-start_time_gmt_dt
             #get local date
             local_date = local_dt_norm.date()
             #get local midnight
