@@ -281,7 +281,7 @@ def backup_user_db(db_name,ath_un,output,dbx_auth_token, encr_pass):
     download_folder_dbx = 'DB_Backup'
     file_name_to = today+'_DB_Backup.gz'
 
-    dbx_file_exists = check_if_file_exists_in_dbx(file_name_to,dbx_auth_token,download_folder_dbx)
+    dbx_file_exists = check_if_file_exists_in_dbx(file_name_to,dbx_auth_token,download_folder_dbx,encr_pass)
     if dbx_file_exists == True:
         with StdoutRedirection(ath_un):
             print((file_name_to+' already exists in Dropbox, skipping.'))
@@ -291,7 +291,7 @@ def backup_user_db(db_name,ath_un,output,dbx_auth_token, encr_pass):
         try:
             with StdoutRedirection(ath_un):
                 print(('Uploading '+file_name_to+' Dropbox, please wait.'))
-            download_files_to_dbx(backup_file_path,file_name_to,dbx_auth_token, download_folder_dbx)
+            download_files_to_dbx(backup_file_path,file_name_to,dbx_auth_token, download_folder_dbx,encr_pass)
             with StdoutRedirection(ath_un):
                 print('DB Backup file uploaded to Dropbox successfuly')
             with ProgressStdoutRedirection(ath_un):

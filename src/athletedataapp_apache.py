@@ -106,18 +106,17 @@ else:
 
 def get_dropbox_auth_flow(session):
     return dropbox.oauth.DropboxOAuth2Flow(
-        APP_KEY, REDIRECT_URI, session, "athletedataapp_dropbox-auth-csrf-token", APP_SECRET)
+        APP_KEY, REDIRECT_URI, session, "athletedataapp_dropbox-auth-csrf-token", APP_SECRET,token_access_type="offline")
 
 # URL handler for /dropbox-auth-finish
 def dropbox_auth_finish(session,request):
     try:
         auth_result = get_dropbox_auth_flow(session).finish(request.args)
-        access_token = auth_result.access_token
+        refresh_token = auth_result.refresh_token
     except Exception as e:
         with ConsolidatedProgressStdoutRedirection():
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-
-    return access_token
+    return refresh_token
 
 app = Flask(__name__)
 app_params = config(filename="encrypted_settings.ini", section="app",encr_pass=encr_pass)
@@ -1012,8 +1011,8 @@ def dropbox_auth_request():
 @app.route("/dropbox_confirm")
 def dropbox_confirm():
     try: 
-        token = dropbox_auth_finish(session,request)
-        session['dbx_auth_token'] = token
+        refresh_token = dropbox_auth_finish(session,request)
+        session['dbx_auth_token'] = refresh_token
         continue_btn = 'delete'
         flash('  You have successfuly authenticated with Dropbox. Click "Continue" to proceed with download.','success')
         return redirect(url_for('index',continue_btn = continue_btn))

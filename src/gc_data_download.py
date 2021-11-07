@@ -207,7 +207,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
             try:
                 if archive_to_dropbox == True:
                     if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                        dbx_file_exists = check_if_file_exists_in_dbx(file_name_unzipped,dbx_auth_token,download_folder_dbx)
+                        dbx_file_exists = check_if_file_exists_in_dbx(file_name_unzipped,dbx_auth_token,download_folder_dbx,encr_pass)
             except Exception as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -288,7 +288,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                             with ProgressStdoutRedirection(ath_un):
                                 print('Skipping 0Kb zip file.')
                         remove(file_path) #Remove .zip file
-                        download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx)
+                        download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx,encr_pass)
                         if preserve_files == "false":
                             #Remove the csv file from download folder
                             os.remove(file_path_unzipped)
@@ -299,7 +299,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                             else:
                                 os.remove(file_path_unzipped)
                     else:
-                        download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx)
+                        download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx,encr_pass)
                         if preserve_files == "false":
                             #Remove the csv file from download folder
                             os.remove(file_path_unzipped)
@@ -383,9 +383,9 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                                 data_file_path_insert((os.path.join(download_folder, name)),ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
                             if archive_to_dropbox == True:
                                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                                    dbx_file_exists = check_if_file_exists_in_dbx((os.path.join(download_folder, name)),dbx_auth_token,download_folder_dbx)
+                                    dbx_file_exists = check_if_file_exists_in_dbx((os.path.join(download_folder, name)),dbx_auth_token,download_folder_dbx,encr_pass)
                                     if dbx_file_exists == False:
-                                        download_files_to_dbx((os.path.join(download_folder, name)),name,dbx_auth_token, download_folder_dbx)
+                                        download_files_to_dbx((os.path.join(download_folder, name)),name,dbx_auth_token, download_folder_dbx,encr_pass)
                             remove(os.path.join(download_folder, name))
                     zip_file.close()
                     remove(file_path)
@@ -400,7 +400,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
 
             # PG Archive to dbx newly downloaded file
             if dbx_file_exists == False:
-                download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx)
+                download_files_to_dbx(file_path_unzipped,file_name_unzipped,dbx_auth_token, download_folder_dbx,encr_pass)
             
             #Function that combines several functions to parse the fit file and insert the data to db
             def fit_db_insert_function(file_path_unzipped,file_path_archive,activityId, ath_un, db_host,db_name,superuser_un,superuser_pw,encr_pass):
@@ -501,7 +501,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
         try:
             if archive_to_dropbox == True:
                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                    dbx_file_exists = check_if_file_exists_in_dbx(file_name_unzipped,dbx_auth_token,download_folder_dbx)
+                    dbx_file_exists = check_if_file_exists_in_dbx(file_name_unzipped,dbx_auth_token,download_folder_dbx,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -586,7 +586,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
                     download_subfolder_dbx = download_folder_dbx+'/'+file_name_unzipped
                     for filename in os.listdir(file_path_unzipped):
                         path_to_file = file_path_unzipped+'/'+filename
-                        download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx)
+                        download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx,encr_pass)
                     if preserve_files == "false":
                         #Remove the csv file from download folder
                         rmtree(file_path_unzipped)
@@ -600,7 +600,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
                     download_subfolder_dbx = download_folder_dbx+'/'+file_name_unzipped
                     for filename in os.listdir(file_path_unzipped):
                         path_to_file = file_path_unzipped+'/'+filename
-                        download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx)
+                        download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx,encr_pass)
                     if preserve_files == "false":
                         #Remove the csv file from download folder
                         rmtree(file_path_unzipped)
@@ -694,7 +694,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
                download_subfolder_dbx = download_folder_dbx+'/'+file_name_unzipped
                for filename in os.listdir(file_path_unzipped):
                    path_to_file = file_path_unzipped+'/'+filename
-                   download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx)
+                   download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx,encr_pass)
         
         for filename in os.listdir(file_path_unzipped):
             #Function that combines several functions to parse the fit file and insert the data to db
@@ -765,7 +765,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
         try:
             if archive_to_dropbox == True:
                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                    dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx)
+                    dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         except Exception as e:
              with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -840,7 +840,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                                 not_null_xml = not_null_xml.replace('<value type="null"/>', '<value type="float">0.0</value>')
                         with open(xml_file_path, "w") as f:
                             f.write(not_null_xml)
-                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
                         if preserve_files == "false":
                             #Remove the csv file from download folder
                             os.remove(xml_file_path)
@@ -855,7 +855,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         continue  
                 else:
-                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
                     if preserve_files == "false":
                         #Remove the csv file from download folder
                         os.remove(xml_file_path)
@@ -936,7 +936,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
 
         # PG Archive to dbx newly downloaded file
         if dbx_file_exists == False:
-            download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+            download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         
 
         #Function that combines several functions to parse the wellness xml file and insert the data to db
@@ -1028,7 +1028,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
         try:
             if archive_to_dropbox == True:
                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                    dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx)
+                    dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -1102,7 +1102,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                                 not_null_xml = not_null_xml.replace('<value type="null"/>', '<value type="float">0.0</value>')
                         with open(xml_file_path, "w") as f:
                             f.write(not_null_xml)
-                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
                         if preserve_files == "false":
                             #Remove the csv file from download folder
                             os.remove(xml_file_path)
@@ -1117,7 +1117,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         continue   
                 else:
-                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
                     if preserve_files == "false":
                         #Remove the csv file from download folder
                         os.remove(xml_file_path)
@@ -1197,7 +1197,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
 
         # PG Archive to dbx newly downloaded  file
         if dbx_file_exists == False:
-            download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+            download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         
         #Function that combines several functions to parse the dailysummary xml file and insert the data to db
         def dailysummary_xml_db_insert_function(xml_file_path,file_path_archive,ath_un, db_host,db_name,superuser_un,superuser_pw,encr_pass):
@@ -1294,7 +1294,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
         try:
             if archive_to_dropbox == True:
                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                    dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx)
+                    dbx_file_exists = check_if_file_exists_in_dbx(xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -1370,7 +1370,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                                 not_null_xml = not_null_xml.replace('<value type="null"/>', '<value type="float">0.0</value>')
                         with open(xml_file_path, "w") as f:
                             f.write(not_null_xml)
-                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
                         if preserve_files == "false":
                             #Remove the csv file from download folder
                             os.remove(xml_file_path)
@@ -1385,7 +1385,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                         continue
                 else:
-                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
                     if preserve_files == "false":
                         #Remove the csv file from download folder
                         os.remove(xml_file_path)
@@ -1467,7 +1467,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
 
         # PG Archive to dbx newly downloaded file
         if dbx_file_exists == False:
-            download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx)
+            download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
 
 
         #Function that combines several functions to parse the bodycomposition xml file and insert the data to db

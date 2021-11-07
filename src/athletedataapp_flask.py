@@ -102,18 +102,17 @@ def create_app(encr_pass_input,debug=False):
     
     def get_dropbox_auth_flow(session):
         return dropbox.oauth.DropboxOAuth2Flow(
-            APP_KEY, REDIRECT_URI, session, "athletedataapp_dropbox-auth-csrf-token", APP_SECRET)
+            APP_KEY, REDIRECT_URI, session, "athletedataapp_dropbox-auth-csrf-token", APP_SECRET,token_access_type="offline")
 
     # URL handler for /dropbox-auth-finish
     def dropbox_auth_finish(session,request):
         try:
             auth_result = get_dropbox_auth_flow(session).finish(request.args)
-            access_token = auth_result.access_token
+            refresh_token = auth_result.refresh_token
         except Exception as e:
             with ConsolidatedProgressStdoutRedirection():
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-
-        return access_token
+        return refresh_token
 
     app = Flask(__name__)
     app_params = config(filename="encrypted_settings.ini", section="app",encr_pass=encr_pass)
@@ -723,8 +722,7 @@ def create_app(encr_pass_input,debug=False):
                             with StdoutRedirection(ath_un):
                                 print(cstm_progress)
                             time.sleep(1)
-
-                    
+                
                     #----------------------- Activities Strava (Beacause of API limits, can be slow with larger downloads)----------------------
                     
                     #PG:Call to execute "Parse and insert Strava activity data" script 
@@ -758,8 +756,7 @@ def create_app(encr_pass_input,debug=False):
                         get_weather(ath_un,db_host, db_name, superuser_un,superuser_pw,start_date,end_date_today,encr_pass)
                     except Exception as e:
                         with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))    
-                    
+                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
                     #---------------------- Generate Time intervals, and populate "time_interval_min" table -------------------------
 
@@ -1010,8 +1007,8 @@ def create_app(encr_pass_input,debug=False):
     @app.route("/dropbox_confirm")
     def dropbox_confirm():
         try: 
-            token = dropbox_auth_finish(session,request)
-            session['dbx_auth_token'] = token
+            refresh_token = dropbox_auth_finish(session,request)
+            session['dbx_auth_token'] = refresh_token
             continue_btn = 'delete'
             flash('  You have successfuly authenticated with Dropbox. Click "Continue" to proceed with download.','success')
             return redirect(url_for('index',continue_btn = continue_btn))

@@ -173,7 +173,7 @@ def diasend_data_export_insert(output,start_date,end_date,ath_un,cgm_username,cg
         try:
             if archive_to_dropbox == True:
                 if archive_radio == "archiveAllData" or archive_radio == "archiveFiles":
-                    dbx_file_exists = check_if_file_exists_in_dbx(filename,dbx_auth_token,download_folder_dbx)
+                    dbx_file_exists = check_if_file_exists_in_dbx(filename,dbx_auth_token,download_folder_dbx,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -187,7 +187,7 @@ def diasend_data_export_insert(output,start_date,end_date,ath_un,cgm_username,cg
                 print(('{} already exists in {}. Skipping.'.format(filename, download_folder)))
             # PG Archive to dbx already localy existing file
             if dbx_file_exists == False:
-                download_files_to_dbx(file_path,filename,dbx_auth_token,download_folder_dbx)
+                download_files_to_dbx(file_path,filename,dbx_auth_token,download_folder_dbx,encr_pass)
             #Move the csv to archive folder
             if not os.path.exists(os.path.join(archive_folder,filename)):
                 os.rename(os.path.join(download_folder,filename), os.path.join(archive_folder,filename))
@@ -256,7 +256,7 @@ def diasend_data_export_insert(output,start_date,end_date,ath_un,cgm_username,cg
         
         # PG Archive to dbx newly downloaded file
         if dbx_file_exists == False:
-            download_files_to_dbx(file_path,filename,dbx_auth_token,download_folder_dbx)
+            download_files_to_dbx(file_path,filename,dbx_auth_token,download_folder_dbx,encr_pass)
         
         try:
             data_file_path_insert(file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
