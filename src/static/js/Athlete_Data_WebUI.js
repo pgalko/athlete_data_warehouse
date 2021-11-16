@@ -967,7 +967,7 @@ function addAtribs(){
         target = "_blank";
     }
 
-    var dbInfoLink = "/db_info?user="+user+"&dbhost="+dbHost;
+    var dbInfoLink = "/db_info?&dbhost="+dbHost;
 
     document.getElementById("db_info").setAttribute("href",dbInfoLink);
     document.getElementById("db_info").setAttribute("target",target);							 

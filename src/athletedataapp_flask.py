@@ -28,6 +28,7 @@ from time_interval_streams_data import update_intervals_range
 from send_email import send_email
 from oura_data_download import dwnld_insert_oura_data
 from strava_data_download import dwnld_insert_strava_data
+from db_auto_sync import retrieve_decrypt_creds
 import psutil
 import urllib.request, urllib.error, urllib.parse
 from database_ini_parser import config
@@ -923,22 +924,14 @@ def create_app(encr_pass_input,debug=False):
     def datamodel_preview():
         return render_template('datamodel_preview.html')
 
-    @app.route("/db_info")
+    @app.route("/db_info", methods=['GET', 'POST'])
     def db_info():
         password_info = '\"Your login password\"'
         metadata = None
-        #Get hostname/IP address
-        if request.args.get('dbhost')=='':# Local DB host
-            try:
-                host_ip = urllib.request.urlopen('https://v4.ident.me').read().decode('utf8')
-            except:
-                text = request.host
-                head, sep, tail = text.partition(':')
-                host_ip = head
-        else:# Remote DB host
-            host_ip = request.args.get('dbhost')
-        if request.args.get('user')!='':
-            user = urllib.parse.unquote(request.args.get('user'))
+        host_param = request.args.get('dbhost')
+        
+        if 'signin_valid' in session:
+            user = session['signin_valid']
             text = user
             head, sep, tail = text.partition('@')
             db_username = head
@@ -950,6 +943,7 @@ def create_app(encr_pass_input,debug=False):
             # read DB connection parameters from ini file
             conn = None
             params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
+            #Connection params for 'sample_db' DB.
             sample_db_host = params.get("sample_db_host")
             sample_db_port = params.get("sample_db_port")
             if sample_db_port == "":
@@ -957,9 +951,16 @@ def create_app(encr_pass_input,debug=False):
             sample_db = params.get("sample_db")
             ro_user = params.get("ro_user")
             ro_password = params.get("ro_password")
+            #Connection params for 'db_info' DB.
+            postgres_host = params.get("host")
+            postgres_db = params.get("database")
+            postgres_un = params.get("user")
+            postgres_pw = params.get("password")
+            postgres_host = params.get("host")
 
             # connect to the PostgreSQL server (sample_db)
             conn = psycopg2.connect(dbname=sample_db, user=ro_user, password=ro_password, host=sample_db_host, port=sample_db_port)
+            conn_postgres = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw, host=postgres_host)
 
             sql = """
             SELECT table_name,column_name,data_type
@@ -967,11 +968,12 @@ def create_app(encr_pass_input,debug=False):
             WHERE table_schema = 'public'
             ORDER BY table_name;  
             """
-            sql_table_list = """
-            SELECT DISTINCT table_name FROM information_schema.columns
-            WHERE table_schema = 'public'
-            ORDER BY table_name;          
+            sql_last_synch = """
+            SELECT last_synch,db_auto_synch,db_host 
+            FROM db_info 
+            WHERE ath_un=%s;
             """
+
             try:
                 cur = conn.cursor()
                 cur.execute(sql,())
@@ -979,20 +981,60 @@ def create_app(encr_pass_input,debug=False):
                 metadata = cur.fetchall()
                 cur.close
                 
-                cur = conn.cursor()
-                cur.execute(sql_table_list,())
-                conn.commit()
-                table_list = cur.fetchall()
-                cur.close()
+                cur = conn_postgres.cursor()
+                cur.execute(sql_last_synch,(user,))
+                conn_postgres.commit()
+                result = cur.fetchone()
+                last_synch = result[0]
+                auto_synch_enabled = result[1]
+                db_host_from_db = result[2]
+                cur.close
+
             except  (Exception, psycopg2.DatabaseError) as error:
                 with ErrorStdoutRedirection(user):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
-            return render_template('db_info.html',db_info = db_info,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,table_list=table_list)
+            finally:
+                if conn is not None:
+                    conn.close()
+                if conn_postgres is not None:
+                    conn_postgres.close()
+
+            #Get hostname/IP address
+            if host_param is not None:#refered from index.html
+                if host_param =='':# Local DB host
+                    try:
+                        host_ip = urllib.request.urlopen('https://v4.ident.me').read().decode('utf8')
+                    except:
+                        text = request.host
+                        head, sep, tail = text.partition(':')
+                        host_ip = head
+                else:# Remote DB host
+                    host_ip = host_param
+            else:#rendered after Data Re-Synch
+                if db_host_from_db == 'localhost':
+                    try:
+                        host_ip = urllib.request.urlopen('https://v4.ident.me').read().decode('utf8')
+                    except:
+                        text = request.host
+                        head, sep, tail = text.partition(':')
+                        host_ip = head
+                else:
+                    host_ip = db_host_from_db
+
+            if request.method == 'POST':
+                synch_req_db_list = []
+                synch_req_db_list.append((db_info,))
+                full_synch=True
+                retrieve_decrypt_creds(synch_req_db_list,encr_pass,full_synch)
+                flash('  The data re-synch has finished successfully.','success')
+                return render_template('db_info.html',db_info=db_info,ath_un=user,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,last_synch=last_synch,auto_synch_enabled=auto_synch_enabled)
+            else:
+                return render_template('db_info.html',db_info=db_info,ath_un=user,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,last_synch=last_synch,auto_synch_enabled=auto_synch_enabled)
         else:
             db_info = None
             db_username = None
             password_info = None
-            flash('  The DB name, DB role and DB permissions are generated based on your username(email). Please fill in your GC credentials and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
+            flash('  The DB name, DB role and DB permissions are generated based on your username(email). Please log-in and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
             return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
     @app.route("/dropbox_auth_request")

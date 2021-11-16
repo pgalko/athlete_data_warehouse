@@ -12,7 +12,7 @@
         <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/Athlete_Data_WebUI.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Athlete_Data_DB_Info.js') }}"></script>
         <script src="{{ url_for('static', filename='js/tablefilter/dist/tablefilter/tablefilter.js') }}"></script>
     </head>
     
@@ -20,6 +20,8 @@
         <div class="alert alert-info alert-dismissible" role="alert" id ="alertBrClose" hidden>               
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>  
         </div>
+
+        <input type="hidden" name="athUN" id="athUN" value={{ath_un}}>
 
         <div>
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -45,7 +47,7 @@
             
         <div>
             <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Upon completing the main form and submitting it 
-            for processing your postgreSQL database, db role and the required permissions will be genated. After this, and depending on your 
+            for processing your postgreSQL database, db role and the required permissions will be generated. After this, and depending on your 
             selections the web app will go ahead and download your data from the selected sources and insert them in to the database. Once the process completes you will be able to 
             access your DB with a pgAdmin or a DB management software of your choice using the below details.</small>
         </div>
@@ -53,12 +55,23 @@
         <div class="container" style="margin-left: 5px; margin-top:15px">
             <div class="row justify-content-start">
                 <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
-                    <div class="col-md-12">
+                    <div class="col">
                         <div class="header">
                             <p><b>DB Server:</b> {{host_ip}}</p>
                             <p><b>Database:</b> {{db_info}}</p>
+                            <p><b>AutoSynch Enabled:</b> {{auto_synch_enabled}}</p>
                             <p><b>Role:</b> {{db_username}}</p>
                             <p><b>Password:</b> {{password_info}}</p>
+                        </div>
+                        <div>
+                            <form method="POST"  action= "/db_info" enctype="multipart/form-data" id='data_resync_form'>
+                                <p><span><b>Last Synch:</b> {{last_synch}}<button class="btn btn-outline-primary" id="btn_data_resync" type="submit" style="margin-left: 15px"><span class="oi oi-loop-circular" aria-hidden="true"></span> Re-Synch Data</button></span></p>
+                                <!--Progress Msg Box section-->        
+                                <div class="form-group" id="resync_progress_div" hidden>
+                                    <label for="MsgBox">Re-Synch progress:</label> 
+                                    <textarea id="MsgBox" class="form-control" style="width: 800px" rows="2" placeholder="Once submited, you will see the progress of your task here..."></textarea>    
+                                </div>
+                            </form>
                         </div> 
                     </div>  
                 </span>

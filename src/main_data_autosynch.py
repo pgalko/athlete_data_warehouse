@@ -1,4 +1,5 @@
 import sys
+import psycopg2
 import datetime
 import os
 import psutil
@@ -33,15 +34,19 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
     insert_last_synch_timestamp(ath_un,encr_pass,db_name)
     
     #PG:Call to execute "parse and insert GC data" script
-    if gc_username is not None:                
-        gc_agent = gc.login(gc_username, gc_password)   
-        gc.dwnld_insert_fit_activities(ath_un, gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token, auto_synch,encr_pass)
-        gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output,db_host,db_name,superuser_un,superuser_pw,archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
-        gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
-        gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
-        gc.dwnld_insert_json_dailysummary(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+    if gc_username is not None:
+        try:                
+            gc_agent = gc.login(gc_username, gc_password)   
+            gc.dwnld_insert_fit_activities(ath_un, gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token, auto_synch,encr_pass)
+            gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output,db_host,db_name,superuser_un,superuser_pw,archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_json_dailysummary(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+        except Exception as e:
+            with ErrorStdoutRedirection(ath_un):
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
-    if mfp_username is not None:   
+    if mfp_username is not None:
         try:
             mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,encr_pass,True,True,db_host,superuser_un,superuser_pw)
         except Exception as e:
@@ -99,7 +104,7 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
               
-def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass):
+def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username,gc_password,mfp_username,mfp_password,cgm_username,cgm_password,glimp_export_link, libreview_export_link, mm_export_link, dbx_auth_token,oura_refresh_token,strava_refresh_token,encr_pass,full_synch):
     output = DOWNLOAD_DIR
     auto_synch = True
 
@@ -117,9 +122,33 @@ def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username
         else:
             os.remove(pidfile)#Remove old PID file
 
-    try:       
-        # Get startdate enddate and displayname vars 
-        start_date = datetime.datetime.today() - datetime.timedelta(days=2) #PG: start_day = one day before yesterday 
+    try:
+        #User initiated full re-synch(all history)
+        if full_synch:
+            #Retrieve timestamp of the oldest record and set it as a start_time for the synch
+            sql_select_first_interval = '''
+            SELECT timestamp_gmt 
+            FROM time_interval_min
+            ORDER BY timestamp_gmt ASC LIMIT 1;
+            '''
+            try: 
+                conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un, password=superuser_pw)
+                cur = conn.cursor()
+                cur.execute(sql_select_first_interval)
+                conn.commit()
+                result = cur.fetchone()
+                start_date = result[0]
+                start_date = datetime.datetime.strptime(start_date,"%Y-%m-%d %H:%M:%S")
+            except (Exception, psycopg2.DatabaseError) as error:
+                with ErrorStdoutRedirection():
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
+            finally:
+                if conn is not None:
+                    conn.close()
+        #Periodic daily auto_synch(2days)
+        else:     
+            start_date = datetime.datetime.today() - datetime.timedelta(days=2) #PG: start_day = one day before yesterday 
+        #Calculate end_date
         end_date = datetime.datetime.today() - datetime.timedelta(days=1) #PG: end_date = yesterday
         end_date_today = datetime.datetime.today() #"PG: end_date_today = today
         text = ath_un

@@ -88,7 +88,7 @@ def get_databases_list(encr_pass):
 
     return databases
 
-def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
+def retrieve_decrypt_creds(synch_req_db_list,encr_pass,full_synch=False):
     sql_get_creds = """
     SELECT 
         gc_email,gc_password,mfp_username,mfp_password,diasend_username,diasend_password,dropbox_access_token,glimp_export_link,libreview_export_link,mm_export_link,oura_refresh_token,strava_refresh_token,ath_un
@@ -147,12 +147,8 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                 superuser_un = dbsu_params.get("user")
                 superuser_pw = dbsu_params.get("password")
             
-                # connect to the PostgreSQL server
                 dbsu_conn = psycopg2.connect(dbname='postgres', user=superuser_un, password=superuser_pw)
-
-                # create a cursor
                 dbsu_cur = dbsu_conn.cursor()
-
                 dbsu_cur.execute(sql_select_dbsu_creds,(db,))
                 dbsu_conn.commit()
                 dbsu_result = dbsu_cur.fetchone()
@@ -163,24 +159,17 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                 if db_host != 'localhost':#User database is hosted remotely
                     superuser_un = db_un
                     superuser_pw = decrypt(base64.b64decode(db_pw), encr_pass)
-                
-
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
                     print('Autosynch DB Error: '+str(error))
-
             finally:
                 if dbsu_conn is not None:
                     dbsu_conn.close()
 
-
             try:
                 # connect to the PostgreSQL server
                 conn = psycopg2.connect(dbname=db, host=db_host, user=superuser_un, password=superuser_pw)
-
-                # create a cursor
-                cur = conn.cursor()
-                
+                cur = conn.cursor()  
                 cur.execute(sql_get_creds)
                 conn.commit()
                 result = cur.fetchone()
@@ -219,7 +208,7 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass):
                     strava_decr_token = decrypt(base64.b64decode(strava_encr_token), encr_pass)
 
                 ###Execute auto synch from "main_data_autosynch.py"###
-                auto_synch(ath_un, db, db_host, superuser_un, superuser_pw, gc_un, gc_decr_pw, mfp_un, mfp_decr_pw, cgm_un, cgm_decr_pw, glimp_decr_export_link, libreview_decr_export_link, mm_decr_export_link, dbx_decr_token, oura_decr_token, strava_decr_token, encr_pass)
+                auto_synch(ath_un, db, db_host, superuser_un, superuser_pw, gc_un, gc_decr_pw, mfp_un, mfp_decr_pw, cgm_un, cgm_decr_pw, glimp_decr_export_link, libreview_decr_export_link, mm_decr_export_link, dbx_decr_token, oura_decr_token, strava_decr_token, encr_pass,full_synch)
                 
             except (Exception, psycopg2.DatabaseError) as error:
                 with ConsolidatedProgressStdoutRedirection():
