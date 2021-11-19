@@ -60,7 +60,8 @@ def csv_match_columns2data(ath_un,csv_data):
     return range(dataCount)
 
 #Function to generate create cstm table sql query
-def gen_tbl_sql(df,table_name,unique):
+def gen_tbl_sql(ath_un,df,table_name,unique):
+    role, sep, domain = ath_un.partition('@')
     dmap = {'object' : 'CHARACTER VARYING',
         'int64' : 'BIGINT',
         'float64' : 'NUMERIC',
@@ -83,9 +84,11 @@ def gen_tbl_sql(df,table_name,unique):
     sql_primary_key = "ALTER TABLE ONLY public.{0} ADD CONSTRAINT {0}_pkey PRIMARY KEY (id);".format(table_name)
     sql_unique = "ALTER TABLE ONLY public.{0} ADD CONSTRAINT unique_{0} UNIQUE ({1});".format(table_name,','.join(unique))
     sql_foreign_key = "ALTER TABLE ONLY public.{0} ADD CONSTRAINT fk_{0}_athlete_id FOREIGN KEY (athlete_id) REFERENCES public.athlete(id);".format(table_name)
-    sql_create_custom_table = "CREATE TABLE IF NOT EXISTS public.{0} {1}); {2} {3} {4} {5} {6} {7} {8} {9}".format(table_name,sql_columns_list,sql_table_owner,sql_create_sequence,
+    sql_grant_user_priv = "GRANT ALL ON {0} TO {1};".format(table_name,role)
+    sql_revoke_public = "REVOKE ALL ON {0} FROM PUBLIC;".format(table_name)
+    sql_create_custom_table = "CREATE TABLE IF NOT EXISTS public.{0} {1}); {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}".format(table_name,sql_columns_list,sql_table_owner,sql_create_sequence,
                                                                                      sql_alter_table_1,sql_alter_sequence,sql_alter_table_2,sql_primary_key,
-                                                                                     sql_unique,sql_foreign_key)
+                                                                                     sql_unique,sql_foreign_key,sql_grant_user_priv,sql_revoke_public)
 
     return sql_create_custom_table
 
@@ -317,7 +320,7 @@ def cstm_data_insert(ath_un,usr_params_str,usr_params_int,db_host,superuser_un,s
             print('Creating custom table: {}'.format(table_name))
         with ProgressStdoutRedirection(ath_un):
             print('Creating custom table: {}'.format(table_name))
-        cur.execute(gen_tbl_sql(dataframes,table_name,unique))
+        cur.execute(gen_tbl_sql(ath_un,dataframes,table_name,unique))
         conn.commit()
         cur.close()
     

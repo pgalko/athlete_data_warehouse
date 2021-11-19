@@ -324,13 +324,10 @@ def restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw):
     #PG: Read SQL query to create 1day data view from file
     sql_file_view_summary = open('db_create_view_summary.sql', 'r')
     sql_create_view_summary = s = " ".join(sql_file_view_summary.readlines())
-
-    
     sql_grant_userpriv = "GRANT ALL PRIVILEGES ON DATABASE \""+ db_name +"\" to \""+db_username+"\";"
     sql_grant_table_permissions = "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \""+db_username+"\";"    
     sql_revoke_public = "REVOKE ALL ON DATABASE \""+ db_name +"\" FROM PUBLIC;"
     sql_revoke_public_1 = "REVOKE ALL ON DATABASE postgres FROM PUBLIC;"
-
 
     try:
          
@@ -346,12 +343,12 @@ def restore_db_schema(ath_un,db_host,db_name,superuser_un,superuser_pw):
             print('Restoring DB schema...')
         
         cur.execute(sql_restore_db_schema)
+        cur.execute(sql_create_view_streams)
+        cur.execute(sql_create_view_summary)
         cur.execute(sql_grant_userpriv)
         cur.execute(sql_grant_table_permissions)
         cur.execute(sql_revoke_public)
         cur.execute(sql_revoke_public_1)
-        cur.execute(sql_create_view_streams)
-        cur.execute(sql_create_view_summary)
 
         # close the communication with the PostgreSQL
         cur.close()

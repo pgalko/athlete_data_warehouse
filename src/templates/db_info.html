@@ -95,7 +95,11 @@
             <div>
                 <a id="datamodel_preview" href="/datamodel_preview?gc=0&wel=0&mfp=0&dia=0" target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" onclick="addAtribs()">Preview Data Model...</a>
             </div>
-            
+            <!--This section requires pgweb. Modify href= to the actual link
+            <div>   
+                <a id="browse_data" href="http://pgweb-usr.athletedata.net" target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px">Browse Your Data...</a>
+            </div>
+            -->
             <div class="container" style="margin-left: 5px; margin-top:5px">
                 <div class="row justify-content-start">
                     <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
@@ -128,7 +132,7 @@
         <!--Connectiviity and Analisys Section-->
 
         <div class="header">
-            <h5><span class="oi oi-pie-chart" style="margin-left: 15px; margin-top:15px"></span>  DB Connectivity for Data Analisys - Drivers, Clients etc.: </h5>
+            <h5><span class="oi oi-pie-chart" style="margin-left: 15px; margin-top:15px"></span>  DB Connectivity - Drivers, Clients etc.: </h5>
         </div>
             
         <div>
@@ -160,6 +164,9 @@
                             <p><b>Database:</b> {{db_info}}</p>
                             <p><b>Role:</b> {{db_username}}</p>
                             <p><b>Password:</b> {{password_info}}</p>
+                            <!--This section requires pgweb. Modify href= to the actual link
+                            <p><b>Pgweb Client:</b><span><a class="btn btn-outline-primary" id="browse_usr_data" href="http://pgweb-usr.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse Your Data</a></span></p>
+                            -->
                         </div> 
                     </div>  
                 </span>
