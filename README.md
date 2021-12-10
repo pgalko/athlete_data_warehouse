@@ -46,6 +46,9 @@ That is entirely up to them ;-). This service uses Pg_Web as data exploration an
 *Sample Apache Superset Dashboard:*
 ![](images/Superset_Dashboard.PNG)
 
+*Pg_Web DB/Data Explorer:*
+![](images/Pg_Web.PNG)
+
 ## How do users archive the downloaded data off the db/webserver ?
 The service provides an option for integration with Dropbox (https://www.dropbox.com/developers/apps) alowing users to archive all downloaded FIT,XML,CSV files to their Dropbox (Google drive option might be coming in the future).In addition to archiving files, users can also archive compressed full backups of their databases that are created using pg_dump tool (This option is only available for hosted DBs). Upon choosing to archive, user will be presented with a Dropbox consent/authorization form. Once the access to user's dropbox has been granted by the user, the service will create a folder called "Athlete Data App" in the "Apps" folder within the users Dropbox root directory. This service will only have access to its own folder "/Apps/Athlete Data App" in user's Dropbox file structure. All other files and folders will remain unaccessible to it! If used privately there is an option in settings to preserve all downloaded files in a local filesystem.
 
