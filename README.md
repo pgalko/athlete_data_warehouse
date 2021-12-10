@@ -46,6 +46,9 @@ That is entirely up to them ;-). This service uses Pg_Web as data exploration an
 *Sample Apache Superset Dashboard:*
 ![](images/Superset_Dashboard.PNG)
 
+*Apache Superset SQL_Lab (Sample Query):*
+![](images/Superset_SQL_Lab.PNG)
+
 *Pg_Web DB/Data Explorer:*
 ![](images/Pg_Web.PNG)
 
