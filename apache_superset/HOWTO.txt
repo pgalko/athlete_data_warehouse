@@ -1,0 +1,107 @@
+--------------------------------------------------------
+Superset install and integration with AthleteData setup:
+--------------------------------------------------------
+
+Step 1:
+-------
+Install Superset.
+Run: 'pip install apache-superset' 
+
+Step 2a: 
+--------
+Configure superset. 
+You need to create a file "superset_config.py" with the below content and add it to your PYTHONPATH. Alternatively you can modify config.py that comes with superset(not recomended).
+
+## SUPERSET DATABASE (postgres)##
+#Comment out if you want to use the default SQLite db that comes with superset
+SQLALCHEMY_DATABASE_URI = 'postgresql://<USERNAME>:<PASSWORD>@localhost/superset'
+
+## MUTATE CONNECTION URI BASED ON USERNAME ##
+#Requires DB connection to a default database created by admin via Superset GUI, pointing to athlete_db or sample_db(for multiuser) (Steps 7,8,9).
+#The route will be mutated based on the username when user logs on. Also requires "impersonate_user" field value set to true in "public.dbs" table.
+
+import hashlib
+
+def str2md5(string):
+    m = hashlib.md5()
+    m.update(string.encode('utf-8'))
+    return m.hexdigest()
+	
+#Function to mutate the db connection string based on the username.
+def DB_CONNECTION_MUTATOR(uri, params, username, security_manager, source):
+    user = security_manager.find_user(username=username)
+    if user.username != "admin":
+	    #this block can/should be removed if sample_user or sample_db have not been setup
+        if user.username == "sample_user":
+            uri.username = 'public_ro'
+            uri.port = "5433"
+            uri.database = 'sample_db'
+        else: 
+        #		
+            uri.database = str(str2md5(user.username)) + "_Athlete_Data_DB"
+            uri.port = "5432"
+            uri.username = 'postgres'
+    else:
+        uri.username = 'postgres'
+    return uri, params
+
+## SUPERSET AUTO LOGIN ##
+# This is to autologin the athletedata user to superset. Refer to sample "custop_security.py" for details.
+from custom_security import CustomSecurityManager
+CUSTOM_SECURITY_MANAGER = CustomSecurityManager
+
+Step 2b:
+--------
+Copy 'custom_security.py' to your PYTHONPATH or wherever it can be accessed from 'superset_config.py'.
+
+Step 3:
+-------
+Initialize the superset database (will use SQLALCHEMY_DATABASE_URI connection string from the config file that you created in the previous step (2a)).
+Run: 'superset db upgrade'
+
+Step 4:
+-------
+Create Superset admin user.
+Run: 'superset fab create-admin'
+
+Step 5:
+-------
+Create default roles and permissions
+Run: 'superset init'
+
+Step 6:
+-------
+Start a development web server on port 8088, use -p to bind to another port (Only if using default Flask server, not suitable for production or multiuser))
+'superset run -p 8088 --with-threads --reload --debugger'
+If you want to use WSGI HTTP server more information can be found here https://superset.apache.org/docs/installation/configuring-superset. I have also included a sample Apache MOD_WSGI files and settings in the 'apache_mod_wsgi' folder.
+
+Step 7:
+-------
+Create new DB connection.
+Login to superset as admin, click on Data->Databases and add a new PostgreSQL database connection pointing to Atlete_DB database of your choice or sample_db using postgres user credentials for authentication.
+
+Step 8:
+-------
+Create new role and assign permissions.
+Login to superset as admin, click on Settings->List Roles. Select existing Alpha role and under Actions select copy role. Rename the newly created copy to 'ath_role1'. 
+Click on edit and add all 'SQL Lab' permissions, and database access and schema access permissions for the database that you have created in the previous step.
+
+Step 9:
+-------
+Enable user impersonation for connection string mutator to work properly.
+Use you favorite DB management tool to login to superset db. Browse to 'public.dbs' table, locate 'impersonate_user' field and change the value from false to true. Save.
+
+Step 10:
+--------
+If you have been using Athlete Data for awhile and already have existing users you will need to create the superset user accounts for them manually, superset user accounts for new athletedata users will be created automatically.
+Run the following for each existing user: 'flask fab create-user --role ath_role1 --username <AthleteData Username> --firstname <FirstName> --lastname <LastName> --email <AthleteData Username> --password <AthleteData Password>'
+
+Step 11:
+-------
+Enable Superset from AthleteData.
+Open 'encrypted_settings.ini' and modify the superset section as per the below.
+
+[superset]
+superset = true
+url = http://127.0.0.1:8088/ --or whathever url you are using for the superset flask app
+
