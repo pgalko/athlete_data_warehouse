@@ -1,0 +1,118 @@
+--------------------------------------------------------
+pg_web install and integration with AthleteData (linux):
+https://github.com/sosedoff/pgweb
+--------------------------------------------------------
+
+Step 1:
+-------
+Install pg_web
+if running on linux simply copy the included 'pg_web_linux' binary to a desired location or download a fresh release from here: https://github.com/sosedoff/pgweb/releases.
+If running on windows download a precompiled binary from here: https://github.com/sosedoff/pgweb/releases
+More info here: https://github.com/sosedoff/pgweb/wiki/Installation
+
+Step 2:
+-------
+Usage
+
+Start server:
+'pg_web_linux'
+You can also provide connection flags:
+'pg_web_linux --host localhost --user myuser --db mydb'
+Connection URL scheme is also supported:
+'pg_web_linux --url postgres://user:password@host:port/database?sslmode=[mode]'
+Connect to server on a pg_web default port:
+http://<HOST IP>:8081
+
+Usage:
+  pgweb [OPTIONS]
+
+Application Options:
+  -v, --version          Print version
+  -d, --debug            Enable debugging mode
+      --url=             Database connection string
+      --host=            Server hostname or IP (default: localhost)
+      --port=            Server port (default: 5432)
+      --user=            Database user
+      --pass=            Password for user
+      --db=              Database name
+      --ssl=             SSL option
+      --bind=            HTTP server host (default: localhost)
+      --listen=          HTTP server listen port (default: 8081)
+      --auth-user=       HTTP basic auth user
+      --auth-pass=       HTTP basic auth password
+  -s, --skip-open        Skip browser open on start
+      --sessions         Enable multiple database sessions
+      --prefix=          Add a url prefix
+      --readonly         Run database connection in readonly mode
+      --lock-session     Lock session to a single database connection
+  -b, --bookmark=        Bookmark to use for connection. Bookmark files are stored under $HOME/.pgweb/bookmarks/*.toml
+      --bookmarks-dir=   Overrides default directory for bookmark files to search
+      --no-pretty-json   Disable JSON formatting feature for result export
+      --no-ssh           Disable database connections via SSH
+      --connect-backend= Enable database authentication through a third party backend
+      --connect-token=   Authentication token for the third-party connect backend
+      --connect-headers= List of headers to pass to the connect backend
+      --no-idle-timeout  Disable connection idle timeout
+      --idle-timeout=    Set connection idle timeout in minutes (default: 180)
+      --cors             Enable Cross-Origin Resource Sharing (CORS)
+      --cors-origin=     Allowed CORS origins (default: *)
+
+Help Options:
+  -h, --help             Show this help message
+
+
+Step 3 (Optional):
+------------------
+Configure pg_web to run as a service
+Create the following file with the below content: sudo nano /etc/systemd/system/pg_web_linux.service
+
+[Unit]
+  Description=pgweb
+  After=network.target
+
+  [Service]
+  User=www-data
+  Group=www-data
+  WorkingDirectory=<PATH TO PG_WEB DIRECTORY>
+  ExecStart=<PATH TO PG_WEB BINARY> --bind <HOST IP> --listen=<PORT> --host localhost --port 5432 --lock-session
+  [Install]
+  WantedBy=multi-user.target
+  
+** You can replace ExecStart with the below if running as single user and require auto-login
+ExecStart=<PATH TO PG_WEB BINARY> --bind <HOST IP> --listen=<PORT> --host localhost --port 5432 --user <USER NAME> --pass <PASSWORD> --db <DB NAME> --lock-session
+
+** Commands to start,stop,restart and enable the pg_web service
+systemctl start pg_web_linux.service|systemctl stop pg_web_linux.service|systemctl restart pg_web_linux.service|systemctl enable pg_web_linux.service
+
+Step 4 (Optional)
+Configure Apache proxy 
+Add the below section to your apache conf and restart.
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@athletedata.net
+    ServerName pgweb.athletedata.net
+    ProxyPreserveHost On
+
+    <Proxy *>
+       Order allow,deny
+       Allow from all
+    </Proxy>
+    ProxyPass / http://<HOST IP>:<PORT>/
+    ProxyPassReverse / http://<HOST IP>:<PORT>/
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@athletedata.net
+    ServerName pgweb.athletedata.net
+    ProxyPreserveHost On
+
+    <Proxy *>
+       Order allow,deny
+       Allow from all
+    </Proxy>
+    ProxyPass / http://<HOST IP>:<PORT>/
+    ProxyPassReverse / http://<HOST IP>:<PORT>/
+</VirtualHost>
+
+
+
