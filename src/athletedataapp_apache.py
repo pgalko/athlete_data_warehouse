@@ -105,6 +105,23 @@ if anticaptcha_api_key == "":
 else:
     diasend_enabled = True
 
+superset_params = config(filename="encrypted_settings.ini", section="superset", encr_pass=encr_pass)
+superset_installed = str(superset_params.get("superset"))
+superset_url = str(superset_params.get("url"))
+if superset_installed == 'true':
+    superset_enabled = True
+else:
+    superset_enabled = False
+
+pgweb_params = config(filename="encrypted_settings.ini", section="pgweb", encr_pass=encr_pass)
+pgweb_installed = str(pgweb_params.get("pgweb"))
+pgweb_smpl_url = str(pgweb_params.get("url_smpl"))
+pgweb_usr_url = str(pgweb_params.get("url_usr"))
+if pgweb_installed == 'true':
+    pgweb_enabled = True
+else:
+    pgweb_enabled = False
+
 def get_dropbox_auth_flow(session):
     return dropbox.oauth.DropboxOAuth2Flow(
         APP_KEY, REDIRECT_URI, session, "athletedataapp_dropbox-auth-csrf-token", APP_SECRET,token_access_type="offline")
@@ -199,7 +216,7 @@ def index():
             connection = check_db_server_connectivity(ath_un,db_host,superuser_un,superuser_pw)
             if connection != 'SUCCESS':
                 flash('  Could cot connect to the DB Host.The host returned an error:  '+connection,'danger')
-                return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+                return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
         else:
             #If user does not wish to download to his db, credentials to be retrieved from .ini.
             params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
@@ -212,13 +229,13 @@ def index():
         host_record_exists = check_host_record_exists(ath_un,db_name,db_host,encr_pass)
         if host_record_exists == True:
             flash('  You can only download to one db host. Please correct the db_hostname and try again','warning')
-            return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+            return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
         #----Check if the provided GC credentials are valid-----
         #gc_cred_valid = gc.check_gc_creds(gc_username,gc_password)
         #if gc_cred_valid == False:
             #flash('  The Garmin Connect login credentials are not valid. Please try again','warning')
-            #return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+            #return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
         #----- Set Auto_Synch variables--------
 
@@ -412,7 +429,7 @@ def index():
                             time.sleep(1)
                             with ProgressStdoutRedirection(ath_un):
                                 print(del_progress)
-                            return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+                            return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
                         except:
                             del_progress = 'Error deleting data'
                             progress_error = True
@@ -421,7 +438,7 @@ def index():
                             time.sleep(1)
                             with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + del_progress))
-                            return render_template("index.html",signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+                            return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,del_progress=del_progress,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
                     
 
             #----Check and set start_date and end_date variables and proceed with download----
@@ -447,7 +464,7 @@ def index():
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 #PG:If start date not provided render index and flash warning   
                 flash('  Please provide a valid start date and try again!','danger')
-                return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+                return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
             # DATA DOWNLOAD -------------------------------------- 
                                     
@@ -489,7 +506,7 @@ def index():
                         with StdoutRedirection(ath_un):
                             print(gc_login_progress)
                         flash('  There was a problem logging in to Garmin Connect. The script will now continue, but will skip the Garmin data. Please try again later','warning')
-                        #return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+                        #return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
                     #---------------------------------- GC Activities ---------------------------------------
 
@@ -815,7 +832,7 @@ def index():
             with ProgressStdoutRedirection(ath_un):
                 print(('--------------- ' + str(datetime.datetime.now()) + '  User ' + ath_un + '  Finished Data Download ' + error_log_entry +' -------------' ))
 
-            return render_template("index.html",signin_valid=signin_valid,del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,
+            return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,del_progress = del_progress,mfp_progress = mfp_progress,diasend_progress = diasend_progress,
                                     glimp_progress = glimp_progress, mm_progress = mm_progress, cstm_progress = cstm_progress, gc_login_progress = gc_login_progress,gc_fit_activ_progress = gc_fit_activ_progress,
                                     gc_tcx_activ_progress = gc_tcx_activ_progress,gc_fit_well_progress = gc_fit_well_progress, gc_json_well_progress = gc_json_well_progress,
                                     gc_json_dailysum_progress = gc_json_dailysum_progress, oura_well_progress = oura_well_progress, strava_activ_progress=strava_activ_progress,
@@ -833,7 +850,7 @@ def index():
 
     else: # Request method is GET
         continue_btn = request.args.get('continue_btn')
-        return render_template("index.html",signin_valid=signin_valid,continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,continue_btn = continue_btn,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
 @app.route("/ath_register", methods = ['GET', 'POST'])
 def ath_register():
@@ -845,10 +862,10 @@ def ath_register():
         session['signin_valid'] = signin_valid
         session['ath_pw'] = ath_pw
         flash('  Account created successfuly. You are now logged-in','success')
-        return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
     else:
         flash('  An account with this email address already exists','danger')
-        return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
 @app.route("/ath_login", methods = ['GET', 'POST'])
 def ath_login():
@@ -860,16 +877,41 @@ def ath_login():
         session['signin_valid'] = signin_valid
         session['ath_pw'] = ath_pw
         flash('  Login successfull.','success')
-        return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
     else:
         flash('  Login failed, please try again.','danger')
-        return render_template("index.html",signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,signin_valid=signin_valid,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
 @app.route("/ath_logout", methods = ['GET', 'POST'])
 def ath_logout():
     if 'signin_valid' in session:
         session['signin_valid'] = None
     return redirect(url_for('index'))
+
+@app.route("/ath_superset", methods = ['GET', 'POST'])
+def superset_login_request():
+    superset_params = config(filename="encrypted_settings.ini", section="superset", encr_pass=encr_pass)
+    superset_url = str(superset_params.get("url"))
+    if request.args.get('user') == 'user':
+        if 'signin_valid' not in session:#User not logged in
+            flash('  You need to be logged in to access this link.','danger')
+        else:
+            ath_un = session['signin_valid']
+            user_exists = check_user_exists(ath_un,encr_pass)
+            if not user_exists:
+                flash('  This email address does not exist in the superset database.','danger')
+                return redirect(url_for('index'))
+            else:
+                usr_token = jwt.encode({'ath_un': ath_un,'exp': time.time() + 10},key=app.secret_key, algorithm="HS256")
+                if type(usr_token) != str:
+                    usr_token = usr_token.decode('UTF-8')
+                return redirect(superset_url+ 'login?username={}'.format(usr_token))
+    else:#Sample User
+        ath_un = 'sample_user'
+        usr_token = jwt.encode({'ath_un': ath_un,'exp': time.time() + 10},key=app.secret_key, algorithm="HS256")
+        if type(usr_token) != str:
+            usr_token = usr_token.decode('UTF-8')
+        return redirect(superset_url+ 'login?username={}'.format(usr_token))
 
 @app.route("/ath_reset_password", methods = ['GET', 'POST'])
 def reset_request():
@@ -887,6 +929,9 @@ def reset_request():
             return redirect(url_for('index'))
         else:
             password_reset_token = jwt.encode({'reset_password': ath_un,'exp': time.time() + 300},key=app.secret_key, algorithm="HS256")
+            #Check whether the token is of type string, and decode if not.
+            if type(password_reset_token) != str:
+                password_reset_token = password_reset_token.decode('UTF-8')
             if send_emails == 'true':
                 send_email(
                     encr_pass,
@@ -1039,7 +1084,7 @@ def db_info():
         db_username = None
         password_info = None
         flash('  The DB name, DB role and DB permissions are generated based on your username(email). Please log-in and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
-        return render_template("index.html",admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
 
 @app.route("/dropbox_auth_request")
 def dropbox_auth_request():

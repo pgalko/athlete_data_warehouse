@@ -52,6 +52,15 @@ def ath_auth_register(ath_un,ath_pw,encr_pass):
 
         # close the communication with the PostgreSQL
         cur.close()
+
+        # Add the user to superset fab
+        superset_params = config(filename="encrypted_settings.ini", section="superset", encr_pass=encr_pass)
+        superset_used = str(superset_params.get("superset"))
+        if superset_used == 'true':
+            head, sep, tail = ath_un.partition('@')
+            usr_name = head
+            os.system("superset fab create-user --role ath_role1 --username {} --firstname {} --lastname {} --email {} --password {}".format(ath_un,usr_name,usr_name,ath_un,ath_pw))
+   
     except (Exception, psycopg2.IntegrityError) as error:
         print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
         return None
@@ -112,6 +121,12 @@ def ath_auth_reset(ath_un,ath_pw,encr_pass):
         # create a cursor
         cur = conn_localhost.cursor()
         cur.execute(sql_update_usr_pwd,query_params)
+
+        # Reset superset user password
+        superset_params = config(filename="encrypted_settings.ini", section="superset", encr_pass=encr_pass)
+        superset_used = str(superset_params.get("superset"))
+        if superset_used == 'true':
+            os.system("superset fab reset-password  --username {} --password {}".format(ath_un,ath_pw))
 
     except Exception as error:
         print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
