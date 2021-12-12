@@ -48,8 +48,8 @@
         <div>
             <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Upon completing the main form and submitting it 
             for processing your postgreSQL database, db role and the required permissions will be generated. After this, and depending on your 
-            selections the web app will go ahead and download your data from the selected sources and insert them in to the database. Once the process completes you will be able to 
-            access your DB with a pgAdmin or a DB management software of your choice using the below details.</small>
+            selections the web app will go ahead and will attempt to download your data from the selected sources and insert them in to the database. Once the process completes you will be able to 
+            access your DB with PG_Web (if installed and enabled), pgAdmin or any DB management software of your choice using the below details.</small>
         </div>
         
         <div class="container" style="margin-left: 5px; margin-top:15px">
@@ -88,18 +88,20 @@
                 
             <div>
                 <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >The first step in the data download process just after you submit the form is to create the user specific PostgreSQL DB. 
-                This DB has a unique identifier (<b>{{db_info}}</b>) and it is standalone and not shared with other users. You can view this DB's Tables, Fields and coresponding datesets in the below html table. 
-                To filter the content select the table name from the dropdown box below the table headers. You can also preview the DB model in the graphical form by clicking on the below link.</small>
+                This DB has a unique identifier (<b>{{db_info}}</b>) and it is standalone and not shared with other users. You can view the DB structure in the below html table. 
+                To filter the content, select the table name from the dropdown box. You can also preview the DB model in the graphical form by clicking on the "Preview Data Model..." link below.</small>
             </div>
 
             <div>
                 <a id="datamodel_preview" href="/datamodel_preview?gc=0&wel=0&mfp=0&dia=0" target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px" onclick="addAtribs()">Preview Data Model...</a>
             </div>
-            <!--This section requires pgweb. Modify href= to the actual link
-            <div>   
-                <a id="browse_data" href="http://pgweb-usr.athletedata.net" target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px">Browse Your Data...</a>
-            </div>
-            -->
+            <!--This section requires pgweb installed and enabled.-->
+            {% if pgweb_enabled %}
+                <div>   
+                    <a id="browse_data" href={{pgweb_usr_url}} target="_blank" style="margin-left: 15px; margin-top:15px; margin-bottom:15px">Browse Your Data...</a>
+                </div>
+            {% endif %}
+            
             <div class="container" style="margin-left: 5px; margin-top:5px">
                 <div class="row justify-content-start">
                     <span class="border" style="margin-left: 15px; margin-top:15px; margin-bottom: 15px">
@@ -137,8 +139,8 @@
             
         <div>
             <small class="form-text text-muted" style="margin-left: 15px; margin-top:5px; max-width: 800px" >Once the DB gets created and populated with your data, 
-            you will be able to use data analisys tool of your choice to access the database/data and perform the analisys or manipulate the data. There are currently no restrictions on the connectivity methods 
-            and you should be able to use anything that PostgreSQL databases support out of the box. I have tested mine with raw SQL, <a href="https://plot.ly/dash/" class="badge badge-pill badge-secondary">Plotly/Dash</a>, <a href="https://powerbi.microsoft.com/en-us/" class="badge badge-pill badge-secondary">MS PowerBI (ODBC)</a>, MS Excel(ODBC) and <a href="https://tableau.com" class="badge badge-pill badge-secondary">Tableau (ODBC)</a>. </small>
+            you will be able to use the integrated Pg_Web or Apache-Superset, or a data exploration/analisys tool of your choice to access the database and perform data analisys or data manipulation. There are currently no restrictions on the connectivity methods 
+            and you should be able to use anything that PostgreSQL databases support out of the box.</small>
         </div>
         
         <div class="container" style="margin-left: 5px; margin-top:15px">
@@ -164,9 +166,10 @@
                             <p><b>Database:</b> {{db_info}}</p>
                             <p><b>Role:</b> {{db_username}}</p>
                             <p><b>Password:</b> {{password_info}}</p>
-                            <!--This section requires pgweb. Modify href= to the actual link
-                            <p><b>Pgweb Client:</b><span><a class="btn btn-outline-primary" id="browse_usr_data" href="http://pgweb-usr.athletedata.net" target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse Your Data</a></span></p>
-                            -->
+                            <!--This section requires pgweb installed and enabled.-->
+                            {% if pgweb_enabled %}
+                                <p><b>Pgweb Client:</b><span><a class="btn btn-outline-primary" id="browse_usr_data" href={{pgweb_usr_url}} target="_blank" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse Your Data</a></span></p>
+                            {% endif %}
                         </div> 
                     </div>  
                 </span>

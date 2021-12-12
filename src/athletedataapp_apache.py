@@ -989,9 +989,11 @@ def db_info():
         # Check if the sample DB exists, and create it if it does not.
         create_sample_db(encr_pass)
 
-        # read DB connection parameters from ini file
         conn = None
+        # read DB connection parameters from ini file
         params = config(filename="encrypted_settings.ini", section="postgresql",encr_pass=encr_pass)
+        # read pgweb parameters from ini file
+        pgweb_params = config(filename="encrypted_settings.ini", section="pgweb",encr_pass=encr_pass)
         #Connection params for 'sample_db' DB.
         sample_db_host = params.get("sample_db_host")
         sample_db_port = params.get("sample_db_port")
@@ -1006,6 +1008,15 @@ def db_info():
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
         postgres_host = params.get("host")
+        #pgweb params
+        pgweb_installed = pgweb_params.get("pgweb")
+        pgweb_smpl_url = pgweb_params.get("url_smpl")
+        pgweb_usr_url = pgweb_params.get("url_usr")
+
+        if pgweb_installed == 'true':
+            pgweb_enabled = True
+        else:
+            pgweb_enabled = False
 
         # connect to the PostgreSQL server (sample_db)
         conn = psycopg2.connect(dbname=sample_db, user=ro_user, password=ro_password, host=sample_db_host, port=sample_db_port)
@@ -1076,15 +1087,15 @@ def db_info():
             full_synch=True
             retrieve_decrypt_creds(synch_req_db_list,encr_pass,full_synch)
             flash('  The data re-synch has finished successfully.','success')
-            return render_template('db_info.html',db_info=db_info,ath_un=user,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,last_synch=last_synch,auto_synch_enabled=auto_synch_enabled)
+            return render_template('db_info.html',pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,db_info=db_info,ath_un=user,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,last_synch=last_synch,auto_synch_enabled=auto_synch_enabled)
         else:
-            return render_template('db_info.html',db_info=db_info,ath_un=user,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,last_synch=last_synch,auto_synch_enabled=auto_synch_enabled)
+            return render_template('db_info.html',pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,db_info=db_info,ath_un=user,db_username=db_username,host_ip=host_ip,password_info=password_info,metadata=metadata,last_synch=last_synch,auto_synch_enabled=auto_synch_enabled)
     else:
         db_info = None
         db_username = None
         password_info = None
         flash('  The DB name, DB role and DB permissions are generated based on your username(email). Please log-in and try again. This information is not recorded anywhere until you proceed with the download and the AutoSynch option is enabled.','warning')
-        return render_template("index.html",superset_enabled=superset_enabled,superset_url=superset_url,pgweb_enabled=pgweb_enabled,pgweb_smpl_url=pgweb_smpl_url,pgweb_usr_url=pgweb_usr_url,admin_email=admin_email,integrated_with_dropbox=integrated_with_dropbox,diasend_enabled=diasend_enabled,oura_enabled=oura_enabled,strava_enabled=strava_enabled)
+        return redirect(url_for('index'))
 
 @app.route("/dropbox_auth_request")
 def dropbox_auth_request():
