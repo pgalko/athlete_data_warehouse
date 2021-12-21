@@ -1448,9 +1448,9 @@ begin
   return case
      when state is null then inval
      --original
-	 --else state * (1-alpha) + inval * alpha
+	 --else round(state,4) * (1-alpha) + inval * alpha
 	 --coggans
-	 else state + (inval-state)*alpha
+	 else round(state,4) + (inval-round(state,4))*alpha
   end;
 end
 -- alpha = 1/42 or 1/7
