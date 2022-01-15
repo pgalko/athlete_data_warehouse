@@ -49,9 +49,9 @@ def csv_match_columns2data(ath_un,csv_data):
     csv_data.seek(0)#Move pointer to the beginning
     for i, line in enumerate(csv_data):
         if i == 0:
-            headerCount = line.count(delimiter)
+            headerCount = line.count(delimiter)+1
         elif i == 1:
-            dataCount = line.count(delimiter)  
+            dataCount = line.count(delimiter)+1 
             if (headerCount != dataCount):
                 with ProgressStdoutRedirection(ath_un):
                     print("Warning: Header and data size mismatch in {}. Columns beyond header size will be removed.".format(csv))        
@@ -364,5 +364,3 @@ def retrieve_cstm_tables_params(ath_un,db_host,db_name,superuser_un,superuser_pw
     finally:
         if conn is not None:
             conn.close()
-
-    
