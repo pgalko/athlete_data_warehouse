@@ -1,0 +1,52 @@
+version: "3"
+services:
+  db:
+    image: postgres:13.5
+    container_name: db
+    command: postgres -c max_prepared_transactions=100
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./work_dir/db:/var/lib/postgresql/data
+      - ./sql/:/docker-entrypoint-initdb.d
+  app:
+    image: pgalko/athlete_data_warehouse
+    container_name: athlete_data_warehouse
+    command: python3 web_app_loader_flask.py 
+    depends_on:
+      - db
+    environment:
+      - ENCR_PASS=00000
+      - PYTHONPATH=/usr/src/athletedataapp/superset
+    ports:
+      - 5000:5000
+    volumes:
+      - ./work_dir:/usr/src/athletedataapp/work_dir
+      - ./superset:/usr/src/athletedataapp/superset
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: pgweb
+    restart: always
+    ports: 
+      - "8081:8081" 
+    links: 
+      - db:db 
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres?sslmode=disable
+    depends_on:
+      - db
+  superset:
+    image: amancevice/superset
+    container_name: superset
+    restart: always
+    ports: 
+      - "8088:8088"
+    volumes: 
+      - ./superset:/etc/superset
+    depends_on:
+      - db
+    
+  
+
