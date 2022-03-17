@@ -91,17 +91,50 @@ This tool requires user's login credentials for GarminConnect,MFP and Diasend, t
        Create download folder (eg. C:\Data_Dump)
        
        Configure and encrypt settings.ini
-           Modify "settings.ini" to reflect your environment and use scenario. Sensitive information in the .ini file will get encrypted upon the apps first execution, and the original clear text settings.ini will be deleted.
+           Modify "work_dir/config/settings.ini" to reflect your environment and use scenario (If you leave settings.ini as is, the app will still be functional and will use the pre-populated default options).
+           Sensitive information in the .ini file will get encrypted upon the apps first execution, new encrypted_settings.ini file will be created and the original clear text settings.ini will be deleted.
                Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
+           Please note that to be able to authenticate with Dropbox, Oura and Strava you wil need to setup accounts with them and register this API application under your account. The process and steps described in the wiki section.
                
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
            Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is  important that you remember the password as the password is not saved and you will be asked to provide it everytime you restart the app !
            The autosynch loop will be also started at this time and will check for new user data automaticaly at the intervals specified in settings.ini.
            
-       Browse to http://127.0.0.1:5000 (if using local Flask server) and you should be able to start experimenting with different download options and settings.
+       Browse to http://127.0.0.1:5000 (if using local Flask server) create username and password and you should be able to start experimenting with different download options and settings.
        
        Upon first submit the user data DB and user role will be created. The DB will be accessible using the usual DB management tools like pgAdmin.   
            The DB role and password for user's DB are derived from user's logon username and password.
                If username = johndoe@gmail.com and password = pass123, the DB role will be created as johndoe with password pass123.
+            
+ ```
+ ## How to run as a Docker container
+```
+       Browse to pgalko/athlete_data_warehouse/docker and download athlete_data_warehouse_docker.zip
+       
+       Extract to a local location of your choice
+       
+       cd to the location from the previous step
+       
+       Modify "work_dir/config/settings.ini" to reflect your environment and use scenario (If you leave "settings.ini" as is, the app will still be functional and will use the pre-populated default options). 
+           Sensitive information in the .ini file will get encrypted upon the apps first execution, new "encrypted_settings.ini" file will be created and the original clear text "settings.ini" will be deleted.
+           Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
+           Please note that to be able to authenticate with Dropbox, Oura and Strava you wil need to setup accounts with them and register this API application under your account. The process and steps described in the wiki section.
+       
+      Review the "docker-compose.yml" file, and make sure that you are happy with the default options, or modify if not. 
+      
+      Run "docker-compose up"
+           
+      Browse to http://127.0.0.1:5000, create username and password and you should be able to start experimenting with different download options and settings.
+       
+      Upon first submit the user data DB and user role will be created. The DB will be accessible using the usual DB management tools like "pgAdmin" or the included "pgWeb".   
+           The DB role and password for user's DB are derived from user's logon username and password.
+           If username = johndoe@gmail.com and password = pass123, the DB role will be created as johndoe with password pass123.
+               
+           The default encryption passphrase is 00000 and can be changed in the "docker-compose.yml" file.
+           The default postgres credentials: postgres/postgres and can be changed in "the docker-compose.yml" file
+           The default superset credentials: admin/admin
+           
+       
+       
             
  ```
