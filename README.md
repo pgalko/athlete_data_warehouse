@@ -91,7 +91,7 @@ This tool requires user's login credentials for GarminConnect,MFP and Diasend, t
        Create download folder (eg. C:\Data_Dump)
        
        Configure and encrypt settings.ini
-           Modify "sample_settings.ini" to reflect your environment and use scenario and rename to "settings.ini when done. Sensitive information in the .ini file will get encrypted upon the apps first execution, and the original clear text settings.ini will be deleted.
+           Modify "settings.ini" to reflect your environment and use scenario. Sensitive information in the .ini file will get encrypted upon the apps first execution, and the original clear text settings.ini will be deleted.
                Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
                
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
