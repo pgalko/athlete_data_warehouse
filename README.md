@@ -1,7 +1,7 @@
 # athlete_data_warehouse
 
 ## What does it do ?
-This utility allows user to download and consolidate health and fitness data from various sources/trackers. The downloaded data is formated, and stored in a set of coresponding tables in PostgreSQL database. If required, it can periodically poll the data sources and download any new data. It uses various methods to access the user data, ranging from vendor API, scraping, manual export etc. A live and fully functional service can be explored here: https://athletedata.net.
+This utility allows user to download and consolidate health and fitness data from various sources/trackers. The downloaded data is formated, and stored in a set of coresponding tables in PostgreSQL database. If required, it can periodically poll the data sources and download any new data. It uses various methods to access the user data, ranging from vendor API, scraping, manual export etc. The App can be run either natively or as a Docker container. A live and fully functional service can be explored here: https://athletedata.net.
 
 ## Who is it for ?
 There is a few alternative usage scenarios.
