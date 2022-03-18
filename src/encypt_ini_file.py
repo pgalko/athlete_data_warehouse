@@ -55,6 +55,11 @@ def create_encr_ini_file(encr_pass_input,plaintext_ini,encrypted_ini):
     encrypted_postgres_password = encrypted_postgres_password.decode('utf-8')
     parser.set('postgresql', 'password', encrypted_postgres_password)
 
+    postgres_ro_password_to_encrypt = parser.get('postgresql','ro_password')
+    encrypted_postgres_ro_password = base64.b64encode(encrypt(postgres_ro_password_to_encrypt,encr_pass_input))
+    encrypted_postgres_ro_password = encrypted_postgres_ro_password.decode('utf-8')
+    parser.set('postgresql', 'ro_password', encrypted_postgres_ro_password)
+
     app_secr_key_to_encrypt = parser.get('app','secret_key')
     encrypted_app_secr_key = base64.b64encode(encrypt(app_secr_key_to_encrypt,encr_pass_input))
     encrypted_app_secr_key = encrypted_app_secr_key.decode('utf-8')

@@ -40,8 +40,9 @@ def ath_auth_register(ath_un,ath_pw,encr_pass):
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host")
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host,dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -81,8 +82,9 @@ def ath_auth_login(ath_un,ath_pw,encr_pass):
         postgres_db = params.get("database")
         superuser_un = params.get("user")
         superuser_pw = params.get("password")
+        postgres_host = params.get("host")
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=superuser_un, password=superuser_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host,dbname=postgres_db, user=superuser_un, password=superuser_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -114,8 +116,9 @@ def ath_auth_reset(ath_un,ath_pw,encr_pass):
         postgres_db = params.get("database")
         superuser_un = params.get("user")
         superuser_pw = params.get("password")
+        postgres_host = params.get("host")
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=superuser_un, password=superuser_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host,dbname=postgres_db, user=superuser_un, password=superuser_pw)
         conn_localhost.autocommit = True
 
         # create a cursor

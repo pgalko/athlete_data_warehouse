@@ -59,13 +59,14 @@ def get_databases_list(encr_pass):
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host")
 
         interval = int(autosynch_params.get("interval")) #The amount of time in seconds to wait before attempting next synch
         time_now = datetime.datetime.now()
         now_less_interval_dt = time_now - datetime.timedelta(seconds=interval)
         now_less_interval_str = now_less_interval_dt.strftime("%Y-%m-%d %H:%M:%S")
 
-        conn = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
          
         # connect to the PostgreSQL server
         with ConsolidatedProgressStdoutRedirection():
@@ -77,11 +78,10 @@ def get_databases_list(encr_pass):
         cur.execute(sql_get_databases_db_info,(now_less_interval_str,))
         conn.commit()
         databases = cur.fetchall()
-
     except (Exception, psycopg2.DatabaseError) as error:
         with ConsolidatedProgressStdoutRedirection():
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
-
+        databases = []
     finally:
         if conn is not None:
             conn.close()
@@ -146,8 +146,9 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass,full_synch=False):
                 dbsu_params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
                 superuser_un = dbsu_params.get("user")
                 superuser_pw = dbsu_params.get("password")
+                postgres_host = dbsu_params.get("host")
             
-                dbsu_conn = psycopg2.connect(dbname='postgres', user=superuser_un, password=superuser_pw)
+                dbsu_conn = psycopg2.connect(host=postgres_host, dbname='postgres', user=superuser_un, password=superuser_pw)
                 dbsu_cur = dbsu_conn.cursor()
                 dbsu_cur.execute(sql_select_dbsu_creds,(db,))
                 dbsu_conn.commit()
@@ -156,7 +157,10 @@ def retrieve_decrypt_creds(synch_req_db_list,encr_pass,full_synch=False):
                 db_un = dbsu_result[1]
                 db_pw = dbsu_result[2]
                 
-                if db_host != 'localhost':#User database is hosted remotely
+                if db_host == 'localhost' or db_host == 'db':#User database is hosted localy
+                    superuser_un = superuser_un
+                    superuser_pw = superuser_pw
+                else:
                     superuser_un = db_un
                     superuser_pw = decrypt(base64.b64decode(db_pw), encr_pass)
             except (Exception, psycopg2.DatabaseError) as error:

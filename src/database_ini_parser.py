@@ -4,6 +4,7 @@ from configparser import ConfigParser
 import Crypto.Random
 from Crypto.Cipher import AES
 import base64
+import os
 
 #######################################################################################################################
 #This script decrypts,reads and returns contents of .ini file.
@@ -36,6 +37,7 @@ def config(filename, section, encr_pass=None):
     parser = ConfigParser()
 
     # read config file
+    filename = os.path.join("work_dir","config",filename)
     with open(filename, "U") as f:
         config_txt = f.read()
         f.close()

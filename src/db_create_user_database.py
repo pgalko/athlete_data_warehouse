@@ -105,8 +105,9 @@ def check_host_record_exists(ath_un,db_name,db_host,encr_pass):
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host")
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -192,8 +193,9 @@ def create_user_db(ath_un,ath_pw,db_host,db_name,superuser_un,superuser_pw,encry
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host")
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor

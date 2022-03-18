@@ -207,6 +207,7 @@ def create_app(encr_pass_input,debug=False):
                 superuser_un = str(request.form.get('dbUser'))
                 superuser_pw = str(request.form.get('dbPass'))
                 encrypted_superuser_pw = base64.b64encode(encrypt(superuser_pw, encr_pass))
+                encrypted_superuser_pw = encrypted_superuser_pw.decode('utf-8')
                 db_host = str(request.form.get('dbHost'))
                 #Test Connectivity to user db
                 connection = check_db_server_connectivity(ath_un,db_host,superuser_un,superuser_pw)
@@ -219,6 +220,7 @@ def create_app(encr_pass_input,debug=False):
                 superuser_un = params.get("user")
                 superuser_pw = params.get("password")
                 encrypted_superuser_pw = base64.b64encode(encrypt(superuser_pw, encr_pass))
+                encrypted_superuser_pw = encrypted_superuser_pw.decode('utf-8')
                 db_host = params.get("host")
 
             #Check if the user has a DB recorded in the info_db. If yes, stop execution and show warning message, otherwise proceed

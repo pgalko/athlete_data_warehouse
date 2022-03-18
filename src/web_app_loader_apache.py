@@ -6,14 +6,39 @@
 
 import os
 import sys
+import time
 import getpass
 import urllib.request, urllib.error, urllib.parse
 from database_ini_parser import config
 from encypt_ini_file import create_encr_ini_file
 
-#Admin to provide the encryption passphrase. This is not permanently stored anywhere on the system and is used to encrypt all sensitive user information.
-#Everytime you restart the Apache/mod_wsgi service you will be asked to provide the same passphrase.
-passphrase = getpass.getpass(prompt='Please enter encryption passphrase:')
+def get_pass():
+    #Admin to provide the encryption passphrase. This is not permanently stored anywhere on the system and is used to encrypt all sensitive user information.
+    #Everytime you restart the Flask service you will be asked to provide the same passphrase. If you decide not to provide the passphrase the default 
+    #passphrase will be used after input timeout.
+    timeout = 20 #Time in secs to provide passphrase
+    default_passphrase = os.environ.get('ENCR_PASS')
+    print('Waiting for input... please press "Ctrl-C" within {} seconds to type-in the encryption passphrase.'.format(timeout))
+    try:
+        for i in range(timeout,0,-1):
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} seconds remaining.".format(i))
+            sys.stdout.flush()   
+            time.sleep(1)
+        #If no input detected within timeout window the default passphrase will be used.
+        if default_passphrase is not None:   
+            passphrase = default_passphrase
+            print("\nNo input was received. Using default encryption passphrase.")
+        else:
+            passphrase = getpass.getpass(prompt='\nNo stored passphrase found. Please enter encryption passphrase:')
+            print ("Using your chosen encryption passphrase.")
+    except KeyboardInterrupt:
+        passphrase = getpass.getpass(prompt='\nPlease enter encryption passphrase:')
+        print ("Using your chosen encryption passphrase.")
+    return passphrase
+
+passphrase = get_pass()
+#passphrase = getpass.getpass(prompt='Please enter encryption passphrase:')
 
 #Check if the encrypted settings.ini file exists and try to create it if it does not.
 encrypted_ini_file = 'encrypted_settings.ini'

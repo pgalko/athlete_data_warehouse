@@ -48,8 +48,9 @@ def insert_last_synch_timestamp(ath_un,encr_pass,db_name):
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host") 
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -617,12 +618,12 @@ def update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,en
     pidfile = PID_FILE_DIR + ath_un + '_PID.txt'
     open(pidfile, 'w').write(pid)
 
-    #Do not save pw to db_info if no autosynch or db_host=localhost
+    #Do not save pw to db_info if no autosynch or db_host=localhost or db_host=db(docker)
     if enable_auto_synch == True:
-        if db_host != 'localhost':
-            encrypted_superuser_pw = (encrypted_superuser_pw,)
+        if db_host == 'localhost' or db_host == 'db':
+            encrypted_superuser_pw = None      
         else:
-            encrypted_superuser_pw = None
+            encrypted_superuser_pw = (encrypted_superuser_pw,)
     else:
         encrypted_superuser_pw = None
 
@@ -671,8 +672,9 @@ def update_autosynch_prefrnc(ath_un,db_host,db_name,superuser_un,superuser_pw,en
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host") 
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
@@ -707,8 +709,9 @@ def check_user_exists(ath_un,encr_pass):
         postgres_db = params.get("database")
         postgres_un = params.get("user")
         postgres_pw = params.get("password")
+        postgres_host = params.get("host") 
 
-        conn_localhost = psycopg2.connect(dbname=postgres_db, user=postgres_un, password=postgres_pw)
+        conn_localhost = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
         conn_localhost.autocommit = True
 
         # create a cursor
