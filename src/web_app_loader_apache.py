@@ -41,8 +41,8 @@ passphrase = get_pass()
 #passphrase = getpass.getpass(prompt='Please enter encryption passphrase:')
 
 #Check if the encrypted settings.ini file exists and try to create it if it does not.
-encrypted_ini_file = 'encrypted_settings.ini'
-plaintext_ini_file = 'settings.ini'
+encrypted_ini_file = os.path.join("work_dir","config","encrypted_settings.ini")
+plaintext_ini_file = os.path.join("work_dir","config","settings.ini")
 
 if not os.path.isfile(encrypted_ini_file):
     print('Can not find enrypted .ini file. Will search for plaintext .ini file and try to encrypt it.')
