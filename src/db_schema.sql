@@ -571,7 +571,18 @@ CREATE TABLE public.mfp_nutrition (
     carbohydrates real,
     calories real,
     fat real,
-    protein real
+    protein real,
+    sat_fat real,
+    ply_fat real,
+    mon_fat real,
+    trn_fat real,
+    cholesterol real,
+    potassium real,
+    sugar real,
+    vit_a real,
+    vit_c real,
+    calcium real,
+    iron  real   
 );
 
 ALTER TABLE public.mfp_nutrition OWNER TO postgres;

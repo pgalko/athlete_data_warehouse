@@ -101,6 +101,7 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
             print(('Downloading nutrition data: '+date_in_range))
 
         try:
+            fiber_value,sodium_value,carbohydrates_value,calories_value,fat_value,protein_value,sat_fat_value,ply_fat_value,mon_fat_value,trn_fat_value,chol_value,potass_value,sugar_value,vit_a_value,vit_c_value,calcium_value,iron_value=[None]*17
             day = client.get_date(single_date)
             meals = day.meals
 
@@ -135,13 +136,36 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
                             fat_value = value
                         if nutrient == 'protein':
                             protein_value = value
+                        if nutrient == 'sat fat':
+                            sat_fat_value = value
+                        if nutrient == 'ply fat':
+                            ply_fat_value = value
+                        if nutrient == 'mon fat':
+                            mon_fat_value = value
+                        if nutrient == 'trn fat':
+                            trn_fat_value = value
+                        if nutrient == 'chol':
+                            chol_value = value
+                        if nutrient == 'potass':
+                            potass_value = value
+                        if nutrient == 'sugar':
+                            sugar_value = value
+                        if nutrient == 'vit a':
+                            vit_a_value = value
+                        if nutrient == 'vit c':
+                            vit_c_value = value
+                        if nutrient == 'calcium':
+                            calcium_value = value
+                        if nutrient == 'iron':
+                            iron_value = value
 
                     sql = """
 
-                    INSERT INTO mfp_nutrition(athlete_id,date,meal,food_item,units,quantity,fiber,sodium,carbohydrates,calories,fat,protein)
+                    INSERT INTO mfp_nutrition(athlete_id,date,meal,food_item,units,quantity,fiber,sodium,carbohydrates,calories,fat,protein,
+                    sat_fat,ply_fat,mon_fat,trn_fat,cholesterol,potassium,sugar,vit_a,vit_c,calcium,iron)
 
                     VALUES
-                    ((select id from athlete where mfp_username=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
+                    ((select id from athlete where mfp_username=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
                     
                     """
                     try:
@@ -152,7 +176,9 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
                             print('Inserting record....')
                         with ProgressStdoutRedirection(ath_un):
                             print('Inserting record....')
-                        cur.execute(sql,(mfp_username,date_in_range,meal_name,food_item,units,quantity,fiber_value,sodium_value,carbohydrates_value,calories_value,fat_value,protein_value))
+                        cur.execute(sql,(mfp_username,date_in_range,meal_name,food_item,units,quantity,fiber_value,sodium_value,carbohydrates_value,
+                                        calories_value,fat_value,protein_value,sat_fat_value,ply_fat_value,mon_fat_value,trn_fat_value,chol_value,
+                                        potass_value,sugar_value,vit_a_value,vit_c_value,calcium_value,iron_value))
                         conn.commit()
                         # close the communication with the PostgreSQL
                         cur.close()
