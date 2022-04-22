@@ -21,7 +21,7 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
     gc_activity_id = (activity_id)
     ath_un = (ath_un)
     db_name = (db_name)
-    activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,est_core_temp = [None]*38
+    activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,est_core_temp,alpha1,alpha1_raw = [None]*40
     hrv_record_list = (None, None, None, None)
     hrv_record_list_combined = []
     hrv_rmssd = None
@@ -94,16 +94,20 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
             if record_data.name == 'temperature':
                 temperature = record_data.value
             if record_data.name == 'Est Core Temp':
-                est_core_temp = record_data.value									   
+                est_core_temp = record_data.value
+            if record_data.name == 'Alpha1':
+                alpha1 = record_data.value
+            if record_data.name == 'Alpha1 (raw)':
+                alpha1_raw = record_data.value									   
 
         sql = """
 
             INSERT INTO garmin_connect_original_record (activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat
             ,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power
-            ,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,est_core_temp,lap_id)
+            ,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,est_core_temp,alpha1,alpha1_raw,gc_activity_id,lap_id)
 
             VALUES
-            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from garmin_connect_original_lap where timestamp >= %s and start_time < %s LIMIT 1))
+            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from garmin_connect_original_lap where timestamp >= %s and start_time < %s LIMIT 1))
             
             ON CONFLICT (timestamp,lap_id) DO NOTHING;
 
@@ -117,7 +121,7 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
                 print(('Inserting track record from session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
             cur.execute(sql,(activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,
                             stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,
-                            power,right_pedal_smoothness,right_torque_effectiveness,temperature,est_core_temp,str(timestamp),str(timestamp)))
+                            power,right_pedal_smoothness,right_torque_effectiveness,temperature,est_core_temp,alpha1,alpha1_raw,gc_activity_id,str(timestamp),str(timestamp)))
 
             cur.close()       
         except  (Exception, psycopg2.DatabaseError) as error:
@@ -256,7 +260,9 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
         print(('--- All record data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
     with ProgressStdoutRedirection(ath_un):
         print(('--- All record data for session: ' + str(gc_activity_id) + ' inserted successfully. ---'))
-    #Correct Errors. Change all values with SD > 2 to mean
+    
+    #Correct Errors(as per https://medium.com/orikami-blog/exploring-heart-rate-variability-using-python-483a7037c64d). 
+    #Change all values with SD > 2 to mean
     hrv_record_list_combined = np.array(hrv_record_list_combined)
     hrv_record_list_combined[np.abs(zscore(hrv_record_list_combined)) > 2] = np.median(hrv_record_list_combined)
 

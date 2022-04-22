@@ -238,7 +238,9 @@ CREATE TABLE public.garmin_connect_original_record (
     total_timer_time real,
     lap_id bigint,
     est_core_temp numeric,
-    hrv_btb numeric
+    hrv_btb numeric,
+    alpha1 numeric,
+    alpha1_raw numeric
 );
 
 ALTER TABLE public.garmin_connect_original_record OWNER TO postgres;
