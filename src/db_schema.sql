@@ -236,6 +236,8 @@ CREATE TABLE public.garmin_connect_original_record (
     total_elapsed_time real,
     total_strokes integer,
     total_timer_time real,
+    respiration_rate numeric,
+    performance_condition integer,
     lap_id bigint,
     est_core_temp numeric,
     hrv_btb numeric,

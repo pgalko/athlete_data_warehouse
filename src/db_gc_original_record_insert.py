@@ -21,7 +21,7 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
     gc_activity_id = (activity_id)
     ath_un = (ath_un)
     db_name = (db_name)
-    activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,est_core_temp,alpha1,alpha1_raw = [None]*40
+    activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,respiration_rate,performance_condition,est_core_temp,alpha1,alpha1_raw = [None]*42
     hrv_record_list = (None, None, None, None)
     hrv_record_list_combined = []
     hrv_rmssd = None
@@ -93,6 +93,10 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
                 right_torque_effectiveness = record_data.value
             if record_data.name == 'temperature':
                 temperature = record_data.value
+            if record_data.name == 'unknown_108':
+                respiration_rate = record_data.value/100
+            if record_data.name == 'unknown_90':
+                performance_condition = record_data.value
             if record_data.name == 'Est Core Temp':
                 est_core_temp = record_data.value
             if record_data.name == 'Alpha1':
@@ -104,10 +108,11 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
 
             INSERT INTO garmin_connect_original_record (activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat
             ,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power
-            ,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,est_core_temp,alpha1,alpha1_raw,gc_activity_id,lap_id)
+            ,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature
+            ,respiration_rate,performance_condition,est_core_temp,alpha1,alpha1_raw,gc_activity_id,lap_id)
 
             VALUES
-            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from garmin_connect_original_lap where timestamp >= %s and start_time < %s LIMIT 1))
+            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from garmin_connect_original_lap where timestamp >= %s and start_time < %s LIMIT 1))
             
             ON CONFLICT (timestamp,lap_id) DO NOTHING;
 
@@ -121,7 +126,8 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
                 print(('Inserting track record from session: ' + str(gc_activity_id) + ' with timestamp:' + str(timestamp)))
             cur.execute(sql,(activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,
                             stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,
-                            power,right_pedal_smoothness,right_torque_effectiveness,temperature,est_core_temp,alpha1,alpha1_raw,gc_activity_id,str(timestamp),str(timestamp)))
+                            power,right_pedal_smoothness,right_torque_effectiveness,temperature,respiration_rate,performance_condition,
+                            est_core_temp,alpha1,alpha1_raw,gc_activity_id,str(timestamp),str(timestamp)))
 
             cur.close()       
         except  (Exception, psycopg2.DatabaseError) as error:
