@@ -91,10 +91,10 @@ This tool requires user's login credentials for GarminConnect,MFP and Diasend, t
        Create download folder (eg. C:\Data_Dump)
        
        Configure and encrypt settings.ini
-           Modify "work_dir/config/settings.ini" to reflect your environment and use scenario (If you leave settings.ini as is, the app will still be functional and will use the pre-populated default options).
-           Sensitive information in the .ini file will get encrypted upon the apps first execution, new encrypted_settings.ini file will be created and the original clear text settings.ini will be deleted.
-               Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
-           Please note that to be able to authenticate with Dropbox, Oura and Strava you wil need to setup accounts with them and register this API application under your account. The process and steps described in the wiki section.
+           Modify work_dir/config/settings.ini to reflect your environment and use scenario (If you leave settings.ini as is, the app will still be functional and will use the pre-populated default options). 
+           Sensitive information in the .ini file will get encrypted upon the apps first execution, new encrypted_settings.ini file will be created and the original clear text settings.ini will be deleted. 
+           Detailed description of the process can be found here: https://github.com/pgalko/athlete_data_warehouse/wiki/Settings-Encryption. Please note that to be able to authenticate with Dropbox, Oura and Strava you wil need to setup accounts with them and register this API application under your account. 
+           The process and steps described in the wiki API section.
                
        Run "web_app_loader_flask.py" to start the app using Flask server, for Apache/mod-wsgi use "web_app_loader_apache.py".
            Once executed you will be prompted to provide an encryption password of your choice to encrypt the settings.ini file and all sensitive user data in the DB. It is  important that you remember the password as the password is not saved and you will be asked to provide it everytime you restart the app !
@@ -115,11 +115,12 @@ This tool requires user's login credentials for GarminConnect,MFP and Diasend, t
        
        cd to the location from the previous step
        
-       Modify "work_dir/config/settings.ini" to reflect your environment and use scenario (If you leave "settings.ini" as is, the app will still be functional and will use the pre-populated default options). 
-           Sensitive information in the .ini file will get encrypted upon the apps first execution, new "encrypted_settings.ini" file will be created and the original clear text "settings.ini" will be deleted.
-           Detailed description of the process can be found in a header of "encrypt_ini_file.py" module
-           Please note that to be able to authenticate with Dropbox, Oura and Strava you wil need to setup accounts with them and register this API application under your account. The process and steps described in the wiki section.
-       
+       Configure and encrypt settings.ini
+           Modify work_dir/config/settings.ini to reflect your environment and use scenario (If you leave settings.ini as is, the app will still be functional and will use the pre-populated default options). 
+           Sensitive information in the .ini file will get encrypted upon the apps first execution, new encrypted_settings.ini file will be created and the original clear text settings.ini will be deleted. 
+           Detailed description of the process can be found here: https://github.com/pgalko/athlete_data_warehouse/wiki/Settings-Encryption. Please note that to be able to authenticate with Dropbox, Oura and Strava you wil need to setup accounts with them and register this API application under your account. 
+           The process and steps described in the wiki API section.
+
       Review the "docker-compose.yml" file, and make sure that you are happy with the default options, or modify if not. 
       
       Run "docker-compose up"
