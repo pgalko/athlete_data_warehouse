@@ -20,6 +20,7 @@ import Crypto.Random
 from Crypto.Cipher import AES
 from configparser import ConfigParser 
 import base64
+import os
 
 #----Crypto Variables. Values must match the values in settings.ini----
 # salt size in bytes
@@ -111,7 +112,5 @@ def create_encr_ini_file(encr_pass_input,plaintext_ini,encrypted_ini):
         parser.write(configfile)
 
     
-
-
 if __name__ == "__main__":
-    create_encr_ini_file('<<encryption_passphrase>>','settings.ini','encrypted_settings.ini')
+    create_encr_ini_file('<<type_your_encryption_passphrase_here>>',os.path.join("work_dir","config","settings.ini"),os.path.join("work_dir","config","encrypted_settings.ini"))
