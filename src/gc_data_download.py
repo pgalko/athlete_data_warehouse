@@ -34,6 +34,25 @@ import Crypto.Random
 from Crypto.Cipher import AES
 from func_timeout import func_timeout, FunctionTimedOut
 
+#-------------------------------
+#A custom adapter that specifies a different security level to address CloudFlare rejecting default TLS fingerprints
+#Credit (Steffen Ullrich) - https://stackoverflow.com/questions/64967706/python-requests-https-code-403-without-but-code-200-when-using-burpsuite
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
+
+CIPHERS = ('DEFAULT:@SECLEVEL=2')
+class CipherAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        context = create_urllib3_context(ciphers=CIPHERS)
+        kwargs['ssl_context'] = context
+        return super(CipherAdapter, self).init_poolmanager(*args, **kwargs)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        context = create_urllib3_context(ciphers=CIPHERS)
+        kwargs['ssl_context'] = context
+        return super(CipherAdapter, self).proxy_manager_for(*args, **kwargs)
+#------------------------------------
+
 #----Crypto Variables----
 # salt size in bytes
 SALT_SIZE = 16
@@ -76,6 +95,8 @@ def encrypt(plaintext, password):
 
 def check_gc_creds(username,password):
     agent = cloudscraper.create_scraper()
+    #mount the custom adapter
+    agent.mount(BASE_URL, CipherAdapter())
     cred_valid = None 
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36'
 
@@ -97,6 +118,8 @@ def check_gc_creds(username,password):
     
 def login(username, password):
     agent = cloudscraper.create_scraper()
+    #mount the custom adapter
+    agent.mount(BASE_URL, CipherAdapter())
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36'
     
     with StdoutRedirection(username):
