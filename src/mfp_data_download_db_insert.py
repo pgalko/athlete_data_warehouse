@@ -106,12 +106,12 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
     options.add_argument("user-data-dir={}".format(PID_FILE_DIR+'selenium'))
     driver = webdriver.Chrome(PID_FILE_DIR+'chromedriver.exe',options=options)# Modify this line if your chromedrive executable is located at a different path. The dafault location is /work_dir/temp.
     driver.get('https://www.myfitnesspal.com/account/login') 
-    email = driver.find_element_by_id("email")
+    email = driver.find_element("id","email")
     email.send_keys(mfp_username) #Email id 
-    password = driver.find_element_by_id("password")
+    password = driver.find_element("id","password")
     password.send_keys(mfp_password)  #Password
     time.sleep(3)
-    login = driver.find_element_by_id("password")
+    login = driver.find_element("id","password")
     login.submit()   #Logging In
     time.sleep(3)
     cookies = driver.get_cookies()
