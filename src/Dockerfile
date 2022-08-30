@@ -15,6 +15,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install pg_dump
 RUN apt-get update && apt-get -y install postgresql-client
 
+# Install Chrome and chromedriver
+# Install wget
+RUN apt-get install -y wget
+# Download and Install chrome
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
+# Download and Install chromedriver. The version here depends on what what version of chrome gets installed above !
+RUN wget https://chromedriver.storage.googleapis.com/104.0.5112.79/chromedriver_linux64.zip
+RUN unzip chromedriver_linux64.zip
+RUN mv chromedriver /usr/bin/chromedriver
+RUN chown root:root /usr/bin/chromedriver
+RUN chmod +x /usr/bin/chromedriver
+
 # define the port number the container should expose
 EXPOSE 5000
 
