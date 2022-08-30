@@ -58,8 +58,69 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
         print("Attempting to login to MFP...")     
     with ProgressStdoutRedirection(ath_un):
         print("Attempting to login to MFP...")
+
+    #----------- 2022/08/29 --------
+    # The below code is to incorporate Selenium to retrieve the login cookies, instantiate the cookiejar and pass to myfitnesspall.Client().
+    # It is a temporary workaround to address MFP introducing hidden captcha on 25th of Aug.
+    # For this to work you will need to download the chromedriver that matches the version of yur chrome browser, and place it in /work_dir/temp/.
+    # https://chromedriver.chromium.org/getting-started
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from http.cookiejar import Cookie,CookieJar
+    import time
+
+    def to_cookielib_cookie(selenium_cookie):
+        if 'expiry' in selenium_cookie:
+            expires=selenium_cookie['expiry']
+        else:
+            expires=None
+        return Cookie(
+            version=0,
+            name=selenium_cookie['name'],
+            value=selenium_cookie['value'],
+            port='80',
+            port_specified=False,
+            domain=selenium_cookie['domain'],
+            domain_specified=True,
+            domain_initial_dot=False,
+            path=selenium_cookie['path'],
+            path_specified=True,
+            secure=selenium_cookie['secure'],
+            expires=expires,
+            discard=False,
+            comment=None,
+            comment_url=None,
+            rest=None,
+            rfc2109=False
+        )
+
+    def put_cookies_in_jar(selenium_cookies, cookie_jar):
+        for cookie in selenium_cookies:
+            cookie_jar.set_cookie(to_cookielib_cookie(cookie))
+
+    cj = CookieJar()
+    options = Options()
+    options.add_argument('--no-sandbox')
+    options.add_argument('--headless')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("user-data-dir={}".format(PID_FILE_DIR+'selenium'))
+    driver = webdriver.Chrome(PID_FILE_DIR+'chromedriver.exe',options=options)# Modify this line if your chromedrive executable is located at a different path. The dafault location is /work_dir/temp.
+    driver.get('https://www.myfitnesspal.com/account/login') 
+    email = driver.find_element_by_id("email")
+    email.send_keys(mfp_username) #Email id 
+    password = driver.find_element_by_id("password")
+    password.send_keys(mfp_password)  #Password
+    time.sleep(3)
+    login = driver.find_element_by_id("password")
+    login.submit()   #Logging In
+    time.sleep(3)
+    cookies = driver.get_cookies()
+    put_cookies_in_jar(cookies,cj)
+
+    #----------- END Selenium workaround ---------------
+
     try:
-        client = myfitnesspal.Client(mfp_username,mfp_password)       
+        client = myfitnesspal.Client(cookiejar=cj) # 2022/08/29 Selenium workaround: addedd "cookiejar=cj".   
     except ValueError as e:
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '-E1- ' + str(e)))
@@ -70,6 +131,8 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
         print('MFP Login successful! Proceeding...')
     with ProgressStdoutRedirection(ath_un):
         print('MFP Login successful! Proceeding...')
+
+    driver.quit() # 2022/08/29 Selenium workaround: Close the selenium session
 
     mfp_user_insert(mfp_username,encrypted_pwd,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass) #PG: insert MFP user details into database
 
