@@ -18,7 +18,7 @@ numpy
 dropbox==11.0.0
 Flask
 func_timeout==4.3.5
-myfitnesspal==1.16.6
+myfitnesspal==2.0.0
 mechanize==0.4.5
 dicttoxml==1.7.4
 psutil==5.8.0
