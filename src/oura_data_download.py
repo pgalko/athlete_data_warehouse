@@ -300,7 +300,10 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         met_min_medium = row.met_min_medium
         non_wear = row.non_wear
         rest = row.rest
-        rest_mode_state = row.rest_mode_state
+        try:
+            rest_mode_state = row.rest_mode_state
+        except:
+            rest_mode_state = None
         try:
             score = row.score
             score_meet_daily_targets = row.score_meet_daily_targets
@@ -410,8 +413,11 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
 
 
     for row in readiness_df.itertuples(): 
-        period_id = row.period_id
-        rest_mode_state = row.rest_mode_state
+        try:
+            period_id = row.period_id
+            rest_mode_state = row.rest_mode_state
+        except:
+            period_id = rest_mode_state = None
         score = row.score
         score_activity_balance = row.score_activity_balance
         score_hrv_balance = row.score_hrv_balance
