@@ -145,9 +145,35 @@ def auto_synch(ath_un, db_name, db_host, superuser_un, superuser_pw, gc_username
             finally:
                 if conn is not None:
                     conn.close()
-        #Periodic daily auto_synch(2days)
-        else:     
-            start_date = datetime.datetime.today() - datetime.timedelta(days=2) #PG: start_day = one day before yesterday 
+        #Periodic daily auto_synch(2 days back from last_synch)
+        #Retrieve last_synch from db_info, subtract 2 days and use as a start date for the autosynch
+        else:   
+            sql_select_last_synch ="""     
+            SELECT last_synch FROM db_info WHERE db_name= %s;
+            """
+            try:
+                params = config(filename="encrypted_settings.ini", section="postgresql", encr_pass=encr_pass)
+                postgres_db = params.get("database")
+                postgres_un = params.get("user")
+                postgres_pw = params.get("password")
+                postgres_host = params.get("host") 
+
+                conn_localhost = psycopg2.connect(host=postgres_host, dbname=postgres_db, user=postgres_un, password=postgres_pw)
+                cur_localhost = conn_localhost.cursor() 
+                cur_localhost.execute(sql_select_last_synch,(db_name,))
+                conn_localhost.commit()
+                result = cur_localhost.fetchone()
+                last_synch_str = result[0]
+                last_synch_dt = datetime.datetime.strptime(last_synch_str,"%Y-%m-%d %H:%M:%S")
+                start_date = last_synch_dt - datetime.timedelta(days=2) #PG: start_day = 2 days before last_synch
+            except (Exception, psycopg2.DatabaseError) as error:
+                with ErrorStdoutRedirection(ath_un):
+                    print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(error)))
+            finally:
+                if conn_localhost is not None:
+                    conn_localhost.close
+    
+            #start_date = datetime.datetime.today() - datetime.timedelta(days=2) #PG: start_day = one day before yesterday 
         #Calculate end_date
         end_date = datetime.datetime.today() - datetime.timedelta(days=1) #PG: end_date = yesterday
         end_date_today = datetime.datetime.today() #"PG: end_date_today = today
