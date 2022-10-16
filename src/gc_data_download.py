@@ -531,110 +531,6 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
         
         #PG: Check whether the data from this file "file_path_unzipped" have been inserted into to DB during one of the previous runs 
         data_file_exists = check_data_file_exists(file_path_unzipped,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-        if data_file_exists == True:
-            with StdoutRedirection(ath_un):
-                print(('{} already downloaded and inserted to DB. Skipping.'.format(file_name_unzipped)))
-            with ProgressStdoutRedirection(ath_un):
-                print(('{} already downloaded to {} and inserted to DB. Skipping.'.format(file_name_unzipped, download_folder)))
-            # PG Archive to dbx already localy existing file
-            if dbx_file_exists == False:
-                #PG: Check whether the file needs to be downloaded or still exists in the download folder
-                if not os.path.exists(file_path_unzipped):
-                    with StdoutRedirection(ath_un):
-                        print(('{} is downloading...'.format(file_name)))
-                    with ProgressStdoutRedirection(ath_un):
-                        print(('{} is downloading...'.format(file_name)))
-                    try:
-                        datafile = agent.get(url).content
-                    except urllib.error.HTTPError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try:
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
-                    except urllib.error.URLError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Retrying...'.format(file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try: 
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit wellness {}. Aborting...'.format(file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
-
-                    file_path = os.path.join(download_folder, file_name)       
-                    f = open(file_path, "wb")
-                    f.write(datafile)
-                    f.close()
-                        
-                    #PG: Unzip the fit files and delete archive
-                    with StdoutRedirection(ath_un):
-                        print("Unzipping and removing original files...")
-                    with ProgressStdoutRedirection(ath_un):
-                        print("Unzipping and removing original files...")
-                    with StdoutRedirection(ath_un):
-                        print(('Filesize is: ' + str(stat(file_path).st_size)))
-                    print(('Filesize is: ' + str(stat(file_path).st_size)))
-                    if stat(file_path).st_size > 0:
-                            zip_file = open(file_path, 'rb')
-                            z = zipfile.ZipFile(zip_file)
-                            for name in z.namelist():
-                                z.extract(name,file_path_unzipped)
-                            zip_file.close()
-                    else:
-                        with ProgressStdoutRedirection(ath_un):
-                            print('Skipping 0Kb zip file.')
-                    remove(file_path)
-                    download_subfolder_dbx = download_folder_dbx+'/'+file_name_unzipped
-                    for filename in os.listdir(file_path_unzipped):
-                        path_to_file = file_path_unzipped+'/'+filename
-                        download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx,encr_pass)
-                    if preserve_files == "false":
-                        #Remove the csv file from download folder
-                        rmtree(file_path_unzipped)
-                    else:
-                        #Move the csv to archive folder
-                        if not os.path.exists(file_path_archive):
-                            move(file_path_unzipped,file_path_archive)
-                        else:
-                            rmtree(file_path_unzipped)
-                else:
-                    download_subfolder_dbx = download_folder_dbx+'/'+file_name_unzipped
-                    for filename in os.listdir(file_path_unzipped):
-                        path_to_file = file_path_unzipped+'/'+filename
-                        download_files_to_dbx(path_to_file,filename,dbx_auth_token, download_subfolder_dbx,encr_pass)
-                    if preserve_files == "false":
-                        #Remove the csv file from download folder
-                        rmtree(file_path_unzipped)
-                    else:
-                        #Move the csv to archive folder
-                        if not os.path.exists(file_path_archive):
-                            move(file_path_unzipped,file_path_archive)
-                        else:
-                            rmtree(file_path_unzipped)
-            continue
-
         #PG: Check whether the file needs to be downloaded or still exists in the download folder
         if not os.path.exists(file_path_unzipped):
             with StdoutRedirection(ath_un):
@@ -712,8 +608,8 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
             with ProgressStdoutRedirection(ath_un):
                 print('Done.')
 
-        # PG Archive to dbx newly downloaded files
-        if dbx_file_exists == False:
+        # TODO:Archive to dbx newly downloaded file but only if the day is complete
+        if dbx_file_exists == False and single_date.date() < datetime.datetime.today().date():
                download_subfolder_dbx = download_folder_dbx+'/'+file_name_unzipped
                for filename in os.listdir(file_path_unzipped):
                    path_to_file = file_path_unzipped+'/'+filename
@@ -752,8 +648,8 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
             #Remove the csv file from download folder
             rmtree(file_path_unzipped)
         else:
-            #Move the csv to archive folder
-            if not os.path.exists(file_path_archive):
+            #Move the csv to archive folder if the day is complete
+            if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                 move(file_path_unzipped,file_path_archive)
             else:
                 rmtree(file_path_unzipped)
@@ -794,101 +690,6 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
         
         data_file_exists = check_data_file_exists(xml_file_path,ath_un,db_host,db_name,superuser_un,superuser_pw, encr_pass)
-        if data_file_exists == True:
-            with StdoutRedirection(ath_un):
-                print(('{} already downloaded and inserted to DB. Skipping.'.format(xml_file_name)))
-            with ProgressStdoutRedirection(ath_un):
-                print(('{} already downloaded to {} and inserted to DB. Skipping.'.format(xml_file_name, download_folder)))
-            # PG Archive to dbx already localy existing file
-            if dbx_file_exists == False:
-                #PG: Check whether the file needs to be downloaded or still exists in the download folder
-                if not os.path.exists(xml_file_path):
-                    with StdoutRedirection(ath_un):    
-                        print(('{} is downloading...'.format(json_file_name)))
-                    with ProgressStdoutRedirection(ath_un):
-                        print(('{} is downloading...'.format(json_file_name)))
-                    
-                    try:
-                        datafile = agent.get(url).content
-                    except urllib.error.HTTPError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try:
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
-                    except urllib.error.URLError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try: 
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Aborting...'.format(json_file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
-                    
-                    #PG:Convert wellness data from json to xml
-                    try:
-                        obj = json.loads(datafile)
-                        xml = dicttoxml.dicttoxml(obj)
-                        dom = parseString(xml)
-                        pretty_xml = dom.toprettyxml()
-                        with open(xml_file_path, "w") as f:
-                            f.write(pretty_xml)
-                            f.close()
-                        #PG:Remove "null" values from the xml file         
-                        with open(xml_file_path, "U") as f:
-                            not_null_xml = f.read()
-                            while '<value type="null"/>' in not_null_xml:
-                                not_null_xml = not_null_xml.replace('<value type="null"/>', '<value type="float">0.0</value>')
-                        with open(xml_file_path, "w") as f:
-                            f.write(not_null_xml)
-                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
-                        if preserve_files == "false":
-                            #Remove the csv file from download folder
-                            os.remove(xml_file_path)
-                        else:
-                            #Move the csv to archive folder
-                            if not os.path.exists(file_path_archive):
-                                os.rename(xml_file_path,file_path_archive)
-                            else:
-                                os.remove(xml_file_path)
-                    except Exception as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        continue  
-                else:
-                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
-                    if preserve_files == "false":
-                        #Remove the csv file from download folder
-                        os.remove(xml_file_path)
-                    else:
-                        #Move the csv to archive folder
-                        if not os.path.exists(file_path_archive):
-                            os.rename(xml_file_path,file_path_archive)
-                        else:
-                            os.remove(xml_file_path)
-            continue
 
         #PG: Check whether the file needs to be downloaded or still exists in the download folder
         if not os.path.exists(xml_file_path):
@@ -957,8 +758,8 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
 
-        # PG Archive to dbx newly downloaded file
-        if dbx_file_exists == False:
+        # Archive to dbx newly downloaded file but only if the day is complete
+        if dbx_file_exists == False and single_date.date() < datetime.datetime.today().date():
             download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         
 
@@ -970,8 +771,8 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -997,8 +798,8 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1010,8 +811,8 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1057,101 +858,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         data_file_exists = check_data_file_exists(xml_file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-        if data_file_exists == True:
-            with StdoutRedirection(ath_un):
-                print(('{} already downloaded and inserted to DB. Skipping.'.format(xml_file_name)))
-            with ProgressStdoutRedirection(ath_un):
-                print(('{} already downloaded to {} and inserted to DB. Skipping.'.format(xml_file_name, download_folder)))
-            # PG Archive to dbx already localy existing file
-            if dbx_file_exists == False:
-                if not os.path.exists(xml_file_path): 
-                    with StdoutRedirection(ath_un):    
-                        print(('{} is downloading...'.format(json_file_name)))
-                    with ProgressStdoutRedirection(ath_un):
-                        print(('{} is downloading...'.format(json_file_name)))
-                        
-                    try:
-                        datafile = agent.get(url).content
-                    except urllib.error.HTTPError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try:
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
-                    except urllib.error.URLError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try: 
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Aborting...'.format(json_file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
 
-                    #PG:Convert daily_summary data from json to xml
-                    try:
-                        obj = json.loads(datafile)
-                        xml = dicttoxml.dicttoxml(obj)
-                        dom = parseString(xml)
-                        pretty_xml = dom.toprettyxml()
-                        with open(xml_file_path, "w") as f:
-                            f.write(pretty_xml)
-                            f.close()          
-                        #PG:Remove "null" values from the xml file         
-                        with open(xml_file_path, "U") as f:
-                            not_null_xml = f.read()
-                            while '<value type="null"/>' in not_null_xml:
-                                not_null_xml = not_null_xml.replace('<value type="null"/>', '<value type="float">0.0</value>')
-                        with open(xml_file_path, "w") as f:
-                            f.write(not_null_xml)
-                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
-                        if preserve_files == "false":
-                            #Remove the csv file from download folder
-                            os.remove(xml_file_path)
-                        else:
-                            #Move the csv to archive folder
-                            if not os.path.exists(file_path_archive):
-                                os.rename(xml_file_path,file_path_archive)
-                            else:
-                                os.remove(xml_file_path)
-                    except Exception as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        continue   
-                else:
-                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
-                    if preserve_files == "false":
-                        #Remove the csv file from download folder
-                        os.remove(xml_file_path)
-                    else:
-                        #Move the csv to archive folder
-                        if not os.path.exists(file_path_archive):
-                            os.rename(xml_file_path,file_path_archive)
-                        else:
-                            os.remove(xml_file_path)
-            continue
-        
         if not os.path.exists(xml_file_path): 
             with StdoutRedirection(ath_un):    
                 print(('{} is downloading...'.format(json_file_name)))
@@ -1218,8 +925,8 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
 
-        # PG Archive to dbx newly downloaded  file
-        if dbx_file_exists == False:
+        # PG Archive to dbx newly downloaded  file if the day is complete.
+        if dbx_file_exists == False and single_date.date() < datetime.datetime.today().date():
             download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
         
         #Function that combines several functions to parse the dailysummary xml file and insert the data to db
@@ -1230,8 +937,8 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete.
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1256,8 +963,8 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1270,7 +977,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                 os.remove(xml_file_path)
             else:
                 #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1323,102 +1030,6 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
         data_file_exists = check_data_file_exists(xml_file_path,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-        if data_file_exists == True:
-            with StdoutRedirection(ath_un):
-                print(('{} already downloaded and inserted to DB. Skipping.'.format(xml_file_name)))
-            with ProgressStdoutRedirection(ath_un):
-                print(('{} already downloaded to {} and inserted to DB. Skipping.'.format(xml_file_name, download_folder)))
-            # PG Archive to dbx already localy existing file
-            if dbx_file_exists == False:
-                #PG: Check whether the file needs to be downloaded or still exists in the download folder
-                if not os.path.exists(xml_file_path):
-
-                    with StdoutRedirection(ath_un):    
-                        print(('{} is downloading...'.format(json_file_name)))
-                    with ProgressStdoutRedirection(ath_un):
-                        print(('{} is downloading...'.format(json_file_name)))
-                    
-                    try:
-                        datafile = agent.get(url).content
-                    except urllib.error.HTTPError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try:
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue
-                    except urllib.error.URLError as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        try: 
-                            #Pause and Retry login
-                            time.sleep(10)
-                            agent = login(gc_username, gc_password)
-                            datafile = agent.get(url).content
-                            pass
-                        except:
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Aborting...'.format(json_file_name)))
-                            with ErrorStdoutRedirection(ath_un):
-                                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                            #Abort and continue to next file
-                            continue     
-                    
-                    #PG:Convert wellness data from json to xml
-                    try:
-                        obj = json.loads(datafile)
-                        xml = dicttoxml.dicttoxml(obj)
-                        dom = parseString(xml)
-                        pretty_xml = dom.toprettyxml()
-                        with open(xml_file_path, "w") as f:
-                            f.write(pretty_xml)
-                            f.close()
-                        #PG:Remove "null" values from the xml file         
-                        with open(xml_file_path, "U") as f:
-                            not_null_xml = f.read()
-                            while '<value type="null"/>' in not_null_xml:
-                                not_null_xml = not_null_xml.replace('<value type="null"/>', '<value type="float">0.0</value>')
-                        with open(xml_file_path, "w") as f:
-                            f.write(not_null_xml)
-                        download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
-                        if preserve_files == "false":
-                            #Remove the csv file from download folder
-                            os.remove(xml_file_path)
-                        else:
-                            #Move the csv to archive folder
-                            if not os.path.exists(file_path_archive):
-                                os.rename(xml_file_path,file_path_archive)
-                            else:
-                                os.remove(xml_file_path)
-                    except Exception as e:
-                        with ErrorStdoutRedirection(ath_un):
-                            print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
-                        continue
-                else:
-                    download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
-                    if preserve_files == "false":
-                        #Remove the csv file from download folder
-                        os.remove(xml_file_path)
-                    else:
-                        #Move the csv to archive folder
-                        if not os.path.exists(file_path_archive):
-                            os.rename(xml_file_path,file_path_archive)
-                        else:
-                            os.remove(xml_file_path)
-            continue
 
         #PG: Check whether the file needs to be downloaded or still exists in the download folder
         if not os.path.exists(xml_file_path):
@@ -1488,8 +1099,8 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
                 continue
 
-        # PG Archive to dbx newly downloaded file
-        if dbx_file_exists == False:
+        # Archive to dbx newly downloaded file but only if the day is complete
+        if dbx_file_exists == False and single_date.date() < datetime.datetime.today().date():
             download_files_to_dbx(xml_file_path,xml_file_name,dbx_auth_token,download_folder_dbx,encr_pass)
 
 
@@ -1501,8 +1112,8 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1527,8 +1138,8 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)
@@ -1540,8 +1151,8 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                 #Remove the csv file from download folder
                 os.remove(xml_file_path)
             else:
-                #Move the csv to archive folder
-                if not os.path.exists(file_path_archive):
+                #Move the csv to archive folder if the day is complete
+                if not os.path.exists(file_path_archive) and single_date.date() < datetime.datetime.today().date():
                     os.rename(xml_file_path,file_path_archive)
                 else:
                     os.remove(xml_file_path)

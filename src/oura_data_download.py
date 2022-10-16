@@ -60,8 +60,11 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
     else:
         encrypted_refresh_token = None
 
+    end_date_today_dt = end_date_dt + datetime.timedelta(days=1)
+
     start_date = datetime.datetime.strftime(start_date_dt,"%Y-%m-%d")
     end_date = datetime.datetime.strftime(end_date_dt,"%Y-%m-%d")
+    end_date_today = datetime.datetime.strftime(end_date_today_dt,"%Y-%m-%d")
 
     conn = psycopg2.connect(dbname=db_name, host=db_host, user=superuser_un,password=superuser_pw)
  
@@ -100,8 +103,15 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         VALUES
         ((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 
-        ON CONFLICT (summary_date) DO NOTHING;
+        ON CONFLICT (summary_date) DO UPDATE
         
+        SET (athlete_id,summary_date,day_start,day_end,timezone,score,score_stay_active,score_move_every_hour,score_meet_daily_targets,
+        score_training_frequency,score_training_volume,score_recovery_time,daily_movement,non_wear,rest,inactive,inactivity_alerts,low,medium,high,steps,cal_total,
+        cal_active,met_min_inactive,met_min_low,met_min_medium,met_min_high,average_met,rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km)
+        =((select id from athlete where ath_un=%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+
+        WHERE oura_activity_daily_summary.summary_date
+        = %s
     """
 
     sql_insert_readiness_summary = """
@@ -134,7 +144,12 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
         VALUES
         ((select id from oura_activity_daily_summary where summary_date=%s),%s,%s,%s)
 
-        ON CONFLICT (timestamp_gmt) DO NOTHING;
+        ON CONFLICT (timestamp_gmt) DO UPDATE
+
+        SET (oura_activity_id,timestamp_gmt,class_5min,met_1min)
+        = ((select id from oura_activity_daily_summary where summary_date=%s),%s,%s,%s)
+
+        WHERE oura_activity_detail.timestamp_gmt = %s;
         
     """
 
@@ -268,7 +283,7 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
     
     activity_data = requests.get('https://api.ouraring.com/v1/activity?'
                               'start={}&end={}&access_token={}'
-                              .format(start_date, end_date, access_token))
+                              .format(start_date, end_date_today, access_token))
     json_activity = activity_data.json()
     activity_df = pd.DataFrame(json_activity['activity'])
     ####activity_df = activity_df.fillna(0)
@@ -336,7 +351,11 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
             cur.execute(sql_insert_activity_summary,(ath_un,summary_date,datetime.datetime.strftime(day_start,"%Y-%m-%d %H:%M:%S"),datetime.datetime.strftime(day_end,"%Y-%m-%d %H:%M:%S"),
                         timezone,score,score_stay_active,score_move_every_hour,score_meet_daily_targets,score_training_frequency,score_training_volume,score_recovery_time,daily_movement,
                         non_wear,rest,inactive,inactivity_alerts,low,medium,high,steps,cal_total,cal_active,met_min_inactive,met_min_low,met_min_medium,met_min_high,average_met,
-                        rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km)
+                        rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km,
+                        ath_un,summary_date,datetime.datetime.strftime(day_start,"%Y-%m-%d %H:%M:%S"),datetime.datetime.strftime(day_end,"%Y-%m-%d %H:%M:%S"),
+                        timezone,score,score_stay_active,score_move_every_hour,score_meet_daily_targets,score_training_frequency,score_training_volume,score_recovery_time,daily_movement,
+                        non_wear,rest,inactive,inactivity_alerts,low,medium,high,steps,cal_total,cal_active,met_min_inactive,met_min_low,met_min_medium,met_min_high,average_met,
+                        rest_mode_state,to_target_km,target_miles,total,to_target_miles,target_calories,target_km,summary_date)
                         )
             conn.commit()       
             cur.close()
@@ -393,7 +412,8 @@ def dwnld_insert_oura_data(ath_un,db_host,db_name,superuser_un,superuser_pw,oura
 
             try:       
                 cur = conn.cursor()
-                cur.execute(sql_insert_activity_detail,(summary_date,timestamp_row,class_5min_row,met_1min_row))
+                cur.execute(sql_insert_activity_detail,(summary_date,timestamp_row,class_5min_row,met_1min_row,
+                           summary_date,timestamp_row,class_5min_row,met_1min_row,timestamp_row))
                 conn.commit()       
                 cur.close()
             except Exception as e:

@@ -546,7 +546,7 @@ def index():
                             with StdoutRedirection(ath_un):
                                 print(gc_fit_well_progress)
                             time.sleep(1)        
-                            gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
+                            gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date_today,gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
                             gc_fit_well_progress = 'GC FIT wellness data downloaded successfully'
                             with StdoutRedirection(ath_un):
                                 print(gc_fit_well_progress)
@@ -570,8 +570,8 @@ def index():
                             with StdoutRedirection(ath_un):
                                 print(gc_json_well_progress)
                             time.sleep(1)                
-                            gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
-                            gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, archive_radio, dbx_auth_token,encr_pass)
+                            gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date_today, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
+                            gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date_today, gc_username, gc_password, mfp_username, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, archive_radio, dbx_auth_token,encr_pass)
                             gc_json_well_progress = 'GC JSON wellness data downloaded successfully'
                             with StdoutRedirection(ath_un):
                                 print(gc_json_well_progress)
@@ -595,7 +595,7 @@ def index():
                             with StdoutRedirection(ath_un):
                                 print(gc_json_dailysum_progress)
                             time.sleep(1)        
-                            gc.dwnld_insert_json_dailysummary(ath_un,gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
+                            gc.dwnld_insert_json_dailysummary(ath_un,gc_agent, start_date, end_date_today, gc_username, gc_password, mfp_username, display_name, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox,archive_radio,dbx_auth_token,encr_pass)
                             gc_json_dailysum_progress = 'GC JSON daily summary data downloaded successfully'
                             with StdoutRedirection(ath_un):
                                 print(gc_json_dailysum_progress)
@@ -646,7 +646,7 @@ def index():
                         with StdoutRedirection(ath_un):
                             print(mfp_progress)
                         time.sleep(1)
-                        mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,encr_pass,save_pwd,auto_synch,db_host,superuser_un,superuser_pw)
+                        mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date_today,encr_pass,save_pwd,auto_synch,db_host,superuser_un,superuser_pw)
                         mfp_progress = 'MFP nutrition data downloaded successfully'
                         with StdoutRedirection(ath_un):
                             print(mfp_progress)

@@ -38,17 +38,17 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
         try:                
             gc_agent = gc.login(gc_username, gc_password)   
             gc.dwnld_insert_fit_activities(ath_un, gc_agent, gc_username, gc_password, mfp_username, start_date, end_date_today, output, db_host, db_name, superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token, auto_synch,encr_pass)
-            gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date,gc_username, gc_password, mfp_username, output,db_host,db_name,superuser_un,superuser_pw,archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
-            gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
-            gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
-            gc.dwnld_insert_json_dailysummary(ath_un, gc_agent, start_date, end_date, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_fit_wellness(ath_un, gc_agent,start_date,end_date_today,gc_username, gc_password, mfp_username, output,db_host,db_name,superuser_un,superuser_pw,archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_json_body_composition(ath_un, gc_agent, start_date, end_date_today, gc_username, gc_password, mfp_username, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_json_wellness(ath_un, gc_agent, start_date, end_date_today, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
+            gc.dwnld_insert_json_dailysummary(ath_un, gc_agent, start_date, end_date_today, gc_username, gc_password, mfp_username, display_name, output, db_host,db_name,superuser_un,superuser_pw, archive_to_dropbox, "archiveFiles", dbx_auth_token,encr_pass)
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
 
     if mfp_username is not None:
         try:
-            mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,encr_pass,True,True,db_host,superuser_un,superuser_pw)
+            mfp.dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date_today,encr_pass,True,True,db_host,superuser_un,superuser_pw)
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -84,7 +84,7 @@ def run_dwnld_functions(start_date, end_date, end_date_today, ath_un, gc_usernam
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
     if strava_refresh_token is not None:   
         try: 
-            strava.dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,strava_refresh_token,start_date,end_date,True,encr_pass) 
+            strava.dwnld_insert_strava_data(ath_un,db_host,db_name,superuser_un,superuser_pw,strava_refresh_token,start_date,end_date_today,True,encr_pass) 
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))

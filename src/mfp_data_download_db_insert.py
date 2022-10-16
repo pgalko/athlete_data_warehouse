@@ -151,17 +151,29 @@ def dwnld_insert_nutrition(mfp_username,mfp_password,ath_un,start_date,end_date,
 
         #PG: Check whether the data for this date have been inserted into to DB during one of the previous runs         
         data_exists = check_data_file_exists(data_exist_for_date,ath_un,db_host,db_name,superuser_un,superuser_pw,encr_pass)
-        if data_exists == True:
-            with StdoutRedirection(ath_un):
-                print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
-            with ProgressStdoutRedirection(ath_un):
-                print(('Nutrition data for {} already downloaded and inserted to DB. Skipping.'.format(date_in_range)))
-            continue
 
         with StdoutRedirection(ath_un):
             print(('Downloading nutrition data: '+date_in_range))
         with ProgressStdoutRedirection(ath_un):
             print(('Downloading nutrition data: '+date_in_range))
+
+        sql_delete_day = """
+        DELETE FROM mfp_nutrition WHERE date = %s;
+        """
+
+        try:
+            # create a cursor
+            cur = conn.cursor()
+            # execute a statement
+            cur.execute(sql_delete_day,(date_in_range,))
+            conn.commit()
+            # close the communication with the PostgreSQL
+            cur.close()
+            
+        except  (Exception, psycopg2.DatabaseError) as error:
+            with ErrorStdoutRedirection(ath_un):
+                print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '-E2-  ' + str(error)))
+
 
         try:
             fiber_value,sodium_value,carbohydrates_value,calories_value,fat_value,protein_value,sat_fat_value,ply_fat_value,mon_fat_value,trn_fat_value,chol_value,potass_value,sugar_value,vit_a_value,vit_c_value,calcium_value,iron_value=[None]*17
