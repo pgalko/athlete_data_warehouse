@@ -33,3 +33,4 @@ cloudscraper==1.2.60
 regex
 apache-superset==1.4.1
 markupsafe==2.0.1
+waitress==2.1.2

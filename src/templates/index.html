@@ -115,11 +115,10 @@
             {% endif %}
                 <a class="btn btn-outline-light dropdown-toggle" id="browse_data" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-left: 15px"><span class="oi oi-layers" aria-hidden="true"></span> Browse DB</a>
                 <div class="dropdown-menu" aria-labelledby="browse_data">
-                    <a class="dropdown-item" href={{pgweb_smpl_url}} target="_blank">Sample DB</a>
                     {% if signin_valid %}
-                        <a class="dropdown-item" href={{pgweb_usr_url}} target="_blank">Your DB</a>
+                        <a class="dropdown-item" href={{pgweb_usr_url}} target="_blank">PGweb</a>
                     {% else %}
-                        <a class="dropdown-item" href="#" title="Requires Login !">Your DB</a>
+                        <a class="dropdown-item" href="#" title="Requires Login !">PGweb</a>
                     {% endif %}
                 </div>
             </span>
@@ -131,11 +130,10 @@
             {% endif %}
                 <a class="btn btn-outline-light dropdown-toggle" id="analyse_data" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-left: 15px"><span class="oi oi-graph" aria-hidden="true"></span> Analyse Data</a>
                 <div class="dropdown-menu" aria-labelledby="analyse_data">
-                    <a class="dropdown-item" href="/ath_superset?user=smpl" target="_blank">Sample Data</a>
                     {% if signin_valid %}
-                        <a class="dropdown-item" href="/ath_superset?user=user" target="_blank">Your Data</a>
+                        <a class="dropdown-item" href="/ath_superset?user=user" target="_blank">Superset</a>
                     {% else %}
-                        <a class="dropdown-item" href="#" title="Requires Login !">Your Data</a>
+                        <a class="dropdown-item" href="#" title="Requires Login !">Superset</a>
                     {% endif %}
                 </div>
             </span>

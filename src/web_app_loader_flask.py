@@ -11,6 +11,7 @@ from encypt_ini_file import create_encr_ini_file
 from multiprocessing import Process
 from threading import Thread
 
+
 encrypted_ini_file = os.path.join("work_dir","config","encrypted_settings.ini")
 plaintext_ini_file = os.path.join("work_dir","config","settings.ini")
 
@@ -60,10 +61,13 @@ def load_apps():
         if os.path.isfile(plaintext_ini_file):
             print('Deleting plaintext .ini file...')
             os.unlink(plaintext_ini_file)
+
+
+    # Uncomment the below line if not running over HTTPS
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' #To be able to use oauth over http (for oura)
     
     #Start the Autosynch task in a separate thread and pass the encryption passphrase to it
-    #Disabled for testing !
-
+    #Normaly disabled for testing !
     from autosynch_loader import start_autosynch_loop
     autosynch_thread = Thread(target=start_autosynch_loop, name='autosynch_loop', args=(encr_pass,)) 
     autosynch_thread.daemon = True
@@ -72,8 +76,10 @@ def load_apps():
     #Start the Flask app and pass the encryption passphrase to it
     from athletedataapp_flask import create_app
     web_app = create_app(encr_pass,debug=True)
-    web_app.run(host='0.0.0.0')
 
-if __name__ == "__main__":
-    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' #To be able to use oauth over http (for oura) 
-    load_apps()
+    # Return web_app. 
+    # If you want to run via command prompt eg. waitress-serve --port 5000 --call "web_app_loader_flask:load_apps".
+    return web_app
+
+if __name__ == "__main__": 
+    load_apps().run(host='0.0.0.0')

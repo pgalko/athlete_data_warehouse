@@ -24,7 +24,8 @@ RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
 # Check chrome version
 RUN echo "Chrome: " && google-chrome --version
 # Download and Install chromedriver. The version here depends on what what version of chrome gets installed above !
-RUN wget https://chromedriver.storage.googleapis.com/105.0.5195.52/chromedriver_linux64.zip
+# The lastest chrome versions can be checked here: https://www.ubuntuupdates.org/package/google_chrome/stable/main/base/google-chrome-stable
+RUN wget https://chromedriver.storage.googleapis.com/107.0.5304.62/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip
 RUN mv chromedriver /usr/bin/chromedriver
 RUN chown root:root /usr/bin/chromedriver
@@ -33,10 +34,4 @@ RUN chmod +x /usr/bin/chromedriver
 # define the port number the container should expose
 EXPOSE 5000
 
-# run the command
-CMD ["python", "./web_app_loader_flask.py"]
-
 #docker build -t pgalko/athlete_data_warehouse .
-
-#docker run -it -e ENCR_PASS=0000 -v ./work_dir:/usr/src/athletedataapp/work_dir -p 5000:5000 pgalko/athlete_data_warehouse
-#docker run -d --name postgres -e POSTGRES_PASSWORD=postgres -v ./work_dir/db:/var/lib/postgresql/data -it postgres:13.5
