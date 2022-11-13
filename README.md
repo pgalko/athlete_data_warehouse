@@ -125,13 +125,13 @@ This tool requires user's login credentials for GarminConnect,MFP and Diasend, t
       
       Run "docker-compose up"
            
-      Browse to http://127.0.0.1:5000, create username and password and you should be able to start experimenting with different download options and settings.
+      Browse to http://localhost, create username and password and you should be able to start experimenting with different download options and settings.
        
       Upon first submit the user data DB and user role will be created. The DB will be accessible using the usual DB management tools like "pgAdmin" or the included "pgWeb".   
            The DB role and password for user's DB are derived from user's logon username and password.
            If username = johndoe@gmail.com and password = pass123, the DB role will be created as johndoe with password pass123.
                
-           The default encryption passphrase is 00000 and can be changed in the "docker-compose.yml" file.
+           The default encryption passphrase is 12345 and can be changed in the "docker-compose.yml" file.
            The default postgres credentials: postgres/postgres and can be changed in "the docker-compose.yml" file
            The default superset credentials: admin/admin
            
