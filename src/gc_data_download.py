@@ -185,7 +185,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
             os.makedirs(archive_folder)
     
     try:
-        response = agent.get(initUrl)
+        response = agent.get(initUrl,headers={"nk": "NT"})
     except Exception as e:
         with ErrorStdoutRedirection(ath_un):
             print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -193,7 +193,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
             print(('Error connecting to Garmin Connect for: {}.Retrying.'.format(ath_un)))
         #Retry login to GarminConnect
         agent = login(gc_username, gc_password)
-        response = agent.get(initUrl)
+        response = agent.get(initUrl,headers={"nk": "NT"})
         pass
   
     search = json.loads(response.text)
@@ -251,7 +251,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                         with ProgressStdoutRedirection(ath_un):
                             print(('{} is downloading...'.format(file_name)))
                         try:
-                            datafile = agent.get(url).content
+                            datafile = agent.get(url,headers={"nk": "NT"}).content
                         except urllib.error.HTTPError as e:
                             with ErrorStdoutRedirection(ath_un):
                                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
@@ -261,7 +261,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                                 #Pause and Retry login
                                 time.sleep(10)
                                 agent = login(gc_username, gc_password)
-                                datafile = agent.get(url).content
+                                datafile = agent.get(url,headers={"nk": "NT"}).content
                                 pass
                             except:
                                 with ErrorStdoutRedirection(ath_un):
@@ -279,7 +279,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                                 #Pause and Retry login
                                 time.sleep(10)
                                 agent = login(gc_username, gc_password)
-                                datafile = agent.get(url).content
+                                datafile = agent.get(url,headers={"nk": "NT"}).content
                                 pass
                             except:
                                 with ErrorStdoutRedirection(ath_un):
@@ -341,7 +341,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                 with ProgressStdoutRedirection(ath_un):
                     print(('{} is downloading...'.format(file_name)))
                 try:
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                 except urllib.error.HTTPError as e:
                     with ErrorStdoutRedirection(ath_un):
                         print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading fit activity {}. Retrying...'.format(file_name)))
@@ -351,7 +351,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                         #Pause and Retry login
                         time.sleep(10)
                         agent = login(gc_username, gc_password)
-                        datafile = agent.get(url).content
+                        datafile = agent.get(url,headers={"nk": "NT"}).content
                         pass
                     except:
                         with ErrorStdoutRedirection(ath_un):
@@ -369,7 +369,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
                         #Pause and Retry login
                         time.sleep(10)
                         agent = login(gc_username, gc_password)
-                        datafile = agent.get(url).content
+                        datafile = agent.get(url,headers={"nk": "NT"}).content
                         pass
                     except:
                         with ErrorStdoutRedirection(ath_un):
@@ -486,7 +486,7 @@ def dwnld_insert_fit_activities(ath_un, agent, gc_username, gc_password, mfp_use
         currentIndex += increment
         url = ACTIVITIES % (currentIndex, increment)
         try:
-            response = agent.get(url)
+            response = agent.get(url,headers={"nk": "NT"})
         except Exception as e:
             with ErrorStdoutRedirection(ath_un):
                 print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + '  ' + str(e)))
@@ -538,7 +538,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
             with ProgressStdoutRedirection(ath_un):
                 print(('{} is downloading...'.format(file_name)))
             try:
-                datafile = agent.get(url).content
+                datafile = agent.get(url,headers={"nk": "NT"}).content
             except urllib.error.HTTPError as e:
                 if e.code == 404:
                     with ErrorStdoutRedirection(ath_un):
@@ -553,7 +553,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
                         #Pause and Retry login
                         time.sleep(10)
                         agent = login(gc_username, gc_password)
-                        datafile = agent.get(url).content
+                        datafile = agent.get(url,headers={"nk": "NT"}).content
                         pass
                     except:
                         with ErrorStdoutRedirection(ath_un):
@@ -571,7 +571,7 @@ def dwnld_insert_fit_wellness(ath_un, agent, start_date, end_date, gc_username, 
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):
@@ -699,7 +699,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                 print(('{} is downloading...'.format(json_file_name)))
             
             try:
-                datafile = agent.get(url).content
+                datafile = agent.get(url,headers={"nk": "NT"}).content
             except urllib.error.HTTPError as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json wellness {}. Retrying...'.format(json_file_name)))
@@ -709,7 +709,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):
@@ -727,7 +727,7 @@ def dwnld_insert_json_wellness(ath_un, agent, start_date, end_date, gc_username,
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):
@@ -866,7 +866,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                 print(('{} is downloading...'.format(json_file_name)))
                 
             try:
-                datafile = agent.get(url).content
+                datafile = agent.get(url,headers={"nk": "NT"}).content
             except urllib.error.HTTPError as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json dailysummary {}. Retrying...'.format(json_file_name)))
@@ -876,7 +876,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):
@@ -894,7 +894,7 @@ def dwnld_insert_json_dailysummary(ath_un, agent, start_date, end_date, gc_usern
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):
@@ -1040,7 +1040,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                 print(('{} is downloading...'.format(json_file_name)))
             
             try:
-                datafile = agent.get(url).content
+                datafile = agent.get(url,headers={"nk": "NT"}).content
             except urllib.error.HTTPError as e:
                 with ErrorStdoutRedirection(ath_un):
                     print((str(datetime.datetime.now()) + ' [' + sys._getframe().f_code.co_name + ']' + ' Error on line {}'.format(sys.exc_info()[-1].tb_lineno) + 'The GarminConnect server couldn\'t fulfill the request downloading json body composition {}. Retrying...'.format(json_file_name)))
@@ -1050,7 +1050,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):
@@ -1068,7 +1068,7 @@ def dwnld_insert_json_body_composition(ath_un, agent, start_date, end_date, gc_u
                     #Pause and Retry login
                     time.sleep(10)
                     agent = login(gc_username, gc_password)
-                    datafile = agent.get(url).content
+                    datafile = agent.get(url,headers={"nk": "NT"}).content
                     pass
                 except:
                     with ErrorStdoutRedirection(ath_un):

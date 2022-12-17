@@ -1503,3 +1503,21 @@ CREATE OR REPLACE FUNCTION public.truncate_schema(_schema character varying)
 
 ALTER FUNCTION public.truncate_schema(character varying)
     OWNER TO postgres;
+
+--A FUNCTION to REPLACE a null value with the value from the previous record
+CREATE OR REPLACE FUNCTION public.nullfill( 
+    s anyelement, 
+    v anyelement) RETURNS anyelement AS 
+$$ 
+BEGIN 
+  RETURN COALESCE(v,s); 
+END; 
+$$ LANGUAGE PLPGSQL IMMUTABLE; 
+
+ALTER FUNCTION public.nullfill(anyelement,anyelement)
+    OWNER TO postgres;
+
+CREATE AGGREGATE public.nullfill(anyelement) ( 
+  SFUNC=public.nullfill, 
+  STYPE=anyelement 
+);
