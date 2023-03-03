@@ -242,7 +242,15 @@ CREATE TABLE public.garmin_connect_original_record (
     est_core_temp numeric,
     hrv_btb numeric,
     alpha1 numeric,
-    alpha1_raw numeric
+    alpha1_raw numeric,
+    stryd_power numeric, 
+    stryd_cadence numeric, 
+    stryd_ground_time numeric, 
+    stryd_vertical_oscillation numeric, 
+    stryd_form_power numeric, 
+    stryd_leg_spring_stiffness numeric, 
+    stryd_air_power numeric, 
+    stryd_impact_loading_rate numeric
 );
 
 ALTER TABLE public.garmin_connect_original_record OWNER TO postgres;

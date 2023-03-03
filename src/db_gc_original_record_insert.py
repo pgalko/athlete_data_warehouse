@@ -21,7 +21,7 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
     gc_activity_id = (activity_id)
     ath_un = (ath_un)
     db_name = (db_name)
-    activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,respiration_rate,performance_condition,est_core_temp,alpha1,alpha1_raw = [None]*42
+    activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature,avg_speed,avg_swimming_cadence,event,event_group,event_type,length_type,message_index,start_time,swim_stroke,total_calories,total_elapsed_time,total_strokes,total_timer_time,respiration_rate,performance_condition,est_core_temp,alpha1,alpha1_raw,stryd_power,stryd_cadence,stryd_ground_time,stryd_vertical_oscillation,stryd_form_power,stryd_leg_spring_stiffness,stryd_air_power,stryd_impact_loading_rate, = [None]*50
     hrv_record_list = (None, None, None, None)
     hrv_record_list_combined = []
     hrv_rmssd = None
@@ -102,17 +102,34 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
             if record_data.name == 'Alpha1':
                 alpha1 = record_data.value
             if record_data.name == 'Alpha1 (raw)':
-                alpha1_raw = record_data.value									   
+                alpha1_raw = record_data.value
+            if record_data.name == 'Power':
+                stryd_power = record_data.value	
+            if record_data.name == 'Cadence':
+                stryd_cadence = record_data.value
+            if record_data.name == 'Ground Time':
+                stryd_ground_time = record_data.value	
+            if record_data.name == 'Vertical Oscillation':
+                stryd_vertical_oscillation = record_data.value
+            if record_data.name == 'Form Power':
+                stryd_form_power = record_data.value
+            if record_data.name == 'Leg Spring Stiffness':
+                stryd_leg_spring_stiffness = record_data.value
+            if record_data.name == 'Air Power':
+                stryd_air_power = record_data.value
+            if record_data.name == 'Impact Loading Rate':
+                stryd_impact_loading_rate = record_data.value
 
         sql = """
 
             INSERT INTO garmin_connect_original_record (activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat
             ,position_long,speed,stance_time,stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power
             ,left_pedal_smoothness,left_torque_effectiveness,power,right_pedal_smoothness,right_torque_effectiveness,temperature
-            ,respiration_rate,performance_condition,est_core_temp,alpha1,alpha1_raw,gc_activity_id,lap_id)
+            ,respiration_rate,performance_condition,est_core_temp,alpha1,alpha1_raw,stryd_power,stryd_cadence,stryd_ground_time 
+            ,stryd_vertical_oscillation, stryd_form_power,stryd_leg_spring_stiffness,stryd_air_power,stryd_impact_loading_rate,gc_activity_id,lap_id)
 
             VALUES
-            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from garmin_connect_original_lap where timestamp >= %s and start_time < %s LIMIT 1))
+            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,(select id from garmin_connect_original_lap where timestamp >= %s and start_time < %s LIMIT 1))
             
             ON CONFLICT (timestamp,lap_id) DO NOTHING;
 
@@ -127,7 +144,8 @@ def gc_original_record_insert(file_path,activity_id,ath_un,db_host,db_name,super
             cur.execute(sql,(activity_type,altitude,cadence,distance,enhanced_altitude,enhanced_speed,fractional_cadence,heart_rate,position_lat,position_long,speed,stance_time,
                             stance_time_balance,step_length,timestamp,vertical_oscillation,vertical_ratio,accumulated_power,left_pedal_smoothness,left_torque_effectiveness,
                             power,right_pedal_smoothness,right_torque_effectiveness,temperature,respiration_rate,performance_condition,
-                            est_core_temp,alpha1,alpha1_raw,gc_activity_id,str(timestamp),str(timestamp)))
+                            est_core_temp,alpha1,alpha1_raw,stryd_power,stryd_cadence,stryd_ground_time ,stryd_vertical_oscillation, stryd_form_power,
+                            stryd_leg_spring_stiffness,stryd_air_power,stryd_impact_loading_rate,gc_activity_id,str(timestamp),str(timestamp)))
 
             cur.close()       
         except  (Exception, psycopg2.DatabaseError) as error:
