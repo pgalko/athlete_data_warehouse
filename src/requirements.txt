@@ -14,7 +14,7 @@ python_anticaptcha==0.7.1
 #pandas==1.2.0
 dash==1.18.1
 fitparse==1.2.0
-numpy
+numpy==1.22.4
 dropbox==11.0.0
 Flask
 func_timeout==4.3.5
