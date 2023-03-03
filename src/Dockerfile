@@ -25,7 +25,7 @@ RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
 RUN echo "Chrome: " && google-chrome --version
 # Download and Install chromedriver. The version here depends on what what version of chrome gets installed above !
 # The lastest chrome versions can be checked here: https://www.ubuntuupdates.org/package/google_chrome/stable/main/base/google-chrome-stable
-RUN wget https://chromedriver.storage.googleapis.com/107.0.5304.62/chromedriver_linux64.zip
+RUN wget https://chromedriver.storage.googleapis.com/110.0.5481.77/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip
 RUN mv chromedriver /usr/bin/chromedriver
 RUN chown root:root /usr/bin/chromedriver
